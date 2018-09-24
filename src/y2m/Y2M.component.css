@@ -1,0 +1,14 @@
+mat-card {
+    border-style: thin;
+    border-width: 1px;
+    width: 400px;
+}
+
+mat-form-field {
+    margin-top: 5px;
+    width: 100%;
+  }
+
+button:nth-child(2) {
+  margin-left: 50%;
+}
