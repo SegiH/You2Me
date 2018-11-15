@@ -1,0 +1,15 @@
+button:nth-of-type(2) {
+     background-color: green !important;
+     color: white;
+     margin-left: 50%;
+}
+
+mat-card {
+     border-style: solid;
+     border-width: 1px !important;
+     width: 400px;
+}
+
+mat-form-field {
+     width: 100%;
+}
