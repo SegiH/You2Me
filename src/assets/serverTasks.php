@@ -18,7 +18,7 @@
 
      if (!isset($_GET["step"])) {
           die("Step not provided");
-     }
+     } 
      
      // This script is called multiple times using Ajax requests
      switch($_GET["step"]) {
