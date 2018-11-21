@@ -52,6 +52,10 @@ export class Y2mComponent implements OnInit {
      constructor(public snackBar: MatSnackBar) {}
 
      ngOnInit() {
+          if (this.getParam("MoveToServer") != null) {
+               this.moveToServer = true;
+          }
+
           if (this.moveToServer === true) {
                this.stepperStepNames.push('Moving the file to new location');
           }
@@ -75,7 +79,11 @@ export class Y2mComponent implements OnInit {
      // Method called when all statuses have finished running
      finished() {
           this.isSubmitted = true;
-          this.downloadLinkVisible = true;
+
+          if (this.stepperStepNames.length === 4) {
+               this.downloadLinkVisible = true;
+          }
+
           this.isFinished =  true;
      }
 
@@ -89,7 +97,7 @@ export class Y2mComponent implements OnInit {
 
           const res = query.split('&');
 
-          if (name === 'URL' && res[0]) {
+          if (name === 'URL' && res[0] && res[0].indexOf("URL=") != -1) {
                const result = decodeURI(res[0].replace('URL=', ''));
 
                if (typeof result !== 'undefined' && result !== '') {
@@ -97,12 +105,14 @@ export class Y2mComponent implements OnInit {
                 } else {
                     return '';
                 }
-          } else if (name === 'Title' && res[1]) {
+          } else if (name === 'Title' && res[0] && res[0].indexOf("Title=") != -1) {
                let title = res[1];
                title = title.replace('Title=', '');
                title = title.replace(' (HQ)', '');
 
                return decodeURI(title);
+          } else if (name === 'MoveToServer' && res[0] && res[0].indexOf("MoveToServer=") != -1) {
+               return res[0];
           } else {
                return '';
           }
@@ -214,6 +224,7 @@ export class Y2mComponent implements OnInit {
                               this.finished();
                          } else {
                               this.currentStep = 3;
+                              this.processSteps();
                          }
 
                           break;
