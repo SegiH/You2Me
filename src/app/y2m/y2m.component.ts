@@ -1,3 +1,9 @@
+/*
+     TODO:
+     auto tagging
+   
+*/
+
 import { Component, OnInit } from '@angular/core';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material';
 
@@ -52,8 +58,9 @@ export class Y2mComponent implements OnInit {
      constructor(public snackBar: MatSnackBar) {}
 
      ngOnInit() {
-          if (this.getParam("MoveToServer") != null) {
+          if (this.getParam('MoveToServer') != null) {
                this.moveToServer = true;
+               document.title = 'YouTube 2 MP3 (Server)';
           }
 
           if (this.moveToServer === true) {
@@ -97,24 +104,28 @@ export class Y2mComponent implements OnInit {
 
           const res = query.split('&');
 
-          if (name === 'URL' && res[0] && res[0].indexOf("URL=") != -1) {
-               const result = decodeURI(res[0].replace('URL=', ''));
+          // Create object which contains split key value pairs so "URL=https://www.youtube.com/watch?v=Wch3gJG2GJ4" turns into ['URL','https://www.youtube.com/watch?v=Wch3gJG2GJ4']
+          const map1 = res.map(x => x.split('='));
 
-               if (typeof result !== 'undefined' && result !== '') {
-                    return result;
-                } else {
+          const params: any = {};
+
+          // Add key/pair to object
+          map1.map(x => params[x[0]] = x[1] + (x[2] != null ? '=' + x[2] : '') );
+
+          if (typeof params[name] !== 'undefined') {
+               if (name === 'URL') {
+                    return params[name];
+               } else if (name === 'Title') {
+                    let title = params[name];
+                    title = title.replace('Title=', '');
+                    title = title.replace(' (HQ)', '');
+
+                    return decodeURI(title);
+               } else if (name === 'MoveToServer') {
+                    return params[name];
+               } else {
                     return '';
-                }
-          } else if (name === 'Title' && res[0] && res[0].indexOf("Title=") != -1) {
-               let title = res[1];
-               title = title.replace('Title=', '');
-               title = title.replace(' (HQ)', '');
-
-               return decodeURI(title);
-          } else if (name === 'MoveToServer' && res[0] && res[0].indexOf("MoveToServer=") != -1) {
-               return res[0];
-          } else {
-               return '';
+               }
           }
      }
 
