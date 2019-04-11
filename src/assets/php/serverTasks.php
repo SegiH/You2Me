@@ -18,16 +18,25 @@
 
      if (!isset($_GET["step"])) {
           die("Step not provided");
-     } 
+     }
      
      // This script is called multiple times using Ajax requests
      switch($_GET["step"]) {
           case "1": // Download the song
-               // Execute the script that downloads the song and returns the mp3 file name
-	       if ($os=='Unix') 	  
-	            $cmd="youtube-dl " .  htmlspecialchars($_GET["URL"]) . " -x --audio-format mp3 --audio-quality 320 | grep Destination: | grep mp3 2>&1";
+               // $bitrate = (isset($_GET["Bitrate"]) ? htmlspecialchars($_GET["Bitrate"]) : (htmlspecialchars($_GET["AudioFormat"])=="mp3" ? '320k' : ''));
+               $bitrate = (isset($_GET["Bitrate"]) ? htmlspecialchars($_GET["Bitrate"]) : '320k');
+
+               // Build command that will download the song and returns the audio file name
+	       // $cmd="youtube-dl " .  htmlspecialchars($_GET["URL"]) . " -x --audio-format " . htmlspecialchars($_GET["AudioFormat"]) . " --audio-quality " . $bitrate;
+	       $cmd="youtube-dl " .  htmlspecialchars($_GET["URL"]) . " -x --audio-format mp3 --audio-quality " . $bitrate;
+
+	       
+               if ($os=='Unix') 	  
+	            // $cmd.=" | grep Destination: | grep " . htmlspecialchars($_GET["AudioFormat"]) . " 2>&1";
+	            $cmd.=" | grep Destination: | grep mp3 2>&1";
 	       else
-	            $cmd="youtube-dl " .  htmlspecialchars($_GET["URL"]) . " -x --audio-format mp3 --audio-quality 320 | find \"Destination:\" | find \"mp3\" 2>&1";
+	            // $cmd.=" | find \"Destination:\" | find \"" . htmlspecialchars($_GET["AudioFormat"]) . "\" 2>&1";
+	            $cmd.=" | find \"Destination:\" | find \"mp3\" 2>&1";
 
 	       exec($cmd,$retArr,$retVal);
 
@@ -38,32 +47,41 @@
 
                // Parse the output for the file name 
 	       foreach ($retArr as $key => $value) {
-                    if (strpos($value,"ffmpeg") != false) {
-                         $mp3File=$value;
+
+                    if (strpos($value,"Destination:") != false) {
+                         $audioFile=$value;
                     } 
                }
 
-               if (!isset($mp3File)) {
-                    echo json_encode(array("ERROR: Unable to fetch the MP3"));
+               if (!isset($audioFile)) {
+                    echo json_encode(array("ERROR: Unable to fetch the track"));
                     return;
                } 
             
-               $pos=strpos($mp3File,"[ffmpeg] Destination:");
+               $pos=strpos($audioFile,"[ffmpeg] Destination:");
 
                if ($pos===0) {
-                    $mp3File=substr($mp3File,$pos+strlen("[ffmpeg] Destination: "));             
+                    $audioFile=substr($audioFile,$pos+strlen("[ffmpeg] Destination: "));             
+               }
+
+               $pos=strpos($audioFile,"[download] Destination: ");
+
+               if ($pos !== false) {
+                    $audioFile=substr($audioFile,$pos+strlen("[download] Destination: "));             
                }
                
-	       if (!chmod($mp3File,0777)) {
+	       if (!chmod($audioFile,0777)) {
 		    echo "Failed to set file mode";
 	       }
  
-               /*
-               $cmd2="../python/aidmatch.py " . $mp3File . " 2>&1";
+               $cmd2="../python/aidmatch.py " . $audioFile . " 2>&1";
 
 	       exec($cmd2,$retArr2,$retVal2);
 
                $tagged=false;
+
+	       $artist = "";
+	       $title = "";
 
 	       # Since we only care about the first result, we only save the first key value pair
 	       foreach ($retArr2 as $key => $value) {
@@ -75,33 +93,28 @@
                     $tags=$value;
 
 	            $tags=explode(',',$tags);
-
 	            $artist=str_replace('"','',$tags[0]);
 
 	            $title=str_replace('"','',$tags[1]);
 
-    	            # write the tags
-	            $cmd3="id3v2 -t \"" . $title . "\" -a \"" . $artist . "\" " . $mp3File;
-	       
-	            exec($cmd3,$retArr3,$retVal3);
-
-	            # if retval is 0 then command was successful
-	            if ($retVal3 == 0) {
-	                 echo json_encode(array($mp3File,$artist,$title));
-	            }
 		    break;   
-               }
+	       }
 
 
 	       # if tagged is false, nothing was written above
 	       if ($tagged == false)
-	            echo json_encode(array($mp3File,"",""));
-	       */
-
-	       echo json_encode(array($mp3File));
+	            echo json_encode(array($audioFile,"",""));
+               else 
+	            echo json_encode(array($audioFile,$artist,$title));
+	       // echo json_encode(array($audioFile));
 
                return;
           case 2: // Write the ID3 Tags
+               /*if (htmlspecialchars($_GET["AudioFormat"]) != "mp3") {
+                    echo json_encode(array("No tags need to be written"));
+                    return;
+               }*/
+
                $tagData = array(
                     'artist'   => array(htmlspecialchars($_GET["Artist"])),
                     'band'     => array(htmlspecialchars($_GET["Artist"])), // album artist
@@ -153,8 +166,11 @@
                     }
                }
 
-               // Create the new file name based on Artist Track number (if given) Track Name.mp3
-               $newFileName=htmlspecialchars($tracknum != "" ? $tracknum . " " : "") . htmlspecialchars($_GET["TrackName"]) . ".mp3";
+               // $ext=(strlen(htmlspecialchars($_GET["AudioFormat"])) ? htmlspecialchars($_GET["AudioFormat"]) : "mp3");
+               $ext="mp3";
+
+               // Create the new file name based on Artist Track number (if given) Track Name.Extension
+               $newFileName=htmlspecialchars($tracknum != "" ? $tracknum . " " : "") . htmlspecialchars($_GET["TrackName"]) . "." . $ext;
 
                // Rename the file
                if (rename(htmlspecialchars($_GET["Filename"]),$sourcePath . $newFileName) == false) {

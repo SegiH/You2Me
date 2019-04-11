@@ -1,7 +1,9 @@
+/* Download button */
 button:nth-of-type(2) {
      background-color: green !important;
      color: white;
-     margin-left: 50%;
+     position: fixed;
+     margin-left: 75px;
 }
 
 mat-card {
@@ -10,6 +12,17 @@ mat-card {
      width: 400px;
 }
 
+mat-checkbox {
+     margin-left: 25px;
+}
+
 mat-form-field {
      width: 100%;
+}
+
+.statusMessage {
+     font-weight: bold;
+     font-size: 23px;
+     padding-bottom: 15px;
+     padding-top: 15px;
 }

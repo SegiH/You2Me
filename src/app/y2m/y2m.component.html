@@ -1,27 +1,35 @@
 <mat-card>
      <mat-toolbar color="primary">
-          <mat-toolbar-row>
-               <span>YouTube 2 MP3 {{this.moveToServer == true ? " (Server)" : ""}}</span>
-          </mat-toolbar-row>
+          <span>You2Me {{this.moveToServer == true ? " (Server)" : ""}}</span>
      </mat-toolbar>
      
-     <mat-form-field *ngFor="let key of objectKeys">
-        <input matInput [required]="this.fields[key].Required" placeholder={{key}} [(ngModel)]="this.fields[key].Value" >
+     <mat-form-field *ngFor="let key of fieldKeys">
+        <input matInput [required]="this.fields[key].Required" [disabled]="fieldIsDisabled(key)" placeholder={{key}} [(ngModel)]="this.fields[key].Value" >
+     </mat-form-field>
+ 
+     <mat-form-field>
+          <mat-select placeholder='Format' name="format" (selectionChange)="formatChanged()" [disabled]="fieldIsDisabled('format')" [(value)]="currentFormat">
+               <mat-option *ngFor="let currFormat of formatKeys" value="{{formats[currFormat ]}}">
+                    {{currFormat}}
+               </mat-option>
+          </mat-select>
      </mat-form-field>
 
-     <h2>
-          <div>
-               {{this.statusMessage}}
-          </div>
-     </h2>
+     <div class='statusMessage'>
+          {{this.statusMessage}}
+     </div>
      
-     <mat-vertical-stepper [linear]="true" *ngIf="this.isSubmitted && !this.isFinished" [selectedIndex]="currentStep">
+     <mat-vertical-stepper [linear]="true" *ngIf="isSubmitted && !isFinished" [selectedIndex]="currentStep">
         <mat-step *ngFor="let key of this.stepperStepNames" [stepControl]="currentStep">
               <ng-template matStepLabel>{{key}}</ng-template>
           </mat-step>        
      </mat-vertical-stepper>     
      
-     <button *ngIf="!isSubmitted || this.isFinished" matInput mat-raised-button color="primary" (click)="submitClick()">{{(!this.isSubmitted ? "Start" : "Restart")}}</button>
-     
-     <button *ngIf="downloadLinkVisible" matInput mat-raised-button (click)="downloadLinkClicked()">Download</button>
+     <span>
+          <button *ngIf="!isSubmitted || isFinished" matInput mat-raised-button color="primary" (click)="submitClick()">{{(!this.isSubmitted ? "Start" : "Restart")}}</button>
+
+          <mat-checkbox *ngIf="isFinished" [(ngModel)]="keepValues">Save Values</mat-checkbox>
+
+          <button *ngIf="downloadLinkVisible" matInput mat-raised-button (click)="downloadLinkClicked()">{{(downloadStarted === false ? "Download" : (downloadStarted === true && allowDeleting == true ? "Delete" : "Download"))}}</button>
+     </span>
 </mat-card>

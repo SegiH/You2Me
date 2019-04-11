@@ -1,6 +1,6 @@
 {
     "/php/" : {
-      "target": "https://segi.mooo.com/a/",
+      "target": "https://segi.mooo.com/You2Me/php/",
       "secure": false,
       "pathRewrite": {"^/php" : ""},
       "logLevel": "debug"
