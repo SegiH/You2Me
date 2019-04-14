@@ -28,7 +28,7 @@
      <span>
           <button *ngIf="!isSubmitted || isFinished" matInput mat-raised-button color="primary" (click)="submitClick()">{{(!this.isSubmitted ? "Start" : "Restart")}}</button>
 
-          <mat-checkbox *ngIf="isFinished" [(ngModel)]="keepValues">Save Values</mat-checkbox>
+          <mat-checkbox class="saveValues" *ngIf="isFinished" [(ngModel)]="keepValues">Save Values</mat-checkbox>
 
           <button *ngIf="downloadLinkVisible" matInput mat-raised-button (click)="downloadLinkClicked()">{{(downloadStarted === false ? "Download" : (downloadStarted === true && allowDeleting == true ? "Delete" : "Download"))}}</button>
      </span>
