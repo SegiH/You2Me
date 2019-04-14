@@ -6,7 +6,7 @@
      // The path where the song will be moved to. Make sure the path has a slash at the end
      $destinationPath="/mnt/usb/";
      $sourcePath="/var/www/html/media/";
-     $domain="https://segi.mooo.com/media/";
+     $domain="https://yoursite.com/media/";
 
      //$os=php_uname("s");
      $os=(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? "Windows" : "Unix");
