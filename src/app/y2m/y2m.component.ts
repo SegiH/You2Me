@@ -376,7 +376,7 @@ export class Y2mComponent implements OnInit {
      showSnackBarMessage(message: string) {
           const config = new MatSnackBarConfig();
           config.duration = 3000;
-          this.snackBar.open(message, '', config);
+          this.snackBar.open(message, 'OK', config);
      }
 
      // submit button click event
