@@ -7,6 +7,7 @@
 
 import { Component, OnInit } from '@angular/core';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material';
+import { DataService } from '../core/data.service';
 
 @Component({
      selector: 'app-y2m',
@@ -18,8 +19,6 @@ export class Y2mComponent implements OnInit {
      allowDeleting = false;
      allowMoveToServer = true;
      currentFormat = '320k';
-     formats: any = { 'aac' : 'aac' , 'flac' : 'flac' ,  'm4a' : 'm4a' , 'mp3 128k' : '128k', 'mp3 192k' : '192k', 'mp3 256k' : '256k', 'mp3 320k' : '320k', 'mp3 VBR 0 (Best)' : '0', 'mp3 VBR (5) (OK)' : '5', 'mp3 VBR (9) (Worst)' : '9' , 'opus' : 'opus' , 'video': 'video', 'vorbis' : 'vorbis' , 'wav' : 'wav' };
-     readonly formatKeys = Object.keys(this.formats);
      currentStep = 0;
      downloadLink = '';
      downloadLinkVisible = false;
@@ -27,7 +26,7 @@ export class Y2mComponent implements OnInit {
      fields: any = {
           URL: { // This field shouldn't ever be disabled
                Required: true,
-               Value: (this.getParam('URL') !== '' && typeof this.getParam('URL') !== 'undefined' ? this.getParam('URL') : ''),
+               Value: (this.getParam('URL') !== '' && typeof this.getParam('URL') !== 'undefined' ? this.getParam('URL') : 'https://www.youtube.com/watch?v=Wch3gJG2GJ4'),
           },
           Artist: {
                Required: true,
@@ -61,6 +60,8 @@ export class Y2mComponent implements OnInit {
           }
      };
      readonly fieldKeys = Object.keys(this.fields);
+     formats: any = { 'aac' : 'aac' , 'flac' : 'flac' ,  'm4a' : 'm4a' , 'mp3 128k' : '128k', 'mp3 192k' : '192k', 'mp3 256k' : '256k', 'mp3 320k' : '320k', 'mp3 VBR 0 (Best)' : '0', 'mp3 VBR (5) (OK)' : '5', 'mp3 VBR (9) (Worst)' : '9' , 'opus' : 'opus' , 'video': 'video', 'vorbis' : 'vorbis' , 'wav' : 'wav' };
+     readonly formatKeys = Object.keys(this.formats);
      isFinished = false;
      isSubmitted = false;
      keepValues = false;
@@ -69,7 +70,7 @@ export class Y2mComponent implements OnInit {
      stepperStepNames = ['Started download', 'Finished download', 'Writing ID3 Tags', 'Renaming the file'];
      statusMessage = 'Fields marked with an * are required';
 
-     constructor(public snackBar: MatSnackBar) {}
+     constructor(public snackBar: MatSnackBar,public dataService: DataService) { }
 
      ngOnInit() {
           if (this.getParam('MoveToServer') != null && this.allowMoveToServer === true) {
@@ -196,6 +197,19 @@ export class Y2mComponent implements OnInit {
           }
      }
 
+     // Handle errors returned by observable
+     handleError(response, error) {
+          // write error status
+          this.updateStatus(`A fatal error occurred: ${response[0]}`);
+
+          // Set submitted status
+          this.isSubmitted = true;
+
+          this.isFinished = true;
+
+          console.log(`An error occurred writing the tags with error ${error}`)
+     }
+
      isMP3Format() {
           const format = this.getFormatKeyByValue();
 
@@ -234,75 +248,21 @@ export class Y2mComponent implements OnInit {
      }
 
      processSteps() {
-          let params = '';
+          // Skip step 1 (write ID3 tags) when a non-mp3 format is selected
+          if (this.currentStep == 1 && this.isMP3Format() === false) {
+               this.currentStep++;
+               this.processSteps();
+               return;
+          } /*else if (this.currentStep == 2 && this.currentFormat === 'video') { // Don't rename the file when the step = 2
+               this.currentStep++;
+               this.processSteps();
+          }*/
 
-          // Build fetch parameters
-          switch (this.currentStep) {
+          // Call data service based on the current task
+          switch (this.currentStep) { 
                case 0: // Download the file
-                    params = `?step=1` +
-                             `&URL=${this.fields.URL.Value}` +
-                             `&GetVideo=` + (this.currentFormat === 'video') +
-                             (this.currentFormat !== 'video' ? `&AudioFormat=${this.currentFormat}` : '')
-                    break;
-               case 1: // Write tags if the file is MP3
-                    // Skip this step if the the format isn't MP3
-                    if (this.isMP3Format() === false) {
-                         this.currentStep++;
-                         this.processSteps();
-                         return;
-                    }
-
-                    params = `?step=2` +
-                         `&Filename=${this.localFile}` +
-                         (this.fields.Artist.Value !== null ? `&Artist=${this.fields.Artist.Value}` : ``) +
-                         (this.fields.Album.Value !== null ? `&Album=${this.fields.Album.Value}` : ``) +
-                         (this.fields.Name.Value !== null ? `&TrackName=${this.fields.Name.Value}` : '') +
-                         `&TrackNum=${this.fields.TrackNum.Value}` +
-                         (this.fields.Genre.Value !== null ? `&Genre=${this.fields.Genre.Value}` : ``) +
-                         (this.fields.Year.Value !== null ? `&Year=${this.fields.Year.Value}` : ``)  +
-                         (this.currentFormat !== 'video' ? `&AudioFormat=${this.currentFormat}` : '');
-                    break;
-               case 2: // Rename the file
-                    // Skip this step if the the format isn't video
-                    /*if (this.currentFormat === 'video') {
-                         this.currentStep++;
-                         this.processSteps();
-                    }*/
-
-                    // Step count is included because if the file is downloaded, theres only steps 0-3. If the file is moved to a server, there's one extra step so the server side action has 1 more step if we need to move it to the server
-                    params = `?step=3` +
-                         (this.localFile !== null ? `&Filename=${this.localFile}` : ``) +
-                         (this.fields.Artist.Value !== null ? `&Artist=${this.fields.Artist.Value}` : ``) +
-                         (this.fields.Name.Value !== null ? `&TrackName=${this.fields.Name.Value}` : ``) +
-                         (this.fields.TrackNum.Value !== null ? `&TrackNum=${this.fields.TrackNum.Value}` : ``) +
-                         `&StepCount=${this.stepperStepNames.length}` +
-                         `&isVideo=${this.currentFormat === 'video'}`;
-                    break;
-               case 3: // Move the file
-                    params = `?step=4` +
-                    (this.localFile !== null ? `&Filename=${encodeURI(this.localFile)}` : ``) +
-                    (this.fields.Artist.Value !== null ? `&Artist=${this.fields.Artist.Value}&` : ``) +
-                    (this.fields.Album.Value !== null ? `Album=${this.fields.Album.Value}` : ``) +
-                    `&isVideo=${this.currentFormat === 'video'}`;
-                    break;
-          }
-
-          // Run the AJAX request
-          fetch('./php/serverTasks.php' + params, {method: 'GET'}).then(response => response.json()).then((response) => {
-               if (response[0].indexOf('ERROR') !== -1) {
-                    // write error status
-                    this.updateStatus(`A fatal error occurred: ${response[0]}`);
-
-                    // Set submitted status
-                    this.isSubmitted = true;
-
-                    this.isFinished = true;
-
-                    return;
-               }
-
-               switch (this.currentStep) {
-                    case 0: // Downloading the file
+                    this.dataService.downloadSong(this.fields.URL.Value,this.currentFormat)
+                    .subscribe((response) => {
                          this.localFile = response[0];
 
                          if (response[1] !== null && response[1] != "") {
@@ -329,18 +289,30 @@ export class Y2mComponent implements OnInit {
                          this.currentStep++;
 
                          this.processSteps();
+                    },
+                    error => {
+                         this.handleError(Response,error);
+                    });
 
-                         break;
-                    case 1: // Writing the ID3 tags
+                    break;
+               case 1: // Write ID3 tags
+                    this.dataService.writeID3Tags(this.localFile,this.fields.Artist.Value,this.fields.Album.Value, this.fields.Name.Value, this.fields.TrackNum.Value, this.fields.Genre.Value, this.fields.Year.Value, this.currentFormat)
+                    .subscribe((response) => {
                          this.updateStatus('The ID3 tags have been written. Renaming the file');
 
                          // Update the status and continue on to the next step
                          this.currentStep++;
 
                          this.processSteps();
+                    },
+                    error => {
+                         this.handleError(Response,error);
+                    });
 
-                         break;
-                    case 2: // Rename the file
+                    break;
+               case 2: // Rename the file
+                    this.dataService.renameFile(this.localFile,this.fields.Artist.Value, this.fields.Name.Value, this.fields.TrackNum.Value, this.stepperStepNames.length, this.currentFormat)
+                    .subscribe((response) => {
                          // The response returns the local file including the path as well as the URL for the downloaded file. This is needed so we can delete the local file later
                          this.downloadLink = response[0];
                          this.localFile = response[1];
@@ -354,22 +326,35 @@ export class Y2mComponent implements OnInit {
                               this.currentStep++;
                               this.processSteps();
                          }
+                    },
+                    error => {
+                         this.handleError(Response,error);
+                    });
 
-                          break;
-                    case 3: // Move the file to the new location
-                         this.updateStatus('The file has been moved to the new location');
+                    break;
+               case 3: // Move the file
+                    this.dataService.moveFile(this.localFile,this.fields.Artist.Value, this.fields.Album.Value, this.currentFormat)
+                    .subscribe((response) => {
+                         // The response returns the local file including the path as well as the URL for the downloaded file. This is needed so we can delete the local file later
+                         this.downloadLink = response[0];
+                         this.localFile = response[1];
 
-                         this.currentStep++;
-
-                         this.finished();
-
-                         break;
-                    default:
-                         alert('Unknown AJAX status');
-               }
-          }).catch(error => {
-               console.log('request failed', error);
-          });
+                         // If this is the last step, finalize everything
+                         if (this.stepperStepNames.length === 4) {
+                              this.updateStatus('Please click on the download button');
+                              this.currentStep++;
+                              this.finished();
+                         } else {
+                              this.currentStep++;
+                              this.processSteps();
+                         }
+                    },
+                    error => {
+                         this.handleError(Response,error);
+                    });
+                    
+                    break;
+          }
      }
 
      // Show snackbar message
