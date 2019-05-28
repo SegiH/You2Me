@@ -26,7 +26,7 @@ export class Y2mComponent implements OnInit {
      fields: any = {
           URL: { // This field shouldn't ever be disabled
                Required: true,
-               Value: (this.getParam('URL') !== '' && typeof this.getParam('URL') !== 'undefined' ? this.getParam('URL') : 'https://www.youtube.com/watch?v=Wch3gJG2GJ4'),
+               Value: (this.getParam('URL') !== '' && typeof this.getParam('URL') !== 'undefined' ? this.getParam('URL') : ''),
           },
           Artist: {
                Required: true,
