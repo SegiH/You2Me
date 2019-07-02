@@ -2,31 +2,38 @@ You2Me is an application that acts as an audio/video downloader and works with m
 
 It consists of an Angular based front end application as well as php and python scripts that need to run on a web server
 
-The app can be set up so that the media file can either be downloaded by clicking on a download button or the file can be moved to a location that you specify on your media server if you have one. 
+The app can be set up so that the media file can either be downloaded or the file can be moved to a location that you specify on your media server if you have one. 
 
-Note: There are some issues with choosing the format so the format dropdown is disabled until I fix this.
+This web app supports saving the file in multiple formats.
 
-This app was originally written to only only YouTube links but now supports over 1000 sites. Because of technical reasons, it isn't possible to check which domains work with youtube-dl. If you want to easily know if a site is supported, follow step 5 in the Troubleshooting section below. If this generates an mp3, then the site should work with You2Me.
+For audio, the supported formats are aac, flac, m4a, mp3 128k,mp3 192k,mp3 256k,mp3 320k,MP3 VBR, opus, vorbis and wav.
+For video, the supported formats are avi, flv, mkv, mp4, ogg and webm.
 
-When getting audio, the app will attempt to identify the artist and song name automatically using audio fingerprinting. In addition to this, if the audio format is mp3, the ID3 tags will be written to the file.
+This app was originally written to only work with YouTube links but now supports over 1000 sites. Because of technical reasons, it isn't possible to list all of the sites that work with youtube-dl. If you want to easily know if a site is supported, try it out with a short video/song and see if it works.
 
-After submitting the form, the keep values checkbox will let you start over but keep all of the form values that you've already filled in. This can be useful if an error occurred and you want to try again.
+When getting audio, the app will attempt to identify the artist and song name automatically using a Python application that does audio fingerprinting. In addition to this, if the audio format is mp3, the ID3 tags will be written to the file.
+
+After submitting the form, the save values checkbox will let you start over but keep all of the form values that you've already filled in. This can be useful if an error occurred and you want to try again.
 
 You can supply default values for all of the fields except format by providing URL parameters.
 
-All of the current URL parameters are as follows: URL, Artist, Album, Genre, Name, TrackNum, Genre, Year, MoveToServer. To provide a default artist name,add &Artist=Beck at the end of the URL.
+All of the current URL parameters are as follows: URL, Artist, Album, Format, Genre, Name, TrackNum, Genre, Year, MoveToServer. To provide a default artist name,add &Artist=Beck at the end of the URL. 
 
-After downloading the file, the Download button will turn into a Delete button. This will allow you to delete the file from the server after it has been downloaded.
+Valid formats are currently: aac,flac,m4a,128k,192k,256k,320k,0,5,9,opus,vorbis,wav,avi,flv,mkv,mp4,ogg,webm and are also provided in the same format such as &Format=mp4. The formats 0, 5 and 9 formats are MP3 VBR rates where 0 is best, 5 is ok and 9 is worst.
 
 Pre-requisites to run You2Me:
 1. Web Server: Linux (tested with Apache and Nginx) or Windows (tested with Apache). WampServer (http://www.wampserver.com) would be easiest to set up on Windows.
 2. PHP 7 (Not tested with PHP 5) 
-3. Python 2.7 (Not tested on later versions but may work)
+3. Python 2.7 or 3.4+
 4. Open source utility youtube-dl (https://rg3.github.io/youtube-dl/) which does NOT need root permissions. If you are using Linux, it should be available in your repo so you can install it by running apt-get install youtube-dl. A Windows binary is also available on the official site.
 5. getid3 for php (http://getid3.sourceforge.net/) 
 6. ffpmeg (https://npm startffmpeg.org/). 
 7. Node.js and npm 6+.
- 
+8. Windows users: make sure to follow these additional steps:
+   a. pip install pyacoustid
+   b. pip install chromaprint
+   c. Download chromaprint-fpcalc from https://acoustid.org/chromaprint, extract the zip and place fpcalc.exe in the same folder as the Python scripts
+
 This application can be set up to run in one of 2 different modes. 
 
 1. Client - A standalone version of this application which will present a download button for you to download the file to your computer or phone.
@@ -53,10 +60,11 @@ Build instruction:
 10. Client mode - Created a file called .htaccess in the media folder created in step 2 and add these 2 lines:
     ForceType application/octet-stream
     Header set Content-Disposition "attachment"
-  
+    Header set Content-Type application/force-download
+
     This will force the server to download the media file instead of playing it in the browser.
 11. Make sure that php/serverTasks.php and python/aidmatch.py have execute permission.
-
+12. Make sure that the python files in Python/ are executable in Linux (chmod +X *.py)
 YouToMe Bookmark:
 YoutoMe supports a bookmark which will automatically load You2Me in a new tab with the URL of the site that were on. Create a bookmark in your browsers' toolbar with the name Send to You2Me and the following JavaScript code as the URL of the bookmark:
 
