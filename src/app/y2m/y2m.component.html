@@ -3,32 +3,37 @@
           <span>You2Me {{this.moveToServer == true ? " (Server)" : ""}}</span>
      </mat-toolbar>
      
-     <mat-form-field *ngFor="let key of fieldKeys">
-        <input matInput [required]="this.fields[key].Required" [disabled]="fieldIsDisabled(key)" placeholder={{key}} [(ngModel)]="this.fields[key].Value" >
+     <!-- Fields -->
+     <mat-form-field *ngFor="let key of fieldKeys" [class.hidden]="fieldIsHidden(key)">
+        <input matInput [required]="this.fields[key].Required" placeholder={{key}} [(ngModel)]="this.fields[key].Value">
      </mat-form-field>
- 
+
+     <!-- Format dropdown -->
      <mat-form-field>
-          <mat-select placeholder='Format' name="format" (selectionChange)="formatChanged()" [disabled]="fieldIsDisabled('format')" [(value)]="currentFormat">
-               <mat-option *ngFor="let currFormat of formatKeys" value="{{formats[currFormat ]}}">
+          <mat-select placeholder='Format' name="format" [(ngModel)]="currentFormat" [disabled]="isSubmitted">
+               <mat-option *ngFor="let currFormat of formatKeys" [value]="formats[currFormat]">
                     {{currFormat}}
                </mat-option>
           </mat-select>
      </mat-form-field>
 
+     <!-- Status -->
      <div class='statusMessage'>
           {{this.statusMessage}}
      </div>
      
+     <!-- Stepper -->
      <mat-vertical-stepper [linear]="true" *ngIf="isSubmitted && !isFinished" [selectedIndex]="currentStep">
         <mat-step *ngFor="let key of this.stepperStepNames" [stepControl]="currentStep">
               <ng-template matStepLabel>{{key}}</ng-template>
           </mat-step>        
      </mat-vertical-stepper>     
      
+     <!-- Submit & Download Buttons, Keep Values checkbox -->
      <span>
           <button *ngIf="!isSubmitted || isFinished" matInput mat-raised-button color="primary" (click)="submitClick()">{{(!this.isSubmitted ? "Start" : "Restart")}}</button>
 
-          <mat-checkbox class="saveValues" *ngIf="isFinished" [(ngModel)]="keepValues">Save Values</mat-checkbox>
+          <mat-checkbox class="saveValues" *ngIf="isFinished" [(ngModel)]="saveValues">Save Values</mat-checkbox>
 
           <button *ngIf="downloadLinkVisible" matInput mat-raised-button (click)="downloadLinkClicked()">{{(downloadStarted === false ? "Download" : (downloadStarted === true && allowDeleting == true ? "Delete" : "Download"))}}</button>
      </span>

@@ -12,12 +12,16 @@ mat-card {
      width: 400px;
 }
 
-.saveValues {
-     margin-left: 25px;
-}
-
 mat-form-field {
      width: 100%;
+}
+
+mat-form-field.hidden {
+     display: none;
+}
+
+.saveValues {
+     margin-left: 25px;
 }
 
 .statusMessage {

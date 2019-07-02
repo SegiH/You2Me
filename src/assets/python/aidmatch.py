@@ -39,8 +39,19 @@ row = 0
 #    def print_(s):
 #        print(s)
 
-reload(sys)
-sys.setdefaultencoding('utf8');
+# print(sys.version_info.minor)
+# sys.exit(1)
+
+if (sys.version_info.major == 2):
+     reload(sys)
+     sys.setdefaultencoding('utf8');
+elif (sys.version_info.major == 3 and sys.version_info.minor < 4):
+     import imp
+     imp.reload(sys)
+elif (sys.version_info.major == 3 and sys.version_info.minor >= 4):
+     import importlib;
+     importlib.reload(sys)
+
 
 def aidmatch(filename):
     try:
@@ -65,9 +76,9 @@ def aidmatch(filename):
         
         row=row+1
 
-        #cmd = "id3v2 --artist=\"" + artist + "\" --song=\"" + title + "\" " + filename 
+        # print('"%s"' % (title))
         print('"%s","%s"' % (artist,title))
-        #os.system(cmd)
+        # sys.exit(1)
     
 if __name__ == '__main__':
     aidmatch(sys.argv[1])
