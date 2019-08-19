@@ -4,39 +4,32 @@ import { throwError } from 'rxjs/';
 import { catchError} from 'rxjs/operators';
 
 @Injectable()
-export class DataService {    
+export class DataService {
     constructor(private http: HttpClient) { }
 
-    downloadFile(URL : string, fileName: string, isAudio: boolean,  isMP3Format: boolean, currentFormat: string) {
+    downloadFile(URL: string, fileName: string, isAudio: boolean,  isMP3Format: boolean, currentFormat: string) {
         const params = `?DownloadFile` +
                        `&URL=${URL}` +
                        `&Filename=${fileName}` +
-                       (isAudio === true 
+                       (isAudio === true
                             ? `&IsAudioFormat=true` + (isMP3Format === true ? `&Bitrate=${currentFormat}` : ``) + `&AudioFormat=${currentFormat}`
                             : `&IsVideoFormat=true&VideoFormat=${currentFormat}`);
- 
+
         return this.processStep(params);
     }
-    
-    // Filename - req
-    // MoveToServer - req
-    // IsVideoFormat - opt
-    // Artist - req
-    // Album - opt
 
-    moveFile(localFile : string, isAudio: boolean, moveToServer: boolean, artist: string, album: string,currentFormat: string) {
+    moveFile(localFile: string, isAudio: boolean, moveToServer: boolean, artist: string, album: string, currentFormat: string) {
         const params = `?MoveFile` +
                        `&MoveToServer=${moveToServer}`  +
                        `&Filename=${localFile}` +
                        '&Artist=${artist}' +
-                       (isAudio === true 
-                       ? `&IsAudioFormat=true`+ (album != null ? `&Album=${album}` : '') 
-                       : `&IsVideoFormat=true`)
-                       
+                       (isAudio === true
+                       ? `&IsAudioFormat=true` + (album !== null ? `&Album=${album}` : '')
+                       : `&IsVideoFormat=true`);
 
         return this.processStep(params);
     }
-    
+
     processStep(params: String) {
         return this.http.get<any>('./php/serverTasks.php' + params)
             .pipe(
@@ -44,7 +37,7 @@ export class DataService {
             );
     }
 
-    writeID3Tags(localFile : string,artist: string, album: string,name: string, trackNum: string,genre: string,year: string) {
+    writeID3Tags(localFile: string, artist: string, album: string, name: string, trackNum: string, genre: string, year: string) {
         const params = `?WriteID3Tags` +
                        `&Filename=${localFile}` +
                        (artist !== null ? `&Artist=${artist}` : ``) +
@@ -52,7 +45,7 @@ export class DataService {
                        (name !== null ? `&TrackName=${name}` : '') +
                        (trackNum != null ? `&TrackNum=${trackNum}` : '') +
                        (genre !== null ? `&Genre=${genre}` : ``) +
-                       (year !== null ? `&Year=${year}` : ``)
+                       (year !== null ? `&Year=${year}` : ``);
 
         return this.processStep(params);
     }
