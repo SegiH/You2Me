@@ -6,11 +6,6 @@
 
      CHANGES:
 
-     Added missing downloadStarted=true in this.downloadLinkClicked()
-     Rewrote logic in fieldIsHidden() to use array of fields that need to be hidden
-     Did tslist check on this component
-     Removed unused component property allowDeleting
-     Updated README
 */
 
 import { Component, OnInit } from '@angular/core';

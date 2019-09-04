@@ -22,7 +22,7 @@ export class DataService {
         const params = `?MoveFile` +
                        `&MoveToServer=${moveToServer}`  +
                        `&Filename=${localFile}` +
-                       '&Artist=${artist}' +
+                       `&Artist=${artist}` +
                        (isAudio === true
                        ? `&IsAudioFormat=true` + (album !== null ? `&Album=${album}` : '')
                        : `&IsVideoFormat=true`);
