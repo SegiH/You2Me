@@ -29,12 +29,14 @@
           </mat-step>        
      </mat-vertical-stepper>     
      
-     <!-- Submit & Download Buttons, Keep Values checkbox -->
      <span>
+          <!-- Submit -->
           <button *ngIf="!isSubmitted || isFinished" matInput mat-raised-button color="primary" (click)="submitClick()">{{(!this.isSubmitted ? "Start" : "Restart")}}</button>
 
+          <!-- Save Values checkbox -->
           <mat-checkbox class="saveValues" *ngIf="isFinished" [(ngModel)]="saveValues">Save Values</mat-checkbox>
 
+          <!-- Download Button -->
           <button *ngIf="downloadLinkVisible" matInput mat-raised-button (click)="downloadLinkClicked()">{{(downloadStarted === false ? "Download" : (downloadStarted === true && allowDeleting == true ? "Delete" : "Download"))}}</button>
      </span>
 </mat-card>

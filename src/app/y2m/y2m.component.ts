@@ -276,19 +276,27 @@ export class Y2mComponent implements OnInit {
      }
 
      processSteps() {
+          // Normalize all fields by encoding special characters so we don't run into issues passing them as URL parameters
+          const URL=this.rfc3986EncodeURIComponent(this.fields.URL.Value);          
+          let artist=this.rfc3986EncodeURIComponent(this.fields.Artist.Value);
+          const album=this.rfc3986EncodeURIComponent(this.fields.Album.Value);
+          let name=this.rfc3986EncodeURIComponent(this.fields.Name.Value);
+          
+          // Use tracknum if provided and pad with leading 0 if tracknum < 10
+          const trackNum = (this.fields.TrackNum.Value !== null ? (parseInt(this.rfc3986EncodeURIComponent(this.fields.TrackNum.Value), 10) < 10 ? '0' : '') + this.rfc3986EncodeURIComponent(this.fields.TrackNum.Value) : null);
+          const genre=this.rfc3986EncodeURIComponent(this.fields.Genre.Value);
+          const year=this.rfc3986EncodeURIComponent(this.fields.Year.Value);
+
           // Call data service based on the current task
           switch (this.currentStep) {
                case 0: // Download the file
                     // Build file name
-
-                    // Use tracknum if provided and pad with leading 0 if tracknum < 10
-                    const trackNum = (this.fields.TrackNum.Value !== null ? (parseInt(this.fields.TrackNum.Value, 10) < 10 ? '0' : '') + this.fields.TrackNum.Value : null);
-
+                    
                     // If the format selected is an audio format and there's a track number, use it. Otherwise only use the Name field
-                    const fileName = (this.isAudioFormat() === true && trackNum !== null ? trackNum + ' ' : '') + this.fields.Name.Value;
+                    const fileName = (this.isAudioFormat() === true && trackNum !== null ? trackNum + ' ' : '') + name;
 
                     // Call data service to download the file
-                    this.dataService.downloadFile(this.fields.URL.Value, fileName, this.isAudioFormat(), this.isMP3Format(), this.currentFormat)
+                    this.dataService.downloadFile(URL, fileName, this.isAudioFormat(), this.isMP3Format(), this.currentFormat)
                     .subscribe((response) => {
                          // Trap server side errors
                          if (response[0].includes('Error:')) {
@@ -301,12 +309,12 @@ export class Y2mComponent implements OnInit {
 
                          // Second index will be Artist if matched through Python script that does audio fingerprinting
                          if (response[1] !== null && response[1] !== '') {
-                              this.fields.Artist.Value = response[1];
+                              artist = response[1];
                          }
 
                          // Third index will be Title if matched through Python script that does audio fingerprinting
                          if (response[2] !== null && response[2] !== '') {
-                              this.fields.Name.Value = response[2];
+                              name = response[2];
                          }
 
                          // This is only useful if the artist and album fields arent required and the Python script tried but fails to get the artist and album
@@ -343,7 +351,7 @@ export class Y2mComponent implements OnInit {
                     }
 
                     // Call data service to write ID3 tags
-                    this.dataService.writeID3Tags(this.fileName, this.fields.Artist.Value, this.fields.Album.Value, this.fields.Name.Value, this.fields.TrackNum.Value, this.fields.Genre.Value, this.fields.Year.Value)
+                    this.dataService.writeID3Tags(this.fileName, artist, album, name, trackNum, genre, year)
                     .subscribe((response) => {
                          // Trap server side errors
                          if (response[0].includes('Error:')) {
@@ -374,7 +382,7 @@ export class Y2mComponent implements OnInit {
 
                     break;
                case 2: // Call the data service to move the file to the media server
-                    this.dataService.moveFile(this.fileName, this.isAudioFormat(), this.moveToServer, this.fields.Artist.Value, this.fields.Album.Value, this.currentFormat)
+                    this.dataService.moveFile(this.fileName, this.isAudioFormat(), this.moveToServer, artist, album, this.currentFormat)
                     .subscribe((response) => {
                          // Trap server side errors
                          if (response[0].includes('Error:')) {
@@ -401,6 +409,11 @@ export class Y2mComponent implements OnInit {
 
                     break;
           }
+     }
+     
+     // Escapes all special characters so they can safely be passed as URL parameters
+     rfc3986EncodeURIComponent(str) {  
+          return encodeURIComponent(str).replace(/[!'()*]/g, escape);  
      }
 
      // Show snackbar message
