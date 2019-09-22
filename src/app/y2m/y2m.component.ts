@@ -19,12 +19,12 @@ import { DataService } from '../core/data.service';
 })
 
 export class Y2mComponent implements OnInit {
-     allowMoveToServer = true;
+     allowMoveToServer = false;
      currentFormat = '320k';
      currentStep = 0;
      downloadLink = '';
-     downloadLinkVisible = false;
-     downloadStarted = false;
+     downloadButtonVisible = false; // default false
+     downloadStarted = false; // default false
      fields: any = {
           URL: { // This field shouldn't ever be disabled
                Required: true,
@@ -84,9 +84,10 @@ export class Y2mComponent implements OnInit {
                       'Video: webm' : 'webm'
                     };
      readonly formatKeys = Object.keys(this.formats);
-     isFinished = false;
-     isSubmitted = false;
-     moveToServer = false;
+     isFinished = false; // default false
+     isSubmitted = false; // default false
+     moveToServer = false; // default false
+     moveToServerButtonVisible = false; // default false
      saveValues = false;
      stepperStepNames = ['Started download', 'Finished download', 'Writing ID3 Tags'];
      statusMessage = 'Fields marked with an * are required';
@@ -123,6 +124,13 @@ export class Y2mComponent implements OnInit {
                window.location.href = this.downloadLink;
 
                this.downloadStarted = true;
+
+               this.downloadButtonVisible = false;
+
+               // If the MoveToServer button is visible, hide it to prevent subsequent clicks
+               if (this.moveToServerButtonVisible === true) {
+                    this.moveToServerButtonVisible = false;
+               }
           }
      }
 
@@ -151,7 +159,15 @@ export class Y2mComponent implements OnInit {
 
           // If MoveToServer is NOT enabled, show the download link
           if (!this.moveToServer) {
-               this.downloadLinkVisible = true;
+               this.downloadButtonVisible = true;
+          }
+
+          // If the user is allowed to move the file to the server but didn't provide MoveToServer parameter, show the MoveToServer button
+          // so the user has the option of moving the file to the server. This is here in case you forgot to pass MoveToServe=true URL parameter but meant to
+          if (this.allowMoveToServer == true && this.moveToServerButtonVisible === false) {
+               this.moveToServerButtonVisible = true;
+          } else {
+               this.moveToServerButtonVisible = false;
           }
 
           this.isFinished =  true;
@@ -245,6 +261,14 @@ export class Y2mComponent implements OnInit {
                return true;
           } else {
                return false;
+          }
+     }
+
+     // Event if the user clicks on the Move To Server button
+     moveToServerClick() {
+          // If we are able to move to server 
+          if (this.allowMoveToServer === true) {
+               this.processSteps();
           }
      }
 
@@ -391,7 +415,7 @@ export class Y2mComponent implements OnInit {
                          }
 
                          // If MoveToServer is NOT enabled, this is the last step
-                         if (!this.moveToServer) {
+                         if (!this.moveToServer && !this.moveToServerButtonVisible) {
                               // The response returns the local file including the path as well as the URL for the downloaded file. This is needed so we can delete the local file later
                               this.downloadLink = decodeURIComponent(response[0].replace(/\+/g, ' '));
 
@@ -449,7 +473,7 @@ export class Y2mComponent implements OnInit {
 
                this.isFinished = false;
 
-               this.downloadLinkVisible = false;
+               this.downloadButtonVisible = false;
 
                this.downloadStarted = false;
 

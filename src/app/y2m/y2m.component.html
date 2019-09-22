@@ -29,14 +29,17 @@
           </mat-step>        
      </mat-vertical-stepper>     
      
-     <span>
-          <!-- Submit -->
+     <!-- Save Values checkbox -->
+     <mat-checkbox class="saveValues" *ngIf="isFinished" [(ngModel)]="saveValues">Save Values</mat-checkbox>
+
+     <span class='buttonClass'>
+          <!-- Submit/Restart Button -->
           <button *ngIf="!isSubmitted || isFinished" matInput mat-raised-button color="primary" (click)="submitClick()">{{(!this.isSubmitted ? "Start" : "Restart")}}</button>
 
-          <!-- Save Values checkbox -->
-          <mat-checkbox class="saveValues" *ngIf="isFinished" [(ngModel)]="saveValues">Save Values</mat-checkbox>
-
           <!-- Download Button -->
-          <button *ngIf="downloadLinkVisible" matInput mat-raised-button (click)="downloadLinkClicked()">{{(downloadStarted === false ? "Download" : (downloadStarted === true && allowDeleting == true ? "Delete" : "Download"))}}</button>
+          <button *ngIf="downloadButtonVisible" matInput mat-raised-button (click)="downloadLinkClicked()">Download</button>
+
+          <!-- Move To Server Button-->
+          <button *ngIf="allowMoveToServer  && moveToServerButtonVisible" matInput mat-raised-button (click)="moveToServerClick()">Move To Server</button>
      </span>
 </mat-card>
