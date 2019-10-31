@@ -67,7 +67,7 @@
 
 	  exec($cmd,$retArr,$retVal);
           
-          $fileName=$fileName . "." . ($audioFormat != NULL ? (!isMP3Format ? $audioFormat : "mp3") : $videoFormat);
+          $fileName=$fileName . "." . ($audioFormat != NULL ? (!$isMP3Format ? $audioFormat : "mp3") : $videoFormat);
          
           if (!file_exists($sourcePath . $fileName))
 	       die(json_encode(array("Error: Unable to create the file")));

@@ -1,6 +1,6 @@
 {
     "/php/" : {
-      "target": " ",
+      "target": "",
       "secure": false,
       "pathRewrite": {"^/php" : ""},
       "logLevel": "debug"

@@ -29,10 +29,10 @@ Pre-requisites to run You2Me:
 5. getid3 for php (http://getid3.sourceforge.net/) 
 6. ffpmeg (https://npm startffmpeg.org/). 
 7. Node.js and npm 6+.
-8. Windows users: make sure to follow these additional steps after installing Python:
+8. Make sure to follow these additional steps after installing Python:
    a. pip install pyacoustid
    b. pip install chromaprint
-   c. Download chromaprint-fpcalc from https://acoustid.org/chromaprint, extract the zip and place fpcalc.exe in the same folder as the Python scripts
+   c. Windows users: Download chromaprint-fpcalc from https://acoustid.org/chromaprint, extract the zip and place fpcalc.exe in the same folder as the Python scripts
 
 This application can be set up to run in one of 2 different modes. 
 
@@ -53,20 +53,30 @@ Build instruction:
      b. If you do not want to allow the file from ever being moved to the server with a URL parameter, find and change the line allowMoveToServer = true;   to allowMoveToServer = false;
 6. Run npm install - This will install all of the missing dependencies
 7. Run npm run build - This will build You2Me.
-8. If everything compiled correctly, copy the contents of the dist/You2Me-Angular folder to the folder on your web server where you are hosting it and you referred to in step 2 (E.G. /You2Me)
-9. On Windows, make sure you have the following files/folders in the php folder: getid3 folder (Extract latest getid3.zip and copy getid3 subfolder) youtube-dl.exe, ffmpeg.exe and ffprobe.exe from the latest ffmpeg zip file.
-10. Client mode - Apache users will need to edit the Apache config file httpd.conf, find the lines LoadModule headers_module modules/mod_headers.so and      LoadModule rewrite_module modules/mod_rewrite.so and make sure that there isn't a # before either of these 2 lines. If there is a # in front of  
+8. Make a folder called php in dist and move assets/serverTasks.php into this folder. Give it 755 permissions on Linux. Create folder python in  dist    
+   and move all files ending in py and pyc to this folder. The assets folder should be empty now. if it is you can delete it.   
+9. If everything compiled correctly, copy the contents of the dist/You2Me-Angular folder to the folder on your web server where you are hosting it and you referred to in step 2 (E.G. /You2Me)
+10. On Windows, make sure you have the following files/folders in the php folder: getid3 folder (Extract latest getid3.zip and copy getid3 subfolder) youtube-dl.exe, ffmpeg.exe and ffprobe.exe from the latest ffmpeg zip file.
+11. Client mode - Apache users will need to edit the Apache config file httpd.conf, find the lines LoadModule headers_module modules/mod_headers.so and      LoadModule rewrite_module modules/mod_rewrite.so and make sure that there isn't a # before either of these 2 lines. If there is a # in front of  
     either one, remove the # and restart Apache. This is needed when running in client mode so that when you download the file, you can create an .htaccess file in the next step that will force the browser to download the file instead of playing it in the browser (this is more of a Google Chrome issue).
-11. Client mode - Created a file called .htaccess in the media folder created in step 3 and add these 2 lines:
+12. Client mode - Created a file called .htaccess in the media folder created in step 3 and add these 2 lines:
     ForceType application/octet-stream
     Header set Content-Disposition "attachment"
     Header set Content-Type application/force-download
 
     This will force the server to download the media file instead of playing it in the browser.
-12. Make sure that php/serverTasks.php and python/aidmatch.py have execute permission.
-13. Make sure that the python files in Python/ are executable in Linux (chmod +X *.py)
+13. Make sure that php/serverTasks.php and python/aidmatch.py have execute permission.
+14. Make sure that the python files in Python/ are executable in Linux (chmod +X *.py)
 YouToMe Bookmark:
 YoutoMe supports a bookmark which will automatically load You2Me in a new tab with the URL of the site that were on. Create a bookmark in your browsers' toolbar with the name Send to You2Me and the following JavaScript code as the URL of the bookmark:
+
+Docker build instructions: (This will do everything for you and let you run You2Me without setting up a web server yourself)
+
+1. Install Docker if it isn't installed already
+2. Go to the main You2Me folder in terminal
+3. Build a Docker image based on my script: sudo docker build docker/ -t you2me
+4. Run the Docker image: sudo docker run -dit -p 80:80 you2me If you want to change the port that it runs on, change the first 80 so for example 8080:80    to access You2Me on port 8080 (The second 80 is the internal port used and should ALWAYS be 80).
+5. Visit localhost in your browser.
 
 Client mode:
 
