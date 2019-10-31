@@ -20,7 +20,7 @@
           $fileName=htmlspecialchars($_GET["Filename"]);
           $isAudioFormat=(isset($_GET["IsAudioFormat"]) && $_GET["IsAudioFormat"] == "true" ? true : false);
           $isMP3Format=(isset($_GET["Bitrate"]) ? true : false);
-          $bitrate=(isAudio == true && isset($_GET["Bitrate"]) ? htmlspecialchars($_GET["Bitrate"]) : "320k");
+          $bitrate=($isAudioFormat == true && isset($_GET["Bitrate"]) ? htmlspecialchars($_GET["Bitrate"]) : "320k");
           $audioFormat=(isset($_GET["AudioFormat"]) ?  htmlspecialchars($_GET["AudioFormat"]) : null);
          
           if ($isAudioFormat == true && !isset($audioFormat))
@@ -79,13 +79,13 @@
           // If the format is audio and its mp3, try to tag it
 	  if (!chmod($sourcePath . $fileName,0777)) {
 	       die(json_encode(array("Error: Failed to set the file mode")));
-	  }
+       }
+       
+       $tagged=false;
  
-          $cmd="python ../python/aidmatch.py \"" . $sourcePath . $fileName . "\" 2>&1";
+       /*$cmd="python ../python/aidmatch.py \"" . $sourcePath . $fileName . "\" 2>&1";
 
 	  exec($cmd,$retArr2,$retVal2);
-
-          $tagged=false;
 
 	  $artist = "";
 	  $title = "";
@@ -107,8 +107,8 @@
 	       $title=str_replace('"','',$tags[1]);
 
 	       break;   
-	  }
-
+       }*/
+       
 	  # if tagged is false, nothing was written above
 	  if ($tagged == false)
 	       echo json_encode(array(urlencode($fileName),"",""));
