@@ -7,12 +7,14 @@
      $audioDestinationPath="/mnt/usb/";
      $videoDestinationPath="/mnt/usb/";
      
-     $sourcePath="/var/www/html/media/";
-     $domain="https:/www.yoursite.com/media/";
+     $sourcePath="/var/www/html/media/";     
 
      //$os=php_uname("s");
      $os=(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? "Windows" : "Unix");
      
+     // Do not change this unless you know what you are doing
+     $domain=(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http') . '://' . $_SERVER['SERVER_NAME'] . $(isset($_SERVER['SERVER_PORT'] ? ':' . $_SERVER['SERVER_PORT'] : "") . "/media/";
+
      function downloadFile() {
           global $sourcePath;
 
@@ -138,7 +140,12 @@
                          echo json_encode(array("Error: An error occurred while copying the video to the new location"));
 	            }
                } else {
-                    echo json_encode(array($domain . urlencode($fileName)));
+                    // Since Docker can bind to a different external port compared to the internal port (80),
+                    // I only return the file name and let the client get the url
+                    // If you run a Docker container and bind it externally to port 8080 and 80 on port internally, this web server won't build
+                    // the right URL if the external port is not port 80
+                    // echo json_encode(array($domain . urlencode($fileName)));
+                    echo json_encode(array(urlencode($fileName)));
                }
 
                return;
