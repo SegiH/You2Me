@@ -46,7 +46,7 @@ Build instruction:
 4. Edit the file assets/php/serverTasks.php and set the following values: 
      a. $destinationPath (Only needed if you are running in server mode) - The path where the media file will be moved to. This can be any path that is     writable including a remote location such as a Samba mounted folder.
      b. $sourcePath - The full path to the media folder on your web server that you created in step 3. Ex: /var/www/html/media/
-     c. $domain (Only needed if you are running in client mode) - The full URL where this app will be hosted. Ex: https://www.mysite.com/You2Me/
+     c. $domain - no need to change unless you want to explicitly set the domain . You can change this to $domain ='https://mydomain.com/media/"- The full URL where this app will be hosted. Ex: https://www.mysite.com/You2Me/
 5. Edit src/app/y2m/y2m.component.ts 
      a. If you want to always run the app in server mode only, find and change the line moveToServer = false; to moveToServer = true;. If you    
         want to be able to choose how to run You2Me, leave this set to false. You can always add a URL parameter ?MoveToServer=true after the last slash in the URL to run in server mode. So if your site is hosted at http://www.mysite.com/You2Me, you can bookmark and use the URL http://www.mysite.com/You2Me/?MoveToServer=true to use the app in server mode. The title of the page will change to You2Me (Server) when running in server mode to distinguish client and server mode. Not putting this URL parameter will run the app in client mode by default.
