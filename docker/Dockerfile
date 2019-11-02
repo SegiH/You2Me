@@ -42,15 +42,25 @@ WORKDIR /tmp
 
 RUN git clone https://github.com/SegiH/You2Me.git
 
+# Update npm
+RUN npm install n -g
+
 # Make base href the root folder
 RUN sed -i 's/You2Me\///g' You2Me/package.json
 
+RUN npm update
+
 # Make serverTasks.php point to localhost
-RUN sed -i 's/www.yoursite.com/localhost/g' You2Me/src/assets/php/serverTasks.php
+RUN sed -i 's/www.yoursite.com/\/localhost/g' You2Me/src/assets/php/serverTasks.php
+
+# Replace https with http
+RUN sed -i 's/https/http/g' You2Me/src/assets/php/serverTasks.php
 
 RUN chmod 755 You2Me/src/assets/php/serverTasks.php
 
 WORKDIR /tmp/You2Me/
+
+RUN npm install
 
 RUN mkdir php
 
@@ -59,10 +69,6 @@ RUN mkdir python
 RUN mv src/assets/php/serverTasks.php php
 
 RUN mv src/assets/python/* python
-
-RUN npm install
-
-RUN npm update
 
 RUN npm run build
 
@@ -90,5 +96,15 @@ RUN rm master.zip
 RUN mv getID3-master/getid3 php
 
 RUN rm -rf getID3-master
+
+RUN ln -s /etc/apache2/mods-available/headers.load /etc/apache2/mods-enabled/headers.load
+
+RUN ln -s /etc/apache2/mods-available/rewrite.load /etc/apache2/mods-enabled/rewrite.load
+
+RUN echo Header set Content-Disposition "attachment" > /var/www/html/media/.htaccess
+
+RUN echo Header set Content-Type application/force-download >> /var/www/html/media/.htaccess
+
+RUN apache2ctl restart
 
 EXPOSE 80
