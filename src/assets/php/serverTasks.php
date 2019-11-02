@@ -13,7 +13,7 @@
      $os=(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? "Windows" : "Unix");
      
      // Do not change this unless you know what you are doing
-     $domain=(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http') . '://' . $_SERVER['SERVER_NAME'] . $(isset($_SERVER['SERVER_PORT'] ? ':' . $_SERVER['SERVER_PORT'] : "") . "/media/";
+     $domain=(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http') . '://' . $_SERVER['SERVER_NAME'] . (isset($_SERVER['SERVER_PORT']) ? ':' . $_SERVER['SERVER_PORT'] : "") . "/media/";
 
      function downloadFile() {
           global $sourcePath;
