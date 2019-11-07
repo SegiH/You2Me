@@ -5,7 +5,6 @@
      See if you can get more than artist & title from Python script
 
      CHANGES:
-
 */
 
 import { Component, OnInit } from '@angular/core';
@@ -20,12 +19,30 @@ import { DataService } from '../core/data.service';
 
 export class Y2mComponent implements OnInit {
      allowMoveToServer = false;
-     currentFormat = '320k';
+     readonly audioFormats: any = {
+          '' : null, // Needed to the user can unselect audio options
+          'aac' : 'aac',
+          'flac' : 'flac',
+          'm4a' : 'm4a',
+          'mp3 128k' : '128k',
+          'mp3 192k' : '192k',
+          'mp3 256k' : '256k',
+          'mp3 320k' : '320k',
+          'mp3 VBR 0 (Best)' : '0',
+          'mp3 VBR (5) (OK)' : '5',
+          'mp3 VBR (9) (Worst)' : '9',
+          'opus' : 'opus',
+          'vorbis' : 'vorbis',
+          'wav' : 'wav',
+     };
+     readonly audioFormatKeys = Object.keys(this.audioFormats);
+     currentAudioFormat = '320k'; // MP3 320K is the default format
+     currentVideoFormat = null;
      currentStep = 0;
      downloadLink = '';
      downloadButtonVisible = false; // default false
      downloadStarted = false; // default false
-     fields: any = {
+     readonly fields: any = {
           URL: { // This field shouldn't ever be disabled
                Required: true,
                Value: this.getParam('URL'),
@@ -63,27 +80,6 @@ export class Y2mComponent implements OnInit {
      };
      readonly fieldKeys = Object.keys(this.fields); // Used in HTML template
      fileName = '';
-     formats: any = { 'Audio: aac' : 'aac',
-                      'Audio: flac' : 'flac',
-                      'Audio: m4a' : 'm4a',
-                      'Audio: mp3 128k' : '128k',
-                      'Audio: mp3 192k' : '192k',
-                      'Audio: mp3 256k' : '256k',
-                      'Audio: mp3 320k' : '320k',
-                      'Audio: mp3 VBR 0 (Best)' : '0',
-                      'Audio: mp3 VBR (5) (OK)' : '5',
-                      'Audio: mp3 VBR (9) (Worst)' : '9',
-                      'Audio: opus' : 'opus',
-                      'Audio: vorbis' : 'vorbis',
-                      'Audio: wav' : 'wav',
-                      'Video: avi' : 'avi',
-                      'Video: flv': 'flv',
-                      'Video: mkv' : 'mkv',
-                      'Video: mp4' : 'mp4',
-                      'Video: ogg' : 'ogg',
-                      'Video: webm' : 'webm'
-                    };
-     readonly formatKeys = Object.keys(this.formats);
      isFinished = false; // default false
      isSubmitted = false; // default false
      moveToServer = false; // default false
@@ -91,19 +87,40 @@ export class Y2mComponent implements OnInit {
      saveValues = false;
      stepperStepNames = ['Started download', 'Finished download', 'Writing ID3 Tags'];
      statusMessage = 'Fields marked with an * are required';
-     readonly validFormatValues = Object.values(this.formats);
+     readonly validAudioFormatValues = Object.values(this.audioFormats);
+     readonly videoFormats: any = {
+          '' : null,
+          'No conversion' : 'original',
+          'Convert to avi' : 'avi',
+          'Convert to flv': 'flv',
+          'Convert to mkv' : 'mkv',
+          'Convert to mp4' : 'mp4',
+          'Convert to ogg' : 'ogg',
+          'Convert to webm' : 'webm'
+     }
+     readonly videoFormatKeys = Object.keys(this.videoFormats);
+     readonly validVideoFormatValues = Object.values(this.videoFormats);
 
      constructor(public snackBar: MatSnackBar, public dataService: DataService) { }
 
      ngOnInit() {
+          debugger;
+          
           // Get URL parameter Format if it was provided
           const format = this.getParam('Format');
 
           if (format != null) {
-               if (this.validFormatValues.indexOf(format) !== -1) {
-                    this.currentFormat = format;
+               if (this.validAudioFormatValues.includes(format) || this.validVideoFormatValues.includes(format)) {
+                    if (this.validAudioFormatValues.includes(format)) {
+                         this.currentAudioFormat = format;
+                         this.currentVideoFormat=null;
+                    } else if (this.validVideoFormatValues.includes(format)) {                         
+                         this.currentVideoFormat = format;
+                         this.currentAudioFormat = null;
+                    }
                } else {
-                    alert(`Valid formats are ${this.validFormatValues}`);
+                    // The filter removes the null value otherwise you will see a leading comma in front of each format
+                    alert(`Valid formats are ${this.validAudioFormatValues.filter(format => format !== null)} for audio or ${this.validVideoFormatValues.filter(format => format !== null)} for video`);
                }
           }
 
@@ -175,7 +192,9 @@ export class Y2mComponent implements OnInit {
 
      // Return the key based on the value
      getFormatKeyByValue() {
-          return Object.keys(this.formats).find(key => this.formats[key] === this.currentFormat);
+          // Since there are 2 format dropdowns, either one of them has a selected value of neither has a selected value
+          return (this.currentAudioFormat != null ? Object.keys(this.audioFormats).find(key => this.audioFormats[key] === this.currentAudioFormat) 
+                                          : (this.currentVideoFormat != null ? Object.keys(this.videoFormats).find(key => this.videoFormats[key] === this.currentVideoFormat) : null));
      }
 
      // Get URL parameter
@@ -190,43 +209,44 @@ export class Y2mComponent implements OnInit {
 
           // Create object which contains split key value pairs so "URL=https://www.youtube.com/watch?v=Wch3gJG2GJ4" turns into ['URL','https://www.youtube.com/watch?v=Wch3gJG2GJ4']
           const map1 = res.map(x => x.split('='));
-
+          
           const params: any = {};
 
           // Add key/pair to object so it can be accessed by doing params[keyname] to get the value
-          map1.map(x => params[x[0]] = x[1] + (x[2] != null ? '=' + x[2] : ''));
+          map1.map(x => params[x[0].toUpperCase()] = x[1] + (x[2] !== null ? '=' + x[2] : ''));
 
-          // If there isn't a parameter value for the specified param
-          if (typeof params[name] === 'undefined') {
-               return null;
-          }
+          // Make URL params and name upper case when checking so they aren't case sensitive
+          name=name.toUpperCase();
 
           switch (name) {
                case 'URL':
                     return (typeof params[name] !== 'undefined' && params[name] !== '' ? decodeURI(params[name]) : null);
-               case 'Artist':
-                    return (decodeURI(params[name]) || this.parseTitle('Artist'));
-               case 'Album':
-                    return (decodeURI(params[name]) || '');
-               case 'Format':
-                    return (decodeURI(params[name]) || '');
-               case 'Genre':
-                    return (decodeURI(params[name]) || '');
-               case 'Name':
-                    return (decodeURI(params[name]) || this.parseTitle('title'));
-               case 'Title':
+               case 'ARTIST':
+                    return (typeof params[name] !== 'undefined' && decodeURI(params[name]) || this.parseTitle('Artist'));
+               case 'ALBUM':
+                    return (typeof params[name] !== 'undefined' && decodeURI(params[name]) || '');
+               case 'FORMAT':
+                    return (typeof params[name] !== 'undefined' && decodeURI(params[name]) || '');
+               case 'GENRE':
+                    return (typeof params[name] !== 'undefined' && decodeURI(params[name]) || '');
+               case 'NAME': // Alias for title
+                    return (typeof params[name] !== 'undefined' && decodeURI(params[name]) || this.parseTitle('title'));
+               case 'TITLE':
+                    if (typeof params[name] === 'undefined')
+                         return '';
+                    
                     let title = params[name];
 
                     title = title.replace('Title=', '');
                     title = title.replace(' (HQ)', '');
 
                     return decodeURI(title);
-               case 'TrackNum':
-                    return (decodeURI(params[name])  || '');
-               case 'MoveToServer':
-                    return params[name];
-               case 'Year':
-                    return (decodeURI(params[name]) || '');
+               case 'TRACKNUM':
+                    return (typeof params[name] !== 'undefined' && decodeURI(params[name])  || '');
+               case 'MOVETOSERVER':
+                    return (typeof params[name] !== 'undefined' ? params[name] : '');
+               case 'YEAR':
+                    return (typeof params[name] !== 'undefined' ? decodeURI(params[name]) : '');
                default:
                     return '';
           }
@@ -248,16 +268,14 @@ export class Y2mComponent implements OnInit {
 
      // Is currently selected format an audio format
      isAudioFormat() {
-          const format = this.getFormatKeyByValue();
-
-          return (format.indexOf('Audio:') !== -1 ? true : false);
+          return (this.currentAudioFormat !== null);
      }
 
      // Is currently selected format an mp3 format
      isMP3Format() {
           const format = this.getFormatKeyByValue();
 
-          if (this.isAudioFormat() && format.indexOf('mp3') !== -1) {
+          if (format != null && this.isAudioFormat() && format.indexOf('mp3') !== -1) {
                return true;
           } else {
                return false;
@@ -320,7 +338,7 @@ export class Y2mComponent implements OnInit {
                     const fileName = (this.isAudioFormat() === true && trackNum !== null ? trackNum + ' ' : '') + name;
 
                     // Call data service to download the file
-                    this.dataService.downloadFile(URL, fileName, this.isAudioFormat(), this.isMP3Format(), this.currentFormat)
+                    this.dataService.downloadFile(URL, fileName, this.isAudioFormat(), this.isMP3Format(),(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
                     .subscribe((response) => {
                          // Trap server side errors
                          if (response[0].includes('Error:')) {
@@ -363,6 +381,7 @@ export class Y2mComponent implements OnInit {
                          this.processSteps();
                     },
                     error => {
+                         this.handleError(Response, error);
                     });
 
                     break;
@@ -406,7 +425,7 @@ export class Y2mComponent implements OnInit {
 
                     break;
                case 2: // Call the data service to move the file to the media server
-                    this.dataService.moveFile(this.fileName, this.isAudioFormat(), this.moveToServer, artist, album, this.currentFormat)
+                    this.dataService.moveFile(this.fileName, this.isAudioFormat(), this.moveToServer, artist, album,(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
                     .subscribe((response) => {
                          // Trap server side errors
                          if (response[0].includes('Error:')) {
@@ -429,6 +448,7 @@ export class Y2mComponent implements OnInit {
                          }
                     },
                     error => {
+                         this.handleError(Response, error);
                     });
 
                     break;
@@ -516,6 +536,11 @@ export class Y2mComponent implements OnInit {
                return;
           }
 
+          if (this.currentAudioFormat == null && this.currentVideoFormat == null) {
+               this.showSnackBarMessage('Please select the audio or video format');
+               return;
+          }
+          
           // Set initial status
           if (this.currentStep === 0) {
                this.updateStatus('Starting the download');
@@ -526,6 +551,7 @@ export class Y2mComponent implements OnInit {
 
           // If the current format is not MP3, skip the write ID3 tag step
           if (!this.isMP3Format()) {
+               // Remove Write ID3 tags for non-MP3 format audio
                this.stepperStepNames.splice(2, 1);
 
                // When we aren't creating an mp3, we aren't writing ID3 tags. When this happens, we need to add this step when

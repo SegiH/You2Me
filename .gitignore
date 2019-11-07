@@ -38,6 +38,4 @@ testem.log
 .DS_Store
 Thumbs.db
 
-src/assets/serverTasks.php
-
-proxy.conf.json
+changeLog

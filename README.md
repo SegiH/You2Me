@@ -7,7 +7,7 @@ The app can be set up so that the media file can either be downloaded or the fil
 This web app supports saving the file in multiple formats.
 
 For audio, the supported formats are aac, flac, m4a, mp3 128k,mp3 192k,mp3 256k,mp3 320k,MP3 VBR, opus, vorbis and wav.
-For video, the supported formats are avi, flv, mkv, mp4, ogg and webm.
+For video, the supported formats are original (don't reencode the video which is fastest),avi, flv, mkv, mp4, ogg and webm.
 
 This app was originally written to only work with YouTube links but now supports over 1000 sites. Because of technical reasons, it isn't possible to list all of the sites that work with youtube-dl. If you want to easily know if a site is supported, try it out with a short video/song and see if it works.
 
@@ -17,11 +17,9 @@ After submitting the form, the save values checkbox will let you start over but 
 
 You can supply default values for all of the fields by providing URL parameters.
 
-All of the current URL parameters are as follows: URL, Artist, Album, Format, Genre, Name, TrackNum, Genre, Year, MoveToServer. To provide a default artist name,add &Artist=Beck at the end of the URL. 
+All of the current URL parameters are as follows: URL, Artist, Album, Format, Genre, Name, TrackNum, Genre, Year, MoveToServer and Format. To provide a default artist name,add &Artist=Beck at the end of the URL. For audio or video formats, supply one of the values above such as Format=original for video without reencoding.
 
-Valid formats are currently: aac,flac,m4a,128k,192k,256k,320k,0,5,9,opus,vorbis,wav,avi,flv,mkv,mp4,ogg,webm and are also provided in the same format such as &Format=mp4. The formats 0, 5 and 9 formats are MP3 VBR rates where 0 is best, 5 is ok and 9 is worst.
-
-Pre-requisites to run You2Me:
+Pre-requisites to run You2Me if you host it on your web server:
 1. Web Server: Linux (tested with Apache and Nginx) or Windows (tested with Apache). WampServer (http://www.wampserver.com) would be easiest to set up on Windows.
 2. PHP 7 (Not tested with PHP 5) 
 3. Python 2.7 or 3.4+
@@ -38,6 +36,15 @@ This application can be set up to run in one of 2 different modes.
 
 1. Client - A standalone version of this application which will present a download button for you to download the file to your computer or phone.
 2. Server - A server version of this application which will automatically move the audio file to a specified location on your media server instead of showing a download button.
+
+
+Docker build instructions: (This will do everything for you and let you run You2Me without setting up a web server yourself)
+
+1. Install Docker if it isn't installed already
+2. Go to the main You2Me folder in terminal
+3. Build a Docker image based on my script: sudo docker build docker/ -t you2me
+4. Run the Docker image: sudo docker run -dit -p 8080:80 you2me If you want to change the port that it runs on, change the first 8080 so for example 80:80 to access You2Me on port 80 (The second 80 after the colon is the internal port used and should ALWAYS be 80).
+5. Visit localhost in your browser.
 
 Build instruction:
 1. Download the source.
@@ -69,13 +76,6 @@ Build instruction:
 YouToMe Bookmark:
 YoutoMe supports a bookmark which will automatically load You2Me in a new tab with the URL of the site that were on. Create a bookmark in your browsers' toolbar with the name Send to You2Me and the following JavaScript code as the URL of the bookmark:
 
-Docker build instructions: (This will do everything for you and let you run You2Me without setting up a web server yourself)
-
-1. Install Docker if it isn't installed already
-2. Go to the main You2Me folder in terminal
-3. Build a Docker image based on my script: sudo docker build docker/ -t you2me
-4. Run the Docker image: sudo docker run -dit -p 80:80 you2me If you want to change the port that it runs on, change the first 80 so for example 8080:80    to access You2Me on port 8080 (The second 80 is the internal port used and should ALWAYS be 80).
-5. Visit localhost in your browser.
 
 Client mode:
 

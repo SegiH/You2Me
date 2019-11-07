@@ -7,14 +7,12 @@
      $audioDestinationPath="/mnt/usb/";
      $videoDestinationPath="/mnt/usb/";
      
-     $sourcePath="/var/www/html/media/";     
+     $sourcePath="/var/www/html/media/";
+     $domain="https://segi.mooo.com/media/";
 
      //$os=php_uname("s");
      $os=(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? "Windows" : "Unix");
      
-     // Do not change this unless you know what you are doing
-     $domain=(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http') . '://' . $_SERVER['SERVER_NAME'] . (isset($_SERVER['SERVER_PORT']) ? ':' . $_SERVER['SERVER_PORT'] : "") . "/media/";
-
      function downloadFile() {
           global $sourcePath;
 
@@ -22,20 +20,20 @@
           $fileName=htmlspecialchars($_GET["Filename"]);
           $isAudioFormat=(isset($_GET["IsAudioFormat"]) && $_GET["IsAudioFormat"] == "true" ? true : false);
           $isMP3Format=(isset($_GET["Bitrate"]) ? true : false);
-          $bitrate=($isAudioFormat == true && isset($_GET["Bitrate"]) ? htmlspecialchars($_GET["Bitrate"]) : "320k");
+          $bitrate=($isAudio == true && isset($_GET["Bitrate"]) ? htmlspecialchars($_GET["Bitrate"]) : "320k");
           $audioFormat=(isset($_GET["AudioFormat"]) ?  htmlspecialchars($_GET["AudioFormat"]) : null);
          
           if ($isAudioFormat == true && !isset($audioFormat))
                $audioformat="mp3";
  
           $isVideoFormat=(isset($_GET["IsVideoFormat"]) && $_GET["IsVideoFormat"] == true ? true : false);
-          $videoFormat=(isset($_GET["VideoFormat"]) ?  htmlspecialchars($_GET["VideoFormat"]) : null);
+          $videoFormat=(isset($_GET["VideoFormat"]) && $_GET["VideoFormat"] != "Original" ?  htmlspecialchars($_GET["VideoFormat"]) : null);
           
           if ($isiVideoFormat == true && !isset($videoFormat))
                $videoFormat="mp4";
 
           $valid_audio_formats=array('0','5','9','128k','192k','256k','320k','aac','flac','m4a','opus','vorbis');
-          $valid_video_formats=array('mp4','flv','ogg','webm','mkv','avi');
+          $valid_video_formats=array('original','mp4','flv','ogg','webm','mkv','avi');
           
           // Validate Audio/Video format
           if (isset($audioFormat) && !in_array($audioFormat,$valid_audio_formats))
@@ -61,18 +59,28 @@
                if ($isMP3Format) {
                     $cmd=$cmd . " --audio-format mp3 --audio-quality " . $bitrate; 
                } else {
-                   $cmd=$cmd . " --audio-format " . (!$isMP3Format ? $audioFormat : 'mp3');
+                   $cmd=$cmd . " --audio-format " . $audioFormat;
                }
-          } else {
+          } else if ($isVideoFormat && $videoFormat != "original") {
               $cmd=$cmd . " --recode-video " . $videoFormat;
+          } else if ($isVideoFormat && $videoFormat == "original") {
+              $cmd=$cmd . " -f best";
           }
 
 	  exec($cmd,$retArr,$retVal);
           
-          $fileName=$fileName . "." . ($audioFormat != NULL ? (!$isMP3Format ? $audioFormat : "mp3") : $videoFormat);
-         
-          if (!file_exists($sourcePath . $fileName))
-	       die(json_encode(array("Error: Unable to create the file")));
+          if ($isAudioFormat) 
+               $fileName=$fileName . "." . (!$isMP3Format ? $audioFormat : "mp3");
+          else  {
+	       exec($cmd . " --get-filename",$videoFileName);
+               $fileName=str_replace($sourcePath,"",$videoFileName[0]);
+          }
+          // $fileName=$fileName . "." . ($audioFormat != NULL ? (!$isMP3Format ? $audioFormat : "mp3") : $videoFormat);
+           
+          if (!file_exists($sourcePath . $fileName))  {
+	        die($cmd . " with the expected file " . $sourcePath . $fileName); // die(json_encode(array("Error: Unable to create the file")));
+	       // die(json_encode(array("Error: Unable to create the file")));
+          }
 
           if (!$isMP3Format) {
 	       die(json_encode(array($fileName,"","")));
@@ -81,18 +89,18 @@
           // If the format is audio and its mp3, try to tag it
 	  if (!chmod($sourcePath . $fileName,0777)) {
 	       die(json_encode(array("Error: Failed to set the file mode")));
-       }
-       
-       $tagged=false;
+	  }
  
-       /*$cmd="python ../python/aidmatch.py \"" . $sourcePath . $fileName . "\" 2>&1";
+          $cmd="python ../python/aidmatch.py \"" . $sourcePath . $fileName . "\" 2>&1";
 
 	  exec($cmd,$retArr2,$retVal2);
 
-	  $artist = "";
+          $tagged=false;
+
+	  /*$artist = "";
 	  $title = "";
 
-	  # Since we only care about the first result, we only save the first key value pair
+	  // Since we only care about the first result, we only save the first key value pair
 	  foreach ($retArr2 as $key => $value) {
 	       // echo "Key: " . $key . " Value: " . $value;
                if ($value=="fingerprint could not be calculated") {
@@ -109,9 +117,9 @@
 	       $title=str_replace('"','',$tags[1]);
 
 	       break;   
-       }*/
-       
-	  # if tagged is false, nothing was written above
+	  }*/
+
+	  // if tagged is false, nothing was written above
 	  if ($tagged == false)
 	       echo json_encode(array(urlencode($fileName),"",""));
           else 
@@ -140,12 +148,7 @@
                          echo json_encode(array("Error: An error occurred while copying the video to the new location"));
 	            }
                } else {
-                    // Since Docker can bind to a different external port compared to the internal port (80),
-                    // I only return the file name and let the client get the url
-                    // If you run a Docker container and bind it externally to port 8080 and 80 on port internally, this web server won't build
-                    // the right URL if the external port is not port 80
-                    // echo json_encode(array($domain . urlencode($fileName)));
-                    echo json_encode(array(urlencode($fileName)));
+                    echo json_encode(array($domain . urlencode($fileName)));
                }
 
                return;
