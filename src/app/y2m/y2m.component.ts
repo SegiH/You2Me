@@ -8,7 +8,6 @@
 
      URL for testing: https://www.youtube.com/watch?v=Wch3gJG2GJ4
 */
-
 import { Component, OnInit } from '@angular/core';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material';
 import { DataService } from '../core/data.service';
@@ -41,7 +40,7 @@ export class Y2mComponent implements OnInit {
      currentAudioFormat = '320k'; // MP3 320K is the default format
      currentVideoFormat = null;
      currentStep = 0;
-     debugging = false; // This should never be true when running production build
+     debugging = true; // This should never be true when running production build
      downloadLink = '';
      downloadButtonVisible = false; // default false
      downloadStarted = false; // default false
@@ -131,7 +130,8 @@ export class Y2mComponent implements OnInit {
                this.stepperStepNames.push('Moving the file to new location');
           }
 
-          if (this.debugging == true) {
+          // Default field values
+          if (this.debugging === true) {
                this.fields.URL.Value="https://www.youtube.com/watch?v=Wch3gJG2GJ4";
                this.fields.Artist.Value="RHCP";
                this.fields.Album.Value="Greatest Hits";
@@ -147,17 +147,15 @@ export class Y2mComponent implements OnInit {
 
      // Called by binding to Download button
      downloadLinkClicked() {
-          if (this.downloadStarted === false) {
-               window.location.href = this.downloadLink;
+          window.location.href = this.downloadLink;
 
-               this.downloadStarted = true;
+          this.downloadStarted = true;
 
-               this.downloadButtonVisible = false;
+          this.downloadButtonVisible = false;
 
-               // If the MoveToServer button is visible, hide it to prevent subsequent clicks
-               if (this.moveToServerButtonVisible === true) {
-                    this.moveToServerButtonVisible = false;
-               }
+          // If the MoveToServer button is visible, hide it to prevent subsequent clicks
+          if (this.moveToServerButtonVisible === true) {
+               this.moveToServerButtonVisible = false;
           }
      }
 
@@ -169,7 +167,7 @@ export class Y2mComponent implements OnInit {
           // Specified keys are the fields to hide
           return (
                // If the fields property is set to disabled this is the de-facto determiner whether this field is enabled or disabled
-               this.fieldKeys.indexOf(key) !== -1 && this.fields[key].Disabled)
+               this.fieldKeys.includes(key) && this.fields[key].Disabled)
                || (
                     // If the format is a video format, hide these fields
                     (!this.isAudioFormat() && videoHideFields.includes(key))
@@ -191,7 +189,7 @@ export class Y2mComponent implements OnInit {
 
           // If the user is allowed to move the file to the server but didn't provide MoveToServer parameter, show the MoveToServer button
           // so the user has the option of moving the file to the server. This is here in case you forgot to pass MoveToServe=true URL parameter but meant to
-          if (this.allowMoveToServer == true && this.moveToServerButtonVisible === false) {
+          if (this.allowMoveToServer === true && this.moveToServerButtonVisible === false) {
                this.moveToServerButtonVisible = true;
           } else {
                this.moveToServerButtonVisible = false;
@@ -283,14 +281,14 @@ export class Y2mComponent implements OnInit {
 
      // Is currently selected format an audio format
      isAudioFormat() {
-          return (this.currentAudioFormat !== null);
+          return this.currentAudioFormat !== null;
      }
 
      // Is currently selected format an mp3 format
      isMP3Format() {
           const format = this.getFormatKeyByValue();
 
-          if (format != null && this.isAudioFormat() && format.indexOf('mp3') !== -1) {
+          if (format != null && this.isAudioFormat() && format.includes('mp3')) {
                return true;
           } else {
                return false;
@@ -319,7 +317,7 @@ export class Y2mComponent implements OnInit {
           titleParam = titleParam.replace(' - YouTube', '');
 
           // If no dash is in the title, I'm going to assume that the title is the song name
-          if (titleParam.indexOf('-') === null && section === 'title') {
+          if (titleParam.includes('-') && section.toUpperCase() === 'TITLE') {
                return titleParam;
           }
 
@@ -348,14 +346,13 @@ export class Y2mComponent implements OnInit {
           switch (this.currentStep) {
                case 0: // Download the file
 
-                    // Build file name. If the format selected is an audio format and there's a track number, use it. Otherwise only use the Name field
+                    // Build file name without the extension (The php script adds the extension based on the format). 
+                    // If the format selected is an audio format and there's a track number, use it. Otherwise only use the Name field
                     const fileName = (this.isAudioFormat() === true && trackNum !== null ? trackNum + ' ' : '') + name;
 
                     // Call data service to download the file
                     this.dataService.downloadFile(URL, fileName,this.moveToServer, this.isAudioFormat(), this.isMP3Format(),(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
                     .subscribe((response) => {
-                         debugger;
-
                          // Trap server side errors
                          if (response[0].includes('Error:')) {
                               this.handleError(response, response);
@@ -365,17 +362,19 @@ export class Y2mComponent implements OnInit {
                          // First index will be filename
                          this.fileName = response[0];
 
+                         // Disabled for now. Having Python issues with Docker, Python fingerprinting is broken
+
                          // Second index will be Artist if matched through Python script that does audio fingerprinting
-                         if (response[1] !== null && response[1] !== '') {
+                         /*if (response[1] !== null && response[1] !== '') {
                               artist = response[1];
                          }
 
                          // Third index will be Title if matched through Python script that does audio fingerprinting
                          if (response[2] !== null && response[2] !== '') {
                               name = response[2];
-                         }
+                         }*/
 
-                         /* Disabled for now. having Python issues with Docker, Python fingerprinting is broken
+                         /* 
                          // This is only useful if the artist and album fields arent required and the Python script tried but fails to get the artist and album
                          // At the moment submitClick() requires the artist and album to be entered before you can start step 1
                          /*if (this.isMP3Format() && this.fields.Artist.Value === null) {
@@ -388,14 +387,14 @@ export class Y2mComponent implements OnInit {
                               return;
                          }*/
 
-                         // When the format is MP3 write the ID3 tags, otherwise skip this step
+                         // When the format is MP3 write the ID3 tags process the next step
                          if (this.isMP3Format()) {
                               this.updateStatus('The file has been downloaded. Writing the ID3 tags');
 
                               this.currentStep++;
 
                               this.processSteps();
-                         } else if (!this.isMP3Format() && !this.moveToServer) { // If the format is not MP3 and we aren't moving to the server, we are done
+                         } else if (!this.isMP3Format() && !this.moveToServer) { // If the format is not MP3 and we aren't moving to the server so we are done
                               // The response returns the local file including the path as well as the URL for the downloaded file. This is needed so we can delete the local file later
                               this.downloadLink = decodeURIComponent(response[0].replace(/\+/g, ' '));
 
@@ -432,7 +431,7 @@ export class Y2mComponent implements OnInit {
                               this.finished();
 
                               return;
-                         } else { // Move To Server is enabled
+                         } else { // Move To Server is enabled so process next step
                               this.processSteps();
                          }   
                     },
@@ -478,7 +477,7 @@ export class Y2mComponent implements OnInit {
 
      // Called by binding of click event of submit button
      submitClick() {
-          // When the last step has been completed, the submit button changes to restart. When this button is clicked, its caption text is set to restart.
+          // When the last step has been completed, the submit button text changes to restart. When this button is clicked, its caption text is set to restart.
           // The form will reset itself and only save the values if the save values checkbox is checked
           if (this.isFinished === true) {
                // If the Save Values checkbox is not checked
@@ -520,32 +519,32 @@ export class Y2mComponent implements OnInit {
                return;
           }
 
-          if (this.fieldIsHidden('Artist') === false && this.fields.Artist.Required === true && (this.fields.Artist.Value === null || this.fields.Artist.Value === '')) {
+          if (!this.fieldIsHidden('Artist') && this.fields.Artist.Required && (this.fields.Artist.Value === null || this.fields.Artist.Value === '')) {
                this.showSnackBarMessage('Please enter the artist');
                return;
           }
 
-          if (this.fieldIsHidden('Album') === false && this.fields.Album.Required === true && (this.fields.Album.Value === null || this.fields.Album.Value === '')) {
+          if (!this.fieldIsHidden('Album') && this.fields.Album.Required && (this.fields.Album.Value === null || this.fields.Album.Value === '')) {
                this.showSnackBarMessage('Please enter the album');
                return;
           }
 
-          if (this.fields.Name.Required === true && (this.fields.Name.Value === null || this.fields.Name.Value === '')) {
+          if (this.fields.Name.Required && (this.fields.Name.Value === null || this.fields.Name.Value === '')) {
                this.showSnackBarMessage('Please enter the name');
                return;
           }
 
-          if (this.fields.TrackNum.Required === true && (this.fields.TrackNum.Value === null || this.fields.TrackNum.Value === '')) {
+          if (this.fields.TrackNum.Required && (this.fields.TrackNum.Value === null || this.fields.TrackNum.Value === '')) {
                this.showSnackBarMessage('Please enter the track #');
                return;
           }
 
-          if (this.fields.Year.Required === true && (this.fields.Year.Value === null || this.fields.Year.Value === '')) {
+          if (this.fields.Year.Required && (this.fields.Year.Value === null || this.fields.Year.Value === '')) {
                this.showSnackBarMessage('Please enter the year');
                return;
           }
 
-          if (this.currentAudioFormat == null && this.currentVideoFormat == null) {
+          if (this.currentAudioFormat === null && this.currentVideoFormat === null) {
                this.showSnackBarMessage('Please select the audio or video format');
                return;
           }
