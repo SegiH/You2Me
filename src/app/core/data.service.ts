@@ -19,6 +19,18 @@ export class DataService {
         return this.processStep(params);
     }
 
+    private handleError(error: Response | any) {
+        if (error.error instanceof Error) {
+            const errMessage = error.error.message;
+
+            return throwError(errMessage);
+            // Use the following instead if using lite-server
+            // return Observable.throw(err.text() || 'backend server error');
+        }
+
+        return throwError(error || 'Node.js server error');
+    }
+
     moveFile(localFile: string, isAudio: boolean, moveToServer: boolean, artist: string, album: string, currentFormat: string) {
         const params = `?MoveFile` +
                        `&MoveToServer=${moveToServer}`  +
@@ -50,17 +62,4 @@ export class DataService {
 
         return this.processStep(params);
     }
-
-    private handleError(error: Response | any) {
-        if (error.error instanceof Error) {
-            const errMessage = error.error.message;
-
-            return throwError(errMessage);
-            // Use the following instead if using lite-server
-            // return Observable.throw(err.text() || 'backend server error');
-        }
-
-        return throwError(error || 'Node.js server error');
-    }
-
 }
