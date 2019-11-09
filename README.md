@@ -26,7 +26,8 @@ You can run the application in one of 2 ways:
    b. Go to the main You2Me folder in terminal
    c. Build a Docker image based on my script: sudo docker build docker/ -t you2me
    d. Run the Docker image: sudo docker run -dit -p 8080:80 you2me If you want to change the port that it runs on, change the first 8080 so for example 80:80 to access You2Me      on port 80 (The second 80 after the colon is the internal port used and should ALWAYS be 80).
-   e. Visit dockeripaddress:port in your browser. You can run docker-machine ip to find the IP address of your docker instance.
+   e. Visit dockeripaddress:port in your browser. You can run docker-machine ip to find the IP address of your docker instance on Windows or 
+      docker inspect $(sudo docker ps -q) | grep \"IPAddress.
 2. Run You2Me on your own web server (Tested with Apache and Nginx on Linux and Apache on Windows. WampServer (http://www.wampserver.com) would be easiest to set up on Windows.)
    a. Install  PHP 7 (Not tested with PHP 5) 
    b. Open source utility youtube-dl from https://rg3.github.io/youtube-dl/ which does NOT need root permissions. If you are using Linux, it should be available in your repo so       you can install it by running apt-get install youtube-dl. A Windows binary is also available on the official site.
