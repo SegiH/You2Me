@@ -14,15 +14,18 @@
      $os=(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? "Windows" : "Unix");
      
      function downloadFile() {
+          global $domain;
           global $sourcePath;
 
           $url=htmlspecialchars($_GET["URL"]);
           $fileName=htmlspecialchars($_GET["Filename"]);
+          $moveToServer=(isset($_GET["MoveToServer"]) && $_GET["MoveToServer"] == "true" ? true : false);
           $isAudioFormat=(isset($_GET["IsAudioFormat"]) && $_GET["IsAudioFormat"] == "true" ? true : false);
           $isMP3Format=(isset($_GET["Bitrate"]) ? true : false);
           $bitrate=($isAudio == true && isset($_GET["Bitrate"]) ? htmlspecialchars($_GET["Bitrate"]) : "320k");
           $audioFormat=(isset($_GET["AudioFormat"]) ?  htmlspecialchars($_GET["AudioFormat"]) : null);
-         
+ 
+          // Default to MP3 format if $audioformat isn't specified
           if ($isAudioFormat == true && !isset($audioFormat))
                $audioformat="mp3";
  
@@ -32,7 +35,7 @@
           if ($isiVideoFormat == true && !isset($videoFormat))
                $videoFormat="mp4";
 
-          $valid_audio_formats=array('0','5','9','128k','192k','256k','320k','aac','flac','m4a','opus','vorbis');
+          $valid_audio_formats=array('0','5','9','128k','192k','256k','320k','aac','flac','m4a','opus','vorbis','wav');
           $valid_video_formats=array('original','mp4','flv','ogg','webm','mkv','avi');
           
           // Validate Audio/Video format
@@ -67,31 +70,38 @@
               $cmd=$cmd . " -f best";
           }
 
-	  exec($cmd,$retArr,$retVal);
+          exec($cmd,$retArr,$retVal);
           
-          if ($isAudioFormat) 
-               $fileName=$fileName . "." . (!$isMP3Format ? $audioFormat : "mp3");
-          else  {
-	       exec($cmd . " --get-filename",$videoFileName);
+          if ($isAudioFormat) {
+               if ($audioFormat != "vorbis") // Vorbis audio files have the extension ogg not vorbis
+                    $fileName=$fileName . "." . (!$isMP3Format ? $audioFormat : "mp3");
+               else
+                    $fileName=$fileName . ".ogg";
+          } else if ($isVideoFormat && $videoFormat != 'original') {
+                    $fileName=$fileName . "." . $videoFormat;
+          } else if ($isVideoFormat && $videoFormat == 'original') { // When the format is original, we don't know the format that video is encoded in so we don't know the file extension so use --get-filename parameter to get the output file name
+               exec($cmd . " --get-filename",$videoFileName);
                $fileName=str_replace($sourcePath,"",$videoFileName[0]);
           }
-          // $fileName=$fileName . "." . ($audioFormat != NULL ? (!$isMP3Format ? $audioFormat : "mp3") : $videoFormat);
            
           if (!file_exists($sourcePath . $fileName))  {
-	        die($cmd . " with the expected file " . $sourcePath . $fileName); // die(json_encode(array("Error: Unable to create the file")));
-	       // die(json_encode(array("Error: Unable to create the file")));
-          }
-
-          if (!$isMP3Format) {
-	       die(json_encode(array($fileName,"","")));
+                //die($cmd . " with the expected file " . $sourcePath . $fileName); // die(json_encode(array("Error: Unable to create the file")));
+                die(json_encode(array("Error: Unable to create the file")));
           }
 
           // If the format is audio and its mp3, try to tag it
-	  if (!chmod($sourcePath . $fileName,0777)) {
+          if (!chmod($sourcePath . $fileName,0777)) {
 	       die(json_encode(array("Error: Failed to set the file mode")));
-	  }
+          }
  
-          $cmd="python ../python/aidmatch.py \"" . $sourcePath . $fileName . "\" 2>&1";
+          // If move To Server is true, we have more steps to process 
+          if ($isMP3Format == true || $moveToServer == true) {
+	       die(json_encode(array($fileName,"","")));
+          } else if ($isMP3Format == false && $moveToServer == false) { // If the file is not MP3, we don't need to write ID3 tags. If MoveTo Server is false, we are done and there are no more steps to process to provide download link
+               die(json_encode(array($domain . urlencode($fileName))));
+          }
+
+          /*$cmd="python ../python/aidmatch.py \"" . $sourcePath . $fileName . "\" 2>&1";
 
 	  exec($cmd,$retArr2,$retVal2);
 
@@ -117,13 +127,14 @@
 	       $title=str_replace('"','',$tags[1]);
 
 	       break;   
-	  }*/
+	  }
 
 	  // if tagged is false, nothing was written above
 	  if ($tagged == false)
 	       echo json_encode(array(urlencode($fileName),"",""));
           else 
 	       echo json_encode(array(urlencode($fileName),$artist,$title));
+          */
 
           return;
      } 
@@ -134,7 +145,7 @@
           global $sourcePath;
           global $videoDestinationPath;
 
-	  $fileName=htmlspecialchars($_GET["Filename"]);
+          $fileName=htmlspecialchars($_GET["Filename"]);
           $moveToServer=(isset($_GET["MoveToServer"]) && $_GET["MoveToServer"] == "true" ? true : false);
  
           if (isset($_GET["IsVideoFormat"]) && $_GET["IsVideoFormat"] == true) {
@@ -146,7 +157,7 @@
                          echo json_encode(array("The video has been moved to the new location"));
                     } else {
                          echo json_encode(array("Error: An error occurred while copying the video to the new location"));
-	            }
+	               }
                } else {
                     echo json_encode(array($domain . urlencode($fileName)));
                }
@@ -161,7 +172,7 @@
           $pathBuildSucceeded=false;
 
           // Try to build path if it exists 
-	  if ($moveToServer == true && $artist != null && $artist != "" && $album != null && $album != "") {
+	     if ($moveToServer == true && $artist != null && $artist != "" && $album != null && $album != "") {
                if (file_exists($audioDestinationPath . $artist)==false) {
                     if (mkdir($audioDestinationPath . $artist)) {
                          if (!file_exists($audioDestinationPath . $artist . ($os=="Windows" ? "\\" : "/") . $album)) {
@@ -174,8 +185,8 @@
                               $pathBuildSucceeded=true;
                          }
                     }
-	       } else {
-	            // Artist already exists so try to create album
+	          } else {
+	               // Artist already exists so try to create album
                     if (!file_exists($audioDestinationPath . $artist . ($os=="Windows" ? "\\" : "/") . $album)) {
                          if (mkdir($audioDestinationPath . $artist . ($os=="Windows" ? "\\" : "/") . $album)) {
                               // If we were able to create the path with artist and album when it didn't exist before
@@ -185,9 +196,8 @@
                          // If the path artist\album already exists
                          $pathBuildSucceeded=true;
                     }
-	       }
-	  }/* elseif ($moveToServer == true) {
-          } */
+	          }
+	     }
 
           if ($pathBuildSucceeded) {
                $audioDestinationPath=$audioDestinationPath . $artist . ($os=="Windows" ? "\\" : "/") . $album . ($os=="Windows" ? "\\" : "/");
@@ -202,7 +212,7 @@
                echo json_encode(array($domain . urlencode($fileName)));
           } else {
                echo json_encode(array("Error: An error occurred while copying the audio file to the new location"));
-	  }
+	     }
 
           return;
      }
@@ -248,8 +258,8 @@
                     $status="Successfully wrote the ID3 tags";
 	     
                if (!empty($tagWriter->warnings)) {
-	            $status .= "There were some warnings: " . implode('<br><br>', $tagWriter->warnings);
-    	       }
+                    $status .= "There were some warnings: " . implode('<br><br>', $tagWriter->warnings);
+               }
           } else {
                $status="Error: Failed to write tags! " . implode('<br><br>', $tagWriter->errors);
           }
@@ -263,7 +273,7 @@
           // Validate that the required arguments were provided
           $missingParams=false;
 
-         if (!isset($_GET["URL"]) || !isset($_GET["Filename"])) 
+          if (!isset($_GET["URL"]) || !isset($_GET["Filename"])) 
                $missingParams=true;
           elseif (isset($_GET["IsAudioFormat"]) && (!isset($_GET["AudioFormat"]) || ($_GET["AudioFormat"] == "MP3" && !isset($_GET["Bitrate"])))) 
                $missingParams=true;
@@ -287,13 +297,14 @@
      }
 
      if (isset($_GET["WriteID3Tags"])) {
-         if (!isset($_GET["Artist"]) || !isset($_GET["TrackName"])) 
+          if (!isset($_GET["Artist"]) || !isset($_GET["TrackName"])) 
                $missingParams=true;
           
-         if ($missingParams==true)
+          if ($missingParams==true)
                die("Error: WriteID3Tags was called but not all audio arguments were provided");
           else
                writeID3Tags();
      }
 
 ?>
+

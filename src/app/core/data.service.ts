@@ -7,11 +7,12 @@ import { catchError} from 'rxjs/operators';
 export class DataService {
     constructor(private http: HttpClient) { }
 
-    downloadFile(URL: string, fileName: string, isAudio: boolean,  isMP3Format: boolean, currentFormat: string) {
+    downloadFile(URL: string, fileName: string, movetoServer: boolean, isAudioFormat: boolean,  isMP3Format: boolean, currentFormat: string) {
         const params = `?DownloadFile` +
                        `&URL=${URL}` +
                        `&Filename=${fileName}` +
-                       (isAudio === true
+                       '&MoveToServer=' + (movetoServer == true ? "true" : "false") +
+                       (isAudioFormat === true
                             ? `&IsAudioFormat=true` + (isMP3Format === true ? `&Bitrate=${currentFormat}` : ``) + `&AudioFormat=${currentFormat}`
                             : `&IsVideoFormat=true&VideoFormat=${currentFormat}`);
 

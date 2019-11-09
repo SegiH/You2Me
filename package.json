@@ -46,10 +46,14 @@
     "karma-jasmine": "~1.1.2",
     "karma-jasmine-html-reporter": "^0.2.2",
     "node-gyp": "^5.0.5",
+    "npm-force-resolutions": "0.0.3",
     "protractor": "^5.4.2",
     "tar": "^4.4.13",
     "ts-node": "~7.0.0",
     "tslint": "~5.11.0",
     "typescript": "~3.1.6"
+  },
+  "resolutions": {
+    "https-proxy-agent": "^3.0.0"
   }
 }

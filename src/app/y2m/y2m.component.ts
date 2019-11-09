@@ -5,6 +5,8 @@
      See if you can get more than artist & title from Python script
 
      CHANGES:
+
+     URL for testing: https://www.youtube.com/watch?v=Wch3gJG2GJ4
 */
 
 import { Component, OnInit } from '@angular/core';
@@ -39,6 +41,7 @@ export class Y2mComponent implements OnInit {
      currentAudioFormat = '320k'; // MP3 320K is the default format
      currentVideoFormat = null;
      currentStep = 0;
+     debugging = false; // This should never be true when running production build
      downloadLink = '';
      downloadButtonVisible = false; // default false
      downloadStarted = false; // default false
@@ -103,25 +106,19 @@ export class Y2mComponent implements OnInit {
 
      constructor(public snackBar: MatSnackBar, public dataService: DataService) { }
 
-     ngOnInit() {
-          debugger;
-          
+     ngOnInit() {          
           // Get URL parameter Format if it was provided
           const format = this.getParam('Format');
 
-          if (format != null) {
-               if (this.validAudioFormatValues.includes(format) || this.validVideoFormatValues.includes(format)) {
-                    if (this.validAudioFormatValues.includes(format)) {
-                         this.currentAudioFormat = format;
-                         this.currentVideoFormat=null;
-                    } else if (this.validVideoFormatValues.includes(format)) {                         
-                         this.currentVideoFormat = format;
-                         this.currentAudioFormat = null;
-                    }
-               } else {
-                    // The filter removes the null value otherwise you will see a leading comma in front of each format
-                    alert(`Valid formats are ${this.validAudioFormatValues.filter(format => format !== null)} for audio or ${this.validVideoFormatValues.filter(format => format !== null)} for video`);
-               }
+          if (format != null && this.validAudioFormatValues.includes(format)) {
+               this.currentAudioFormat = format;
+               this.currentVideoFormat=null;
+          } else if (format != null && this.validVideoFormatValues.includes(format)) {
+               this.currentVideoFormat = format;
+               this.currentAudioFormat = null
+          } else if (format != null) {
+               // The filter removes the null value otherwise you will see a leading comma in front of each format
+               alert(`Valid formats are ${this.validAudioFormatValues.filter(format => format !== null)} for audio or ${this.validVideoFormatValues.filter(format => format !== null)} for video`);
           }
 
           // If URL parameter MoveToServer was provided and is allowed, add Moving the file to new location
@@ -132,6 +129,19 @@ export class Y2mComponent implements OnInit {
 
           if (this.moveToServer === true) {
                this.stepperStepNames.push('Moving the file to new location');
+          }
+
+          if (this.debugging == true) {
+               this.fields.URL.Value="https://www.youtube.com/watch?v=Wch3gJG2GJ4";
+               this.fields.Artist.Value="RHCP";
+               this.fields.Album.Value="Greatest Hits";
+               this.fields.Name.Value="Sir Psycho";
+               //this.fields.TrackNum.Value="13";
+               this.fields.Genre.Value="Alternative";
+               this.fields.Year.Value="1994";
+               this.currentAudioFormat='aac';
+               this.currentVideoFormat=null;
+               this.saveValues=true;
           }
      }
 
@@ -192,7 +202,7 @@ export class Y2mComponent implements OnInit {
 
      // Return the key based on the value
      getFormatKeyByValue() {
-          // Since there are 2 format dropdowns, either one of them has a selected value of neither has a selected value
+          // Since there are 2 format dropdowns, either one of them has a selected value or neither has a selected value
           return (this.currentAudioFormat != null ? Object.keys(this.audioFormats).find(key => this.audioFormats[key] === this.currentAudioFormat) 
                                           : (this.currentVideoFormat != null ? Object.keys(this.videoFormats).find(key => this.videoFormats[key] === this.currentVideoFormat) : null));
      }
@@ -213,9 +223,14 @@ export class Y2mComponent implements OnInit {
           const params: any = {};
 
           // Add key/pair to object so it can be accessed by doing params[keyname] to get the value
-          map1.map(x => params[x[0].toUpperCase()] = x[1] + (x[2] !== null ? '=' + x[2] : ''));
+          //map1.map(x => params[x[0]] = x[1] + (x[2] !== null ? '=' + x[2] : ''));
 
-          // Make URL params and name upper case when checking so they aren't case sensitive
+          map1.map(x => 
+               params[x[0].toUpperCase()] = x[1] + (
+                     typeof x[2] !== 'undefined' ? '=' + x[2] : '')
+                  );
+
+          // Make URL params upper case when checking so they aren't case sensitive
           name=name.toUpperCase();
 
           switch (name) {
@@ -318,7 +333,7 @@ export class Y2mComponent implements OnInit {
      }
 
      processSteps() {
-          // Normalize all fields by encoding special characters so we don't run into issues passing them as URL parameters
+          // Normalize all text fields by encoding special characters so we don't run into issues passing them as URL parameters
           const URL=this.rfc3986EncodeURIComponent(this.fields.URL.Value);          
           let artist=this.rfc3986EncodeURIComponent(this.fields.Artist.Value);
           const album=this.rfc3986EncodeURIComponent(this.fields.Album.Value);
@@ -332,14 +347,15 @@ export class Y2mComponent implements OnInit {
           // Call data service based on the current task
           switch (this.currentStep) {
                case 0: // Download the file
-                    // Build file name
-                    
-                    // If the format selected is an audio format and there's a track number, use it. Otherwise only use the Name field
+
+                    // Build file name. If the format selected is an audio format and there's a track number, use it. Otherwise only use the Name field
                     const fileName = (this.isAudioFormat() === true && trackNum !== null ? trackNum + ' ' : '') + name;
 
                     // Call data service to download the file
-                    this.dataService.downloadFile(URL, fileName, this.isAudioFormat(), this.isMP3Format(),(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
+                    this.dataService.downloadFile(URL, fileName,this.moveToServer, this.isAudioFormat(), this.isMP3Format(),(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
                     .subscribe((response) => {
+                         debugger;
+
                          // Trap server side errors
                          if (response[0].includes('Error:')) {
                               this.handleError(response, response);
@@ -359,6 +375,7 @@ export class Y2mComponent implements OnInit {
                               name = response[2];
                          }
 
+                         /* Disabled for now. having Python issues with Docker, Python fingerprinting is broken
                          // This is only useful if the artist and album fields arent required and the Python script tried but fails to get the artist and album
                          // At the moment submitClick() requires the artist and album to be entered before you can start step 1
                          /*if (this.isMP3Format() && this.fields.Artist.Value === null) {
@@ -374,11 +391,18 @@ export class Y2mComponent implements OnInit {
                          // When the format is MP3 write the ID3 tags, otherwise skip this step
                          if (this.isMP3Format()) {
                               this.updateStatus('The file has been downloaded. Writing the ID3 tags');
+
+                              this.currentStep++;
+
+                              this.processSteps();
+                         } else if (!this.isMP3Format() && !this.moveToServer) { // If the format is not MP3 and we aren't moving to the server, we are done
+                              // The response returns the local file including the path as well as the URL for the downloaded file. This is needed so we can delete the local file later
+                              this.downloadLink = decodeURIComponent(response[0].replace(/\+/g, ' '));
+
+                              this.finished();
+
+                              return;
                          }
-
-                         this.currentStep++;
-
-                         this.processSteps();
                     },
                     error => {
                          this.handleError(Response, error);
@@ -386,13 +410,6 @@ export class Y2mComponent implements OnInit {
 
                     break;
                case 1: // Write ID3 tags
-                    // Only write tags when the format is MP3
-                    if (!this.isMP3Format()) {
-                         this.currentStep++;
-                         this.processSteps();
-                         return;
-                    }
-
                     // Call data service to write ID3 tags
                     this.dataService.writeID3Tags(this.fileName, artist, album, name, trackNum, genre, year)
                     .subscribe((response) => {
@@ -415,9 +432,9 @@ export class Y2mComponent implements OnInit {
                               this.finished();
 
                               return;
-                         }
-
-                         this.processSteps();
+                         } else { // Move To Server is enabled
+                              this.processSteps();
+                         }   
                     },
                     error => {
                          this.handleError(Response, error);
@@ -425,31 +442,23 @@ export class Y2mComponent implements OnInit {
 
                     break;
                case 2: // Call the data service to move the file to the media server
-                    this.dataService.moveFile(this.fileName, this.isAudioFormat(), this.moveToServer, artist, album,(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
-                    .subscribe((response) => {
-                         // Trap server side errors
-                         if (response[0].includes('Error:')) {
-                              this.handleError(response, response);
-                              return;
-                         }
+                    if (this.moveToServer) {
+                         this.dataService.moveFile(this.fileName, this.isAudioFormat(), this.moveToServer, artist, album,(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
+                         .subscribe((response) => {
+                              // Trap server side errors
+                              if (response[0].includes('Error:')) {
+                                   this.handleError(response, response);
+                                   return;
+                              }
 
-                         // If MoveToServer is NOT enabled, this is the last step
-                         if (!this.moveToServer && !this.moveToServerButtonVisible) {
-                              // The response returns the local file including the path as well as the URL for the downloaded file. This is needed so we can delete the local file later
-                              this.downloadLink = decodeURIComponent(response[0].replace(/\+/g, ' '));
-
-                              this.updateStatus('Please click on the download button');
-
-                              this.finished();
-                         } else {
                               this.updateStatus('The file has been moved to the server');
 
                               this.finished();
-                         }
-                    },
-                    error => {
-                         this.handleError(Response, error);
-                    });
+                         },
+                         error => {
+                              this.handleError(Response, error);
+                         });
+                    }
 
                     break;
           }
@@ -549,19 +558,7 @@ export class Y2mComponent implements OnInit {
           // Show steps
           this.isSubmitted = true;
 
-          // If the current format is not MP3, skip the write ID3 tag step
-          if (!this.isMP3Format()) {
-               // Remove Write ID3 tags for non-MP3 format audio
-               this.stepperStepNames.splice(2, 1);
-
-               // When we aren't creating an mp3, we aren't writing ID3 tags. When this happens, we need to add this step when
-               // downloading a file (MoveToServer=false) otherwise processSteps will reference a step index that doesn't exist
-               // since we've deleted writing ID3 tags
-               if (!this.moveToServer) {
-                    this.stepperStepNames.push('Preparing file download');
-               }
-          }
-
+          // Start the process
           this.processSteps();
      }
 
