@@ -81,6 +81,8 @@ RUN mv php /var/www/html/
 
 RUN mv python /var/www/html/
 
+RUN chmod 777 /var/www/html/php/
+
 # cleanup tmp folder
 WORKDIR /tmp
 
@@ -107,6 +109,13 @@ RUN ln -s /etc/apache2/mods-available/rewrite.load /etc/apache2/mods-enabled/rew
 RUN echo Header set Content-Disposition "attachment" > /var/www/html/media/.htaccess
 
 RUN echo Header set Content-Type application/force-download >> /var/www/html/media/.htaccess
+
+# Make enable SQLite3
+RUN cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
+
+RUN sed -i 's/;extension=pdo_sqlite/extension=pdo_sqlite/g' /usr/local/etc/php/php.ini
+
+RUN sed -i 's/;extension=sqlite3/extension=sqlite3/g' /usr/local/etc/php/php.ini
 
 RUN apache2ctl restart
 
