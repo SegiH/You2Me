@@ -67,11 +67,11 @@ RUN npm install
 
 RUN mkdir php
 
-RUN mkdir python
+# RUN mkdir python
 
 RUN mv src/assets/php/serverTasks.php php
 
-RUN mv src/assets/python/* python
+# RUN mv src/assets/python/* python
 
 RUN npm run build
 
@@ -81,7 +81,7 @@ RUN mv php /var/www/html/
 
 RUN mv python /var/www/html/
 
-RUN chmod 777 /var/www/html/php/
+# RUN chmod 777 /var/www/html/php/
 
 # cleanup tmp folder
 WORKDIR /tmp
