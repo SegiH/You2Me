@@ -2,17 +2,17 @@
      <mat-toolbar color="primary">
           <span>You2Me {{this.moveToServer == true ? " (Server)" : ""}}</span>
      </mat-toolbar>
-     
+
      <!-- Fields -->
-     <mat-form-field *ngFor="let key of fieldKeys" [class.hidden]="fieldIsHidden(key)">
-        <input matInput [required]="this.fields[key].Required" placeholder={{key}} [(ngModel)]="this.fields[key].Value">
+     <mat-form-field *ngFor="let fieldName of fieldKeys" [class.hidden]="fieldIsHidden(fieldName)">
+        <input matInput [required]="this.fields[fieldName].Required" placeholder={{fieldName}} [(ngModel)]="this.fields[fieldName].Value">
      </mat-form-field>
 
      <!-- Audio format dropdown -->
      <mat-form-field *ngIf="!currentVideoFormat">
           <mat-select placeholder='Audio Format' name="audioformat" [(ngModel)]="currentAudioFormat" [disabled]="isSubmitted">
-               <mat-option *ngFor="let currAudioFormat of audioFormatKeys" [value]="audioFormats[currAudioFormat]">
-                    {{currAudioFormat}}
+               <mat-option *ngFor="let currAudioFormat of this.audioFormats | keyvalue" [value]="audioFormats[currAudioFormat.key]">
+                    {{currAudioFormat.key}}
                </mat-option>
           </mat-select>
      </mat-form-field>
@@ -20,8 +20,8 @@
      <!-- Video format dropdown -->
      <mat-form-field *ngIf="!currentAudioFormat">
           <mat-select placeholder='Video Format' name="videoformat" [(ngModel)]="currentVideoFormat" [disabled]="isSubmitted">
-               <mat-option *ngFor="let currVideoFormat of videoFormatKeys" [value]="videoFormats[currVideoFormat]">
-                    {{currVideoFormat}}
+               <mat-option *ngFor="let currVideoFormat of this.videoFormats | keyvalue" [value]="videoFormats[currVideoFormat.key]">
+                    {{currVideoFormat.key}}
                </mat-option>
           </mat-select>
      </mat-form-field>
@@ -36,7 +36,10 @@
         <mat-step *ngFor="let key of this.stepperStepNames" [stepControl]="currentStep">
               <ng-template matStepLabel>{{key}}</ng-template>
           </mat-step>        
-     </mat-vertical-stepper>     
+     </mat-vertical-stepper>  
+     
+     <!-- Download status messages -->
+     <div *ngIf="isSubmitted && currentStep == 0">{{downloadStatus}}</div>
      
      <!-- Save Values checkbox -->
      <mat-checkbox class="saveValues" *ngIf="isFinished" [(ngModel)]="saveValues">Save Values</mat-checkbox>
@@ -49,6 +52,6 @@
           <button *ngIf="downloadButtonVisible" matInput mat-raised-button (click)="downloadLinkClicked()">Download</button>
 
           <!-- Move To Server Button-->
-          <button *ngIf="allowMoveToServer  && moveToServerButtonVisible" matInput mat-raised-button (click)="moveToServerClick()">Move To Server</button>
+          <button *ngIf="allowMoveToServer && moveToServerButtonVisible" matInput mat-raised-button (click)="moveToServerClick()">Move To Server</button>
      </span>
 </mat-card>

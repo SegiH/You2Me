@@ -11,6 +11,7 @@
 import { Component, OnInit } from '@angular/core';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material';
 import { DataService } from '../core/data.service';
+import {interval} from "rxjs";
 
 @Component({
      selector: 'app-y2m',
@@ -36,14 +37,15 @@ export class Y2mComponent implements OnInit {
           'vorbis' : 'vorbis',
           'wav' : 'wav',
      };
-     readonly audioFormatKeys = Object.keys(this.audioFormats);
-     currentAudioFormat = '320k'; // MP3 320K is the default format
+     currentAudioFormat = null; // MP3 320K is the default format
      currentVideoFormat = null;
      currentStep = 0;
      debugging = false; // This should never be true when running production build
      downloadLink = '';
      downloadButtonVisible = false; // default false
      downloadStarted = false; // default false
+     downloadStatus = ''; // displays youtube-dl output messages
+     downloadProgressSubscription;
      readonly fields: any = {
           URL: { // This field shouldn't ever be disabled
                Required: true,
@@ -89,7 +91,7 @@ export class Y2mComponent implements OnInit {
      saveValues = false;
      stepperStepNames = ['Started download', 'Finished download', 'Writing ID3 Tags'];
      statusMessage = 'Fields marked with an * are required';
-     readonly validAudioFormatValues = Object.values(this.audioFormats);
+     urlParams: {};
      readonly videoFormats: any = {
           '' : null,
           'No conversion' : 'original',
@@ -100,8 +102,6 @@ export class Y2mComponent implements OnInit {
           'Convert to ogg' : 'ogg',
           'Convert to webm' : 'webm'
      }
-     readonly videoFormatKeys = Object.keys(this.videoFormats);
-     readonly validVideoFormatValues = Object.values(this.videoFormats);
 
      constructor(public snackBar: MatSnackBar, public dataService: DataService) { }
 
@@ -109,15 +109,15 @@ export class Y2mComponent implements OnInit {
           // Get URL parameter Format if it was provided
           const format = this.getParam('Format');
 
-          if (format != null && this.validAudioFormatValues.includes(format)) {
+          if (format != null && Object.values(this.audioFormats).includes(format)) {
                this.currentAudioFormat = format;
                this.currentVideoFormat=null;
-          } else if (format != null && this.validVideoFormatValues.includes(format)) {
+          } else if (format != null && Object.values(this.videoFormats).includes(format)) {
                this.currentVideoFormat = format;
                this.currentAudioFormat = null
           } else if (format != null) {
                // The filter removes the null value otherwise you will see a leading comma in front of each format
-               alert(`Valid formats are ${this.validAudioFormatValues.filter(format => format !== null)} for audio or ${this.validVideoFormatValues.filter(format => format !== null)} for video`);
+               alert(`Valid formats are ${Object.values(this.audioFormats).filter(format => format !== null)} for audio or ${Object.values(this.videoFormats).filter(format => format !== null)} for video`);
           }
 
           // If URL parameter MoveToServer was provided and is allowed, add Moving the file to new location
@@ -133,13 +133,13 @@ export class Y2mComponent implements OnInit {
           // Default field values
           if (this.debugging === true) {
                this.fields.URL.Value="https://www.youtube.com/watch?v=Wch3gJG2GJ4";
-               this.fields.Artist.Value="RHCP";
-               this.fields.Album.Value="Greatest Hits";
-               this.fields.Name.Value="Sir Psycho";
+               this.fields.Artist.Value="Monkeeys";
+               //this.fields.Album.Value="Greatest Hits";
+               this.fields.Name.Value="Goin Down";
                //this.fields.TrackNum.Value="13";
-               this.fields.Genre.Value="Alternative";
-               this.fields.Year.Value="1994";
-               this.currentAudioFormat='aac';
+               this.fields.Genre.Value="60s";
+              // this.fields.Year.Value="1994";
+               this.currentAudioFormat='320k';
                this.currentVideoFormat=null;
                this.saveValues=true;
           }
@@ -167,7 +167,7 @@ export class Y2mComponent implements OnInit {
           // Specified keys are the fields to hide
           return (
                // If the fields property is set to disabled this is the de-facto determiner whether this field is enabled or disabled
-               this.fieldKeys.includes(key) && this.fields[key].Disabled)
+               Object.keys(this.fields).includes(key) && this.fields[key].Disabled)
                || (
                     // If the format is a video format, hide these fields
                     (!this.isAudioFormat() && videoHideFields.includes(key))
@@ -179,23 +179,52 @@ export class Y2mComponent implements OnInit {
      }
 
      // Handle event when all tasks have finished running
-     finished() {
+     finished(isError=false) {
           this.isSubmitted = true;
 
           // If MoveToServer is NOT enabled, show the download link
-          if (!this.moveToServer) {
+          if (!this.moveToServer && !isError) {
                this.downloadButtonVisible = true;
           }
 
           // If the user is allowed to move the file to the server but didn't provide MoveToServer parameter, show the MoveToServer button
           // so the user has the option of moving the file to the server. This is here in case you forgot to pass MoveToServe=true URL parameter but meant to
-          if (this.allowMoveToServer === true && this.moveToServerButtonVisible === false) {
+          if (!isError && this.allowMoveToServer === true && this.moveToServerButtonVisible === false) {
                this.moveToServerButtonVisible = true;
           } else {
                this.moveToServerButtonVisible = false;
           }
 
           this.isFinished =  true;
+
+          // Stop the REST service that gets the download status
+          this.downloadProgressSubscription.unsubscribe();
+
+          // Delete download progress temp db
+          this.dataService.deleteDownloadProgress().subscribe((response) => {
+          },
+          error => {
+               this.handleError(Response, error);
+          });
+     }
+
+     // Get progress of youtube-dl
+     getDownloadProgress() {
+          this.downloadProgressSubscription = interval(50)
+               .subscribe(()=>{
+                    //Get progress status from the service every 100ms
+                    this.dataService.getDownloadProgress()
+                    .subscribe((jsonResult:any)=>{
+                         if(jsonResult[1] === false) {
+                              console.log(jsonResult[0]);
+                              this.downloadStatus=jsonResult[0];
+                         }
+                    },
+                    error => {
+                         //show errors
+                    }
+               );
+          });
      }
 
      // Return the key based on the value
@@ -207,61 +236,48 @@ export class Y2mComponent implements OnInit {
 
      // Get URL parameter
      getParam(name: string): string {
-          const query = window.location.search.substr(1);
+          // The first time this method gets called, this.urlParams will be undefined
+          if (typeof this.urlParams === 'undefined')
+               this.parseURLParameters();
 
-          if (query === '') {
+          // If urlParams is still undefined, there are no url params
+          if (typeof this.urlParams === 'undefined')
                return;
-          }
-
-          const res = query.split('&');
-
-          // Create object which contains split key value pairs so "URL=https://www.youtube.com/watch?v=Wch3gJG2GJ4" turns into ['URL','https://www.youtube.com/watch?v=Wch3gJG2GJ4']
-          const map1 = res.map(x => x.split('='));
           
-          const params: any = {};
-
-          // Add key/pair to object so it can be accessed by doing params[keyname] to get the value
-          //map1.map(x => params[x[0]] = x[1] + (x[2] !== null ? '=' + x[2] : ''));
-
-          map1.map(x => 
-               params[x[0].toUpperCase()] = x[1] + (
-                     typeof x[2] !== 'undefined' ? '=' + x[2] : '')
-                  );
-
           // Make URL params upper case when checking so they aren't case sensitive
           name=name.toUpperCase();
 
           switch (name) {
                case 'URL':
-                    return (typeof params[name] !== 'undefined' && params[name] !== '' ? decodeURI(params[name]) : null);
+                    return (typeof  this.urlParams[name] !== 'undefined' && this.urlParams[name] !== '' ? decodeURI(this.urlParams[name]) : null);
                case 'ARTIST':
-                    return (typeof params[name] !== 'undefined' && decodeURI(params[name]) || this.parseTitle('Artist'));
+                    return (typeof this.urlParams[name] !== 'undefined' && decodeURI(this.urlParams[name]) || this.parseTitle('Artist'));
                case 'ALBUM':
-                    return (typeof params[name] !== 'undefined' && decodeURI(params[name]) || '');
+                    return (typeof this.urlParams[name] !== 'undefined' && decodeURI(this.urlParams[name]) || null);
                case 'FORMAT':
-                    return (typeof params[name] !== 'undefined' && decodeURI(params[name]) || '');
+                    return (typeof this.urlParams[name] !== 'undefined' && decodeURI(this.urlParams[name]) || null);
                case 'GENRE':
-                    return (typeof params[name] !== 'undefined' && decodeURI(params[name]) || '');
+                    return (typeof this.urlParams[name] !== 'undefined' && decodeURI(this.urlParams[name]) || null);
                case 'NAME': // Alias for title
-                    return (typeof params[name] !== 'undefined' && decodeURI(params[name]) || this.parseTitle('title'));
+                    return (typeof this.urlParams[name] !== 'undefined' && decodeURI(this.urlParams[name]) || this.parseTitle('title'));
                case 'TITLE':
-                    if (typeof params[name] === 'undefined')
+                    if (typeof this.urlParams[name] === 'undefined')
                          return '';
                     
-                    let title = params[name];
+                    let title = this.urlParams[name];
 
                     title = title.replace('Title=', '');
                     title = title.replace(' (HQ)', '');
 
                     return decodeURI(title);
                case 'TRACKNUM':
-                    return (typeof params[name] !== 'undefined' && decodeURI(params[name])  || '');
+                    return (typeof this.urlParams[name] !== 'undefined' && decodeURI(this.urlParams[name])  || null);
                case 'MOVETOSERVER':
-                    return (typeof params[name] !== 'undefined' ? params[name] : '');
+                    return (typeof this.urlParams[name] !== 'undefined' ? this.urlParams[name] : null);
                case 'YEAR':
-                    return (typeof params[name] !== 'undefined' ? decodeURI(params[name]) : '');
+                    return (typeof this.urlParams[name] !== 'undefined' ? decodeURI(this.urlParams[name]) : null);
                default:
-                    return '';
+                    return null;
           }
      }
 
@@ -270,13 +286,9 @@ export class Y2mComponent implements OnInit {
           // write error status
           this.updateStatus(`A fatal error occurred: ${response[0]}`);
 
-          // Set submitted status
-          this.isSubmitted = true;
-
-          // If an error occurred, we're done
-          this.isFinished = true;
-
           console.log(`An error occurred at step ${this.currentStep} with the error ${error}`);
+
+          this.finished(true);
      }
 
      // Is currently selected format an audio format
@@ -330,6 +342,30 @@ export class Y2mComponent implements OnInit {
           }
      }
 
+     // Parse and store all URL parameters in a key/pair value
+     parseURLParameters() {
+          const query = window.location.search.substr(1);
+
+          if (query === '') {
+               return;
+          }
+
+          const res = query.split('&');
+
+          // Create object which contains split key value pairs so "URL=https://www.youtube.com/watch?v=Wch3gJG2GJ4" turns into ['URL','https://www.youtube.com/watch?v=Wch3gJG2GJ4']
+          const map1 = res.map(x => x.split('='));
+          
+          this.urlParams = {};
+
+          // Add key/pair to object so it can be accessed by doing params[keyname] to get the value
+          //map1.map(x => params[x[0]] = x[1] + (x[2] !== null ? '=' + x[2] : ''));
+
+          map1.map(x => 
+               this.urlParams[x[0].toUpperCase()] = x[1] + (
+                     typeof x[2] !== 'undefined' ? '=' + x[2] : '')
+                  );
+     }
+
      processSteps() {
           // Normalize all text fields by encoding special characters so we don't run into issues passing them as URL parameters
           const URL=this.rfc3986EncodeURIComponent(this.fields.URL.Value);          
@@ -350,9 +386,22 @@ export class Y2mComponent implements OnInit {
                     // If the format selected is an audio format and there's a track number, use it. Otherwise only use the Name field
                     const fileName = (this.isAudioFormat() === true && trackNum !== null ? trackNum + ' ' : '') + name;
 
+                    // Start timer that gets download progress
+                    this.getDownloadProgress();
+
                     // Call data service to download the file
                     this.dataService.downloadFile(URL, fileName,this.moveToServer, this.isAudioFormat(), this.isMP3Format(),(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
                     .subscribe((response) => {
+                         // Stop the REST service that gets the download status
+                         this.downloadProgressSubscription.unsubscribe();
+
+                         // Delete download progress temp db
+                         this.dataService.deleteDownloadProgress().subscribe((response) => {
+                         },
+                         error => {
+                              this.handleError(Response, error);
+                         });
+
                          // Trap server side errors
                          if (response[0].includes('Error:')) {
                               this.handleError(response, response);

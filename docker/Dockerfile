@@ -6,21 +6,24 @@ ENV TZ=America/Los_Angeles
 
 RUN apt-get update
 RUN apt-get -y upgrade
-RUN apt-get install -y ffmpeg git npm python-pip tzdata unzip vim wget
 
+# Disable python-pip because Python fingerprinting is disabled
+RUN apt-get install -y ffmpeg git libsqlite3-dev npm sqlite3 tzdata unzip vim wget
+
+RUN docker-php-ext-install pdo_sqlite && docker-php-ext-enable pdo_sqlite
 # Fix me says has no installation candidate
 # RUN apt-get install -y php-getid3
 
 # Upgrade pip or it can cause build issues
-RUN wget https://bootstrap.pypa.io/get-pip.py 
-RUN python get-pip.py
-RUN rm get-pip.py
+#RUN wget https://bootstrap.pypa.io/get-pip.py 
+#RUN python get-pip.py
+#RUN rm get-pip.py
 
 # Python dependencies
 # Install setuptools and m2r first because they are a dependency of the other packages. 
 # --upgrade ensures that any packages thare are installed already will be upgraded
-RUN pip install --upgrade setuptools m2r
-RUN pip install --upgrade chromaprint pyacoustid requests
+#RUN pip install --upgrade setuptools m2r
+#RUN pip install --upgrade chromaprint pyacoustid requests
 
 # Install youtube-dl
 RUN wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl

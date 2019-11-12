@@ -1,4 +1,11 @@
 <?php
+     // in php
+     // create activesessions table in sqlitedb
+     // create random session id
+     // add to activesessions
+     // need to return to user
+     // when deleteDownloadProgress is called, delete all session info. if not active sessions close and delete db
+
      // Required binaries: youtube-dl, id3v2 
      require_once('getid3/getid3.php');
      require_once('getid3/write.php');
@@ -12,8 +19,23 @@
 
      //$os=php_uname("s");
      $os=(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? "Windows" : "Unix");
-     
+     $rowsLeft=false;
+     $db_name="downloadProgress.sqlite3";
+
+     function deleteDownloadProgress() {
+	  global $db_name;
+	  
+          try {
+	       if (file_exists($db_name))
+                    $result=unlink($db_name);
+	           
+                    die(json_encode(array($result)));
+	  } catch(Exception $e) {
+	  }
+     }
+
      function downloadFile() {
+	  global $db_name;
           global $domain;
           global $sourcePath;
 
@@ -69,8 +91,60 @@
           } else if ($isVideoFormat && $videoFormat == "original") {
               $cmd=$cmd . " -f best";
           }
+	  ini_set('display_errors',1);
+	  ini_set('display_startup_errors',1);
+	  error_reporting(E_ALL);
 
-          exec($cmd,$retArr,$retVal);
+	  // Delete DB if it exists already 
+	  try {
+	       if (file_exists($db_name))
+                    unlink($db_name);
+	  } catch(Exception $e) {
+	  }
+
+	  // Create database 
+	  $file_db = new PDO('sqlite:' . $db_name);
+
+	  // Create the table
+	  try {
+              $file_db->exec("CREATE TABLE IF NOT EXISTS downloadProgress (id INTEGER PRIMARY KEY, message TEXT, shown BIT);"); 	       
+	  } catch(PDOException $e) {
+	       die("Unable to create the database");
+	  } 
+          
+          header('Content-Encoding: none;');
+
+          set_time_limit(0);
+
+          $handle = popen($cmd,"r");
+
+          if (ob_get_level() == 0)
+               ob_start();
+
+          while (!feof($handle)) {
+              $buffer= fgets($handle);
+              $buffer = trim(htmlspecialchars($buffer));
+             
+	      // echo $buffer . "<br />";
+	      if ($buffer != '') {
+	           $insert="INSERT INTO downloadProgress(message,shown) VALUES('" . $buffer . "',0)";
+	           $stmt=$file_db->prepare($insert);
+	           $stmt->execute();
+	      }
+
+              ob_flush();
+
+              flush();
+
+              sleep(1);  
+          }
+
+          pclose($handle);
+
+          ob_end_flush();
+
+	  // echo json_encode(array(urlencode($fileName)));
+          // exec($cmd,$retArr,$retVal);
           
           if ($isAudioFormat) {
                if ($audioFormat != "vorbis") // Vorbis audio files have the extension ogg not vorbis
@@ -85,7 +159,7 @@
           }
            
           if (!file_exists($sourcePath . $fileName))  {
-                //die($cmd . " with the expected file " . $sourcePath . $fileName); // die(json_encode(array("Error: Unable to create the file")));
+                // die($cmd . " with the expected file " . $sourcePath . $fileName); // die(json_encode(array("Error: Unable to create the file")));
                 die(json_encode(array("Error: Unable to create the file")));
           }
 
@@ -96,10 +170,10 @@
  
           // If move To Server is true, we have more steps to process 
           if ($isMP3Format == true || $moveToServer == true) {
-	       die(json_encode(array($fileName,"","")));
+	       die(json_encode(array($fileName)));
           } else if ($isMP3Format == false && $moveToServer == false) { // If the file is not MP3, we don't need to write ID3 tags. If MoveTo Server is false, we are done and there are no more steps to process to provide download link
                die(json_encode(array($domain . urlencode($fileName))));
-          }
+	  }
 
           /*$cmd="python ../python/aidmatch.py \"" . $sourcePath . $fileName . "\" 2>&1";
 
@@ -139,6 +213,29 @@
           return;
      } 
     
+     function getDownloadProgress() {
+	  global $db_name;
+
+          $file_db = new PDO('sqlite:' . $db_name);
+	  $result=$file_db->query('SELECT id,message FROM downloadProgress WHERE shown=0 LIMIT 1');
+
+	  foreach($result as $result) {
+		  $file_db->exec("UPDATE downloadProgress SET shown=1 WHERE id=" . $result['id']);
+                  
+                  // Store message so we can close DB
+                  $message = $result['message'];
+                  
+                  // CLose DB
+                  $file_db = null;
+
+		  die(json_encode(array($message,false))); 
+	  }
+           
+          $file_db = null;
+
+	  die(json_encode(array(null,true))); 
+     }
+
      function moveFile() {
           global $audioDestinationPath;
           global $domain;
@@ -269,6 +366,10 @@
           return;
      }
 
+     if (isset($_GET["DeleteDownloadProgress"])) {
+          deleteDownloadProgress();
+     }
+
      if (isset($_GET["DownloadFile"])) {
           // Validate that the required arguments were provided
           $missingParams=false;
@@ -284,6 +385,10 @@
                die("Error: DownloadFile was called but not all audio arguments were provided");
           else
                downloadFile();
+     }
+
+     if (isset($_GET["GetDownloadProgress"])) {
+          getDownloadProgress();
      }
 
      if (isset($_GET["MoveFile"])) {

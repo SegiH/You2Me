@@ -7,6 +7,10 @@ import { catchError} from 'rxjs/operators';
 export class DataService {
     constructor(private http: HttpClient) { }
 
+    deleteDownloadProgress() {
+        return this.processStep(`?DeleteDownloadProgress=true`);
+    }
+
     downloadFile(URL: string, fileName: string, movetoServer: boolean, isAudioFormat: boolean,  isMP3Format: boolean, currentFormat: string) {
         const params = `?DownloadFile` +
                        `&URL=${URL}` +
@@ -17,6 +21,10 @@ export class DataService {
                             : `&IsVideoFormat=true&VideoFormat=${currentFormat}`);
 
         return this.processStep(params);
+    }
+
+    getDownloadProgress() {
+        return this.processStep(`?GetDownloadProgress=true`);
     }
 
     private handleError(error: Response | any) {
