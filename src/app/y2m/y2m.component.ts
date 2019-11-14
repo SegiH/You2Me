@@ -49,36 +49,36 @@ export class Y2mComponent implements OnInit {
      readonly fields: any = {
           URL: { // This field shouldn't ever be disabled
                Required: true,
-               Value: this.getParam('URL'),
+               Value: this.getURLParam('URL'),
           },
           Artist: {
                Required: true,
-               Value: this.getParam('Artist'),
+               Value: this.getURLParam('Artist'),
                Disabled: false
           },
           Album: {
                Required: false,
-               Value: this.getParam('Album'),
+               Value: this.getURLParam('Album'),
                Disabled: false
           },
           Name: {
                Required: true,
-               Value: this.getParam('Title'),
+               Value: this.getURLParam('Title'),
                Disabled: false
           },
           TrackNum: {
                Required: false,
-               Value: this.getParam('TrackNum') || null,
+               Value: this.getURLParam('TrackNum') || null,
                Disabled: false
           },
           Genre: {
                Required: false,
-               Value: this.getParam('Genre'),
+               Value: this.getURLParam('Genre'),
                Disabled: false
           },
           Year: {
                Required: false,
-               Value: this.getParam('Year'),
+               Value: this.getURLParam('Year'),
                Disabled: false
           }
      };
@@ -107,7 +107,7 @@ export class Y2mComponent implements OnInit {
 
      ngOnInit() {          
           // Get URL parameter Format if it was provided
-          const format = this.getParam('Format');
+          const format = this.getURLParam('Format');
 
           if (format !== null && Object.values(this.audioFormats).includes(format)) {
                this.currentAudioFormat = format;
@@ -121,7 +121,7 @@ export class Y2mComponent implements OnInit {
           }
 
           // If URL parameter MoveToServer was provided and is allowed, add Moving the file to new location
-          if (this.getParam('MoveToServer') === 'true' && this.allowMoveToServer === true) {
+          if (this.getURLParam('MoveToServer') === 'true' && this.allowMoveToServer === true) {
                this.moveToServer = true;
                document.title = 'You2Me (Server)';
           }
@@ -233,7 +233,7 @@ export class Y2mComponent implements OnInit {
      }
 
      // Get URL parameter
-     getParam(name: string): string {
+     getURLParam(name: string): string {
           // The first time this method gets called, this.urlParams will be undefined
           if (typeof this.urlParams === 'undefined')
                this.parseURLParameters();
@@ -316,7 +316,7 @@ export class Y2mComponent implements OnInit {
      // Parse title URL param
      parseTitle(section: string) {
           // section can be artist name or song name
-          let titleParam = this.getParam('Title');
+          let titleParam = this.getURLParam('Title');
 
           if (!titleParam) {
                return null;
