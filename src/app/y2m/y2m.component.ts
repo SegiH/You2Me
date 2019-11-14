@@ -359,8 +359,8 @@ export class Y2mComponent implements OnInit {
           //map1.map(x => params[x[0]] = x[1] + (x[2] !== null ? '=' + x[2] : ''));
 
           map1.map(x => 
-               this.urlParams[x[0].toUpperCase()] = x[1] + (
-                     typeof x[2] !== 'undefined' ? '=' + x[2] : '')
+               this.urlParams[decodeURI(x[0]).toUpperCase()] = decodeURI(x[1]) + (
+                     typeof x[2] !== 'undefined' ? '=' + decodeURI(x[2]) : '')
                   );
      }
 
