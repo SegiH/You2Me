@@ -382,7 +382,7 @@ export class Y2mComponent implements OnInit {
 
                     // Build file name without the extension (The php script adds the extension based on the format). 
                     // If the format selected is an audio format and there's a track number, use it. Otherwise only use the Name field
-                    const fileName = (this.isAudioFormat() === true && trackNum !== null ? trackNum + ' ' : '') + name;
+                    const fileName = (this.isAudioFormat() === true && !isNaN(parseInt(trackNum)) ? (parseInt(trackNum) < 10 ? "0" : "") + trackNum + ' ' : '') + name;
 
                     // Start timer that gets download progress
                     this.getDownloadProgress();
