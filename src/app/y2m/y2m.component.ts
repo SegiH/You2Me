@@ -393,7 +393,7 @@ export class Y2mComponent implements OnInit {
                          // Stop the REST service that gets the download status
                          this.downloadProgressSubscription.unsubscribe();
 
-                         // Delete download progress temp db
+                         // Call REST service to delete download progress temp db
                          this.dataService.deleteDownloadProgress().subscribe((response) => {
                          },
                          error => {
@@ -434,7 +434,7 @@ export class Y2mComponent implements OnInit {
                               return;
                          }*/
 
-                         // When the format is MP3 write the ID3 tags process the next step
+                         // When the format is MP3 write the ID3 tags
                          if (this.isMP3Format()) {
                               this.updateStatus('The file has been downloaded. Writing the ID3 tags');
 
@@ -524,8 +524,8 @@ export class Y2mComponent implements OnInit {
 
      // Called by binding of click event of submit button
      submitClick() {
-          // When the last step has been completed, the submit button text changes to restart. When this button is clicked, its caption text is set to restart.
-          // The form will reset itself and only save the values if the save values checkbox is checked
+          // After the last step has completed, the submit button text changes to restart. When this button is clicked, 
+          // the form will reset itself and only save the values if the save values checkbox is checked
           if (this.isFinished === true) {
                // If the Save Values checkbox is not checked
                if (this.saveValues === false) {
