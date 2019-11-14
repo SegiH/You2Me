@@ -115,7 +115,7 @@ export class Y2mComponent implements OnInit {
           } else if (format !== null && Object.values(this.videoFormats).includes(format)) {
                this.currentVideoFormat = format;
                this.currentAudioFormat = null
-          } else if (format !== null) {
+          } else if (typeof format === 'undefined') {
                // The filter removes the null value otherwise you will see a leading comma in front of each format
                alert(`Valid formats are ${Object.values(this.audioFormats).filter(format => format !== null)} for audio or ${Object.values(this.videoFormats).filter(format => format !== null)} for video`);
           }
@@ -326,7 +326,7 @@ export class Y2mComponent implements OnInit {
           titleParam = titleParam.toString().replace(' - [HQ] - YouTube', '');
           titleParam = titleParam.replace(' - YouTube', '');
 
-          // If no dash is in the title, I'm going to assume that the title is the song name
+          // If no dash is in the title, assume that the title is the song name
           if (titleParam.includes('-') && section.toUpperCase() === 'TITLE') {
                return titleParam;
           }
