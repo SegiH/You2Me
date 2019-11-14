@@ -109,13 +109,13 @@ export class Y2mComponent implements OnInit {
           // Get URL parameter Format if it was provided
           const format = this.getParam('Format');
 
-          if (format != null && Object.values(this.audioFormats).includes(format)) {
+          if (format !== null && Object.values(this.audioFormats).includes(format)) {
                this.currentAudioFormat = format;
-               this.currentVideoFormat=null;
-          } else if (format != null && Object.values(this.videoFormats).includes(format)) {
+               this.currentVideoFormat = null;
+          } else if (format !== null && Object.values(this.videoFormats).includes(format)) {
                this.currentVideoFormat = format;
                this.currentAudioFormat = null
-          } else if (format != null) {
+          } else if (format !== null) {
                // The filter removes the null value otherwise you will see a leading comma in front of each format
                alert(`Valid formats are ${Object.values(this.audioFormats).filter(format => format !== null)} for audio or ${Object.values(this.videoFormats).filter(format => format !== null)} for video`);
           }
@@ -153,18 +153,16 @@ export class Y2mComponent implements OnInit {
 
           this.downloadButtonVisible = false;
 
-          // If the MoveToServer button is visible, hide it to prevent subsequent clicks
-          if (this.moveToServerButtonVisible === true) {
-               this.moveToServerButtonVisible = false;
-          }
+          // Hide moveToServer button to prevent subsequent clicks
+          this.moveToServerButtonVisible = false;
      }
 
      // Called by binding to [class.hidden] of mat-form-field. Returns true if any condition is met
      fieldIsHidden(key: string) {
+          // Specified keys are the fields to hide
           const videoHideFields = ['Artist', 'Album', 'TrackNum', 'Genre', 'Year'];
           const nonMP3HideFields = ['TrackNum', 'Genre', 'Year'];
 
-          // Specified keys are the fields to hide
           return (
                // If the fields property is set to disabled this is the de-facto determiner whether this field is enabled or disabled
                Object.keys(this.fields).includes(key) && this.fields[key].Disabled)
@@ -216,7 +214,7 @@ export class Y2mComponent implements OnInit {
                     this.dataService.getDownloadProgress()
                     .subscribe((jsonResult:any)=>{
                          if(jsonResult[1] === false) {
-                              console.log(jsonResult[0]);
+                              //console.log(jsonResult[0]);
                               this.downloadStatus=jsonResult[0];
                          }
                     },
@@ -230,8 +228,8 @@ export class Y2mComponent implements OnInit {
      // Return the key based on the value
      getFormatKeyByValue() {
           // Since there are 2 format dropdowns, either one of them has a selected value or neither has a selected value
-          return (this.currentAudioFormat != null ? Object.keys(this.audioFormats).find(key => this.audioFormats[key] === this.currentAudioFormat) 
-                                          : (this.currentVideoFormat != null ? Object.keys(this.videoFormats).find(key => this.videoFormats[key] === this.currentVideoFormat) : null));
+          return (this.currentAudioFormat !== null ? Object.keys(this.audioFormats).find(key => this.audioFormats[key] === this.currentAudioFormat) 
+                                          : (this.currentVideoFormat !== null ? Object.keys(this.videoFormats).find(key => this.videoFormats[key] === this.currentVideoFormat) : null));
      }
 
      // Get URL parameter
@@ -444,7 +442,7 @@ export class Y2mComponent implements OnInit {
 
                               this.processSteps();
                          } else if (!this.isMP3Format() && !this.moveToServer) { // If the format is not MP3 and we aren't moving to the server so we are done
-                              // The response returns the local file including the path as well as the URL for the downloaded file. This is needed so we can delete the local file later
+                              // The response returns the URL for the downloaded file
                               this.downloadLink = decodeURIComponent(response[0].replace(/\+/g, ' '));
 
                               this.finished();
@@ -474,7 +472,7 @@ export class Y2mComponent implements OnInit {
 
                          // If MoveToServer is NOT enabled, this is the last step
                          if (!this.moveToServer) {
-                              // The response returns the local file including the path as well as the URL for the downloaded file. This is needed so we can delete the local file later
+                              // The response returns the URL for the downloaded file
                               this.downloadLink = decodeURIComponent(response[0].replace(/\+/g, ' '));
 
                               this.finished();
