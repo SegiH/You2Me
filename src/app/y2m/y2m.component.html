@@ -25,6 +25,15 @@
                </mat-option>
           </mat-select>
      </mat-form-field>
+     
+     <!-- Supported sites dropdown -->
+     <mat-form-field>
+          <mat-select placeholder='Supported Sites' name="audioformat">
+               <mat-option *ngFor="let currSite of this.supportedURLs" [value]="currSite">
+                    {{currSite}}
+               </mat-option>
+          </mat-select>
+     </mat-form-field>
 
      <!-- Status -->
      <div class='statusMessage'>

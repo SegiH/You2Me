@@ -27,6 +27,10 @@ export class DataService {
         return this.processStep(`?GetDownloadProgress=true`);
     }
 
+    getSupportedURLs() {
+        return this.processStep(`?GetSupportedURLs`);
+    }
+
     private handleError(error: Response | any) {
         if (error.error instanceof Error) {
             const errMessage = error.error.message;

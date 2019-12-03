@@ -91,6 +91,7 @@ export class Y2mComponent implements OnInit {
      saveValues = false;
      stepperStepNames = ['Started download', 'Finished download', 'Writing ID3 Tags'];
      statusMessage = 'Fields marked with an * are required';
+     supportedURLs: any = {};
      urlParams: {};
      readonly videoFormats: any = {
           '' : null,
@@ -105,7 +106,17 @@ export class Y2mComponent implements OnInit {
 
      constructor(public snackBar: MatSnackBar, public dataService: DataService) { }
 
-     ngOnInit() {          
+     ngOnInit() {        
+          //this.supportedURLs=this.dataService  
+          this.dataService.getSupportedURLs().subscribe((response) => {
+               debugger;
+               this.supportedURLs=response;
+          },
+
+          error => {
+               this.handleError(Response, error);
+          });
+
           // Get URL parameter Format if it was provided
           const format = this.getURLParam('Format');
 

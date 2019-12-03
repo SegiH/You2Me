@@ -1,6 +1,6 @@
 {
     "/php/" : {
-      "target": "",
+      "target": "https://segi.mooo.com/php/",
       "secure": false,
       "pathRewrite": {"^/php" : ""},
       "logLevel": "debug"
