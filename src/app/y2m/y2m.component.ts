@@ -9,7 +9,10 @@
      URL for testing: https://www.youtube.com/watch?v=Wch3gJG2GJ4
 */
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { MatPaginator, MatSnackBar, MatSnackBarConfig, MatSort, MatTableDataSource } from '@angular/material';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
+import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
 import { DataService } from '../core/data.service';
 import {interval} from "rxjs";
 
