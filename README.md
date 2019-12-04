@@ -49,8 +49,8 @@ You can run the application in one of 2 ways:
    - On Windows, make sure you have the following files/folders in the php folder: getid3 folder (Extract latest getid3.zip and copy getid3 subfolder) youtube-dl.exe, ffmpeg.exe and ffprobe.exe from the latest ffmpeg zip file.
    - Client mode - Apache users will need to edit the Apache config file httpd.conf, find the lines LoadModule headers_module modules/mod_headers.so and LoadModule rewrite_module modules/mod_rewrite.so and make sure that there isn't a # before either of these 2 lines. If there is a # in front of either one, remove the # and restart Apache. This is needed when running in client mode so that when you download the file, you can create an .htaccess file in the next step that will force the browser to download the file instead of playing it in the browser (this is more of a Google Chrome issue).
    - Client mode - Created a file called .htaccess in the media folder created in step 3 and add these lines:
-       Header set Content-Disposition "attachment"
-       Header set Content-Type application/force-download
+     - Header set Content-Disposition "attachment"
+     - Header set Content-Type application/force-download
 
        This will force the server to download the media file instead of playing it in the browser.
    - Make sure that php/serverTasks.php has execute permission.
