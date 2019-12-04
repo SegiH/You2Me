@@ -15,7 +15,7 @@
      $videoDestinationPath="/mnt/usb/";
      
      $sourcePath="/var/www/html/media/";
-     $domain="https://segi.mooo.com/media/";
+     $domain="http://www.mysite.com/media/";
 
      //$os=php_uname("s");
      $os=(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? "Windows" : "Unix");
@@ -236,6 +236,34 @@
 	  die(json_encode(array(null,true))); 
      }
 
+     function getSupportedURLs() {
+          $url="https://ytdl-org.github.io/youtube-dl/supportedsites.html";
+          
+          $curl = curl_init($url);
+
+          $options = array(CURLOPT_RETURNTRANSFER => 1, CURLOPT_URL => $url);
+         
+          curl_setopt_array($curl,$options); 
+
+          $htmlContent = curl_exec($curl);
+ 
+	  curl_close($curl);
+         
+	  $dom = new DOMDocument();
+         
+	  $dom->loadHTML($htmlContent);
+         
+          $nodes=$dom->getElementsByTagName('li');
+          
+          $supportedSites = array();
+
+          foreach ($nodes as $currNode) {
+               array_push($supportedSites,$currNode->textContent);
+          }
+
+          echo json_encode($supportedSites);
+     }
+
      function moveFile() {
           global $audioDestinationPath;
           global $domain;
@@ -400,6 +428,10 @@
           else
                moveFile();
      }
+     
+     if (isset($_GET["GetSupportedURLs"])) {
+          getSupportedURLs();
+     }
 
      if (isset($_GET["WriteID3Tags"])) {
           if (!isset($_GET["Artist"]) || !isset($_GET["TrackName"])) 
@@ -410,6 +442,4 @@
           else
                writeID3Tags();
      }
-
 ?>
-

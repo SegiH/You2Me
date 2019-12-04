@@ -8,8 +8,8 @@
 
      URL for testing: https://www.youtube.com/watch?v=Wch3gJG2GJ4
 */
-import { Component, OnInit } from '@angular/core';
-import { MatSnackBar, MatSnackBarConfig } from '@angular/material';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { MatPaginator, MatSnackBar, MatSnackBarConfig, MatSort, MatTableDataSource } from '@angular/material';
 import { DataService } from '../core/data.service';
 import {interval} from "rxjs";
 
@@ -91,7 +91,8 @@ export class Y2mComponent implements OnInit {
      saveValues = false;
      stepperStepNames = ['Started download', 'Finished download', 'Writing ID3 Tags'];
      statusMessage = 'Fields marked with an * are required';
-     supportedURLs: any = {};
+     supportedURLsDataSource: MatTableDataSource<any>;
+     supportedURLsVisible = false;
      urlParams: {};
      readonly videoFormats: any = {
           '' : null,
@@ -104,19 +105,12 @@ export class Y2mComponent implements OnInit {
           'Convert to webm' : 'webm'
      }
 
+     @ViewChild('supportedURLsPaginator', { }) supportedURLsPaginator: MatPaginator;
+     @ViewChild(MatSort, { }) sort: MatSort;
+
      constructor(public snackBar: MatSnackBar, public dataService: DataService) { }
 
-     ngOnInit() {        
-          //this.supportedURLs=this.dataService  
-          this.dataService.getSupportedURLs().subscribe((response) => {
-               debugger;
-               this.supportedURLs=response;
-          },
-
-          error => {
-               this.handleError(Response, error);
-          });
-
+     ngOnInit() {
           // Get URL parameter Format if it was provided
           const format = this.getURLParam('Format');
 
@@ -154,6 +148,24 @@ export class Y2mComponent implements OnInit {
                this.currentVideoFormat=null;
                this.saveValues=true;
           }
+     }
+
+     applyFilter(filterValue: string) {
+          this.supportedURLsDataSource.filter = filterValue.trim().toLowerCase();
+     }
+
+     // Custom Material UI table filter function
+     createSupportedURLsFilter() {
+          let filterFunction = function (data: any, filter: string): boolean {
+               let customSearch = () => {
+                    if (data.toLowerCase().includes(filter.toLowerCase()) === true)
+                         return true;
+               }
+
+               return customSearch();
+          }
+
+          return filterFunction;
      }
 
      // Called by binding to Download button
@@ -524,6 +536,31 @@ export class Y2mComponent implements OnInit {
      // Escapes all special characters so they can safely be passed as URL parameters
      rfc3986EncodeURIComponent(str) {  
           return encodeURIComponent(str).replace(/[!'()*]/g, escape);  
+     }
+
+     showSupportedSitesToggle() {
+          if (this.supportedURLsVisible == true && typeof this.supportedURLsDataSource === 'undefined') {
+
+               this.dataService.getSupportedURLs().subscribe((response) => {
+                    const supportedURLs=response.reduce(function(result, item, index, array) {
+                         result["URL" + index] = item;
+                         return result;
+                       }, {}) 
+     
+                    this.supportedURLsDataSource=new MatTableDataSource(response);
+     
+                     // Assign custom filter function
+                     this.supportedURLsDataSource.filterPredicate = this.createSupportedURLsFilter();
+     
+                    this.supportedURLsDataSource.paginator = this.supportedURLsPaginator;
+     
+                    this.supportedURLsDataSource.sort=this.sort;
+               },
+     
+               error => {
+                    this.handleError(Response, error);
+               });    
+          }
      }
 
      // Show snackbar message

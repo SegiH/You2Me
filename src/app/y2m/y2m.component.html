@@ -1,3 +1,16 @@
+<!-- Supported sites dropdown
+<mat-card>
+     
+     Supported sites
+     <mat-form-field>
+          <mat-select placeholder='Supported Sites' name="audioformat">
+               <mat-option *ngFor="let currSite of this.supportedURLs" [value]="currSite">
+                    {{currSite}}
+               </mat-option>
+          </mat-select>
+     </mat-form-field>
+</mat-card>
+ -->
 <mat-card>
      <mat-toolbar color="primary">
           <span>You2Me {{this.moveToServer == true ? " (Server)" : ""}}</span>
@@ -22,15 +35,6 @@
           <mat-select placeholder='Video Format' name="videoformat" [(ngModel)]="currentVideoFormat" [disabled]="isSubmitted">
                <mat-option *ngFor="let currVideoFormat of this.videoFormats | keyvalue" [value]="videoFormats[currVideoFormat.key]">
                     {{currVideoFormat.key}}
-               </mat-option>
-          </mat-select>
-     </mat-form-field>
-     
-     <!-- Supported sites dropdown -->
-     <mat-form-field>
-          <mat-select placeholder='Supported Sites' name="audioformat">
-               <mat-option *ngFor="let currSite of this.supportedURLs" [value]="currSite">
-                    {{currSite}}
                </mat-option>
           </mat-select>
      </mat-form-field>
@@ -63,4 +67,24 @@
           <!-- Move To Server Button-->
           <button *ngIf="allowMoveToServer && moveToServerButtonVisible" matInput mat-raised-button (click)="moveToServerClick()">Move To Server</button>
      </span>
+</mat-card>
+
+<mat-card>
+     <mat-checkbox  [(ngModel)]="supportedURLsVisible" (change)="showSupportedSitesToggle()">Show supported sites</mat-checkbox>
+
+     <mat-form-field *ngIf="supportedURLsVisible">
+          <input matInput (keyup)="applyFilter($event.target.value)" placeholder="Filter">
+     </mat-form-field>
+
+     <mat-paginator *ngIf="supportedURLsVisible" #supportedURLsPaginator [pageSizeOptions]="[100,10,25,50,500,1000]"></mat-paginator>
+
+     <table *ngIf="supportedURLsVisible" mat-table matSort [dataSource]="supportedURLsDataSource" class="mat-elevation-z8">
+          <ng-container matColumnDef="URL">
+               <th mat-header-cell *matHeaderCellDef mat-sort-header> URL </th>
+               <td mat-cell *matCellDef="let element"> {{element}} </td>
+          </ng-container>
+    
+          <tr mat-header-row *matHeaderRowDef="['URL']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['URL'];"></tr>
+     </table>
 </mat-card>

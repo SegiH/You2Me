@@ -23,7 +23,7 @@
 mat-card {
      border-style: solid;
      border-width: 1px !important;
-     width: 400px;
+     width: 450px;
 }
 
 mat-form-field {
@@ -33,6 +33,18 @@ mat-form-field {
 mat-form-field.hidden {
      display: none;
 }
+
+mat-paginator {
+     /*position: absolute;*/
+     margin-bottom: 25px;
+}
+
+/* 1st Column of table */
+mat-table {
+     /*min-width: 415px;*/
+     top: 125px !important;
+     white-space: wrap;
+ }
 
 .saveValues {
      margin-left: 15px;
