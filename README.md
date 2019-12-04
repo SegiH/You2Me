@@ -1,4 +1,4 @@
-You2Me is an Angular web application that acts as a front-end for [youtube-dl] (https://rg3.github.io/youtube-dl/) which lets you download audio or video from many web sites. 
+You2Me is an Angular web application that acts as a front-end for [youtube-dl](https://rg3.github.io/youtube-dl/) which lets you download audio or video from many web sites. 
 
 The app can be set up so that the media file can either be downloaded or the file can be moved to a location that you specify on your media server if you have one. 
 
