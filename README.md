@@ -1,4 +1,4 @@
-You2Me is an Angular web application that acts as a front-end for youtube-dl (https://rg3.github.io/youtube-dl/) which lets you download audio or video from many web sites. 
+You2Me is an Angular web application that acts as a front-end for [youtube-dl] (https://rg3.github.io/youtube-dl/) which lets you download audio or video from many web sites. 
 
 The app can be set up so that the media file can either be downloaded or the file can be moved to a location that you specify on your media server if you have one. 
 
@@ -26,11 +26,11 @@ You can run the application in one of 2 ways:
    - Build a Docker image based on my script: sudo docker build docker/ -t you2me
    - Run the Docker image: sudo docker run -dit -p 8080:80 you2me If you want to change the port that it runs on, change the first 8080 so for example 80:80 to access You2Me on port 80 (The second 80 after the colon is the internal port used and should ALWAYS be 80).
    - Visit dockeripaddress:port in your browser. You can run docker-machine ip to find the IP address of your docker instance on Windows or docker inspect $(sudo docker ps -q) | grep \"IPAddress.
-2. Run You2Me on your own web server (Tested with Apache and Nginx on Linux and Apache on Windows. WampServer (http://www.wampserver.com) would be easiest to set up on Windows.)
+2. Run You2Me on your own web server (Tested with Apache and Nginx on Linux and Apache on Windows. [WampServer](http://www.wampserver.com) would be easiest to set up on Windows.)
    - Install  PHP 7 (Not tested with PHP 5) 
-   - Open source utility youtube-dl from https://rg3.github.io/youtube-dl/ which does NOT need root permissions. If you are using Linux, it should be available in your repo so you can install it by running apt-get install youtube-dl. A Windows binary is also available on the official site.
+   - Open source utility [youtube-dl](https://rg3.github.io/youtube-dl/) which does NOT need root permissions. If you are using Linux, it should be available in your repo so you can install it by running apt-get install youtube-dl. A Windows binary is also available on the official site.
    - Install getid3 for PHP. Linux users can install it using apt-geti nstall php-getid3. If you are on Windows or its not available in your repo, download it from http://    getid3.sourceforge.net, extract the zip and copy the folder getid3 into the php folder
-   - Instal ffpmeg apt-get install ffmpeg for Linux users or Windows users can dowlnoad it from https://ffmpeg.org/. 
+   - Install ffpmeg by running "apt-get install ffmpeg" on Linux or Windows users can download [ffmpeg](https://ffmpeg.org/).
    - Install npm 6+ which includes Node.js and npm.
    - Download the latest source for You2Me.
    - Edit package.json and find the line that begins with "build". Edit --base-href to match the relative path that the application will be hosted at. If your site is hosted at http://www.mysite.com/You2Me, your build line should look like this: "build": "ng build --base-href /You2Me/ --prod", Don't forget to add / at the beginning and end of the path.
