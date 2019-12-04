@@ -105,8 +105,8 @@ export class Y2mComponent implements OnInit {
           'Convert to webm' : 'webm'
      }
 
-     @ViewChild('supportedURLsPaginator', { }) supportedURLsPaginator: MatPaginator;
-     @ViewChild(MatSort, { }) sort: MatSort;
+     @ViewChild('supportedURLsPaginator', { static: false }) supportedURLsPaginator: MatPaginator;
+     @ViewChild(MatSort, { static: false }) sort: MatSort;
 
      constructor(public snackBar: MatSnackBar, public dataService: DataService) { }
 
