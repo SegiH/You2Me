@@ -29,7 +29,7 @@ You can run the application in one of 2 ways:
 2. Run You2Me on your own web server (Tested with Apache and Nginx on Linux and Apache on Windows. [WampServer](http://www.wampserver.com) would be easiest to set up on Windows.)
    - Install  PHP 7 (Not tested with PHP 5) 
    - Open source utility [youtube-dl](https://rg3.github.io/youtube-dl/) which does NOT need root permissions. If you are using Linux, it should be available in your repo so you can install it by running apt-get install youtube-dl. A Windows binary is also available on the official site.
-   - Install getid3 for PHP. Linux users can install it using apt-get install php-getid3. If you are on Windows or its not available in your repo, download it from http://    getid3.sourceforge.net, extract the zip and copy the folder getid3 into the php folder
+   - Install getid3 for PHP. Linux users can install it using apt-get install php-getid3. If you are on Windows or its not available in your repo, download [getid3](http://    getid3.sourceforge.net), extract the zip and copy the folder getid3 into the php folder
    - Install ffpmeg by running "apt-get install ffmpeg" on Linux or Windows users can download [ffmpeg](https://ffmpeg.org/).
    - Install npm 6+ which includes Node.js and npm.
    - Download the latest source for You2Me.
