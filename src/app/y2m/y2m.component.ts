@@ -123,7 +123,7 @@ export class Y2mComponent implements OnInit {
           } else if (format !== null && Object.values(this.videoFormats).includes(format)) {
                this.currentVideoFormat = format;
                this.currentAudioFormat = null
-          } else if (typeof format !== 'undefined') {
+          } else if (format !== null) {
                // The filter removes the null value otherwise you will see a leading comma in front of each format
                alert(`Valid formats are ${Object.values(this.audioFormats).filter(format => format !== null)} for audio or ${Object.values(this.videoFormats).filter(format => format !== null)} for video`);
           }
@@ -266,7 +266,7 @@ export class Y2mComponent implements OnInit {
 
           // If urlParams is still undefined, there are no url params
           if (typeof this.urlParams === 'undefined')
-               return;
+               return null;
           
           // Make URL params upper case when checking so they aren't case sensitive
           name=name.toUpperCase();
@@ -286,7 +286,7 @@ export class Y2mComponent implements OnInit {
                     return (typeof this.urlParams[name] !== 'undefined' && decodeURI(this.urlParams[name]) || this.parseTitle('title'));
                case 'TITLE':
                     if (typeof this.urlParams[name] === 'undefined')
-                         return '';
+                         return null;
                     
                     let title = this.urlParams[name];
 
