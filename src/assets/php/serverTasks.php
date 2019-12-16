@@ -112,7 +112,7 @@
 	       die("Unable to create the database");
 	  } 
           
-          header('Content-Encoding: none;');
+          //header('Content-Encoding: none;');
 
           set_time_limit(0);
 
