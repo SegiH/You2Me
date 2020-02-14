@@ -108,8 +108,8 @@ export class Y2mComponent implements OnInit {
           'Convert to webm' : 'webm'
      }
 
-     @ViewChild('supportedURLsPaginator', { static: false }) supportedURLsPaginator: MatPaginator;
-     @ViewChild(MatSort, { static: false }) sort: MatSort;
+     @ViewChild('supportedURLsPaginator') supportedURLsPaginator: MatPaginator;
+     @ViewChild(MatSort) sort: MatSort;
 
      constructor(public snackBar: MatSnackBar, public dataService: DataService) { }
 
@@ -477,6 +477,16 @@ export class Y2mComponent implements OnInit {
                          }
                     },
                     error => {
+                         // Stop the REST service that gets the download status
+                         this.downloadProgressSubscription.unsubscribe();
+
+                         // Call REST service to delete download progress temp db
+                         this.dataService.deleteDownloadProgress().subscribe((response) => {
+                         },
+                         error => {
+                              this.handleError(Response, error);
+                         });
+                         
                          this.handleError(Response, error);
                     });
 
