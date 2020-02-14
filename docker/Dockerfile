@@ -1,16 +1,23 @@
 FROM inutano/wget
 FROM iojs 
-FROM php:7.3-apache
+FROM keinos/sqlite3
+FROM guilhem/apt-get-install
 
 ENV TZ=America/Los_Angeles
 
+# Update apt-get repo
 RUN apt-get update
 RUN apt-get -y upgrade
 
 # Disable python-pip because Python fingerprinting is disabled
-RUN apt-get install -y ffmpeg git libsqlite3-dev npm sqlite3 tzdata unzip vim wget
+RUN apt-get install -y git libsqlite3-dev sqlite3 tzdata unzip vim wget
+
+FROM kahunacoder/docker-php-extensions
 
 RUN docker-php-ext-install pdo_sqlite && docker-php-ext-enable pdo_sqlite
+
+# Python
+
 # Fix me says has no installation candidate
 # RUN apt-get install -y php-getid3
 
@@ -25,17 +32,7 @@ RUN docker-php-ext-install pdo_sqlite && docker-php-ext-enable pdo_sqlite
 #RUN pip install --upgrade setuptools m2r
 #RUN pip install --upgrade chromaprint pyacoustid requests
 
-# Install youtube-dl
-RUN wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
-
-RUN chmod 755 /usr/local/bin/youtube-dl
-
-# Set up folders in web root
-# RUN mkdir /var/www/html/php/
-# RUN mkdir /var/www/html/python/
-
-RUN mkdir /var/www/html/media/
-RUN chmod 777 /var/www/html/media
+FROM node
 
 # Upgrade npm to avoid build issues
 RUN npm i npm@latest -g
@@ -54,7 +51,7 @@ RUN sed -i 's/You2Me\///g' You2Me/package.json
 RUN npm update
 
 # Make serverTasks.php point to localhost
-RUN sed -i 's/www.yoursite.com/\/localhost/g' You2Me/src/assets/php/serverTasks.php
+RUN sed -i 's/www.mysite.com/\/localhost/g' You2Me/src/assets/php/serverTasks.php
 
 # Replace https with http
 RUN sed -i 's/https/http/g' You2Me/src/assets/php/serverTasks.php
@@ -75,13 +72,14 @@ RUN mv src/assets/php/serverTasks.php php
 
 RUN npm run build
 
+RUN mkdir /var/www
+RUN mkdir /var/www/html
+
 RUN mv dist/* /var/www/html
 
 RUN mv php /var/www/html/
 
-RUN mv python /var/www/html/
-
-# RUN chmod 777 /var/www/html/php/
+# RUN mv python /var/www/html/
 
 # cleanup tmp folder
 WORKDIR /tmp
@@ -102,21 +100,43 @@ RUN mv getID3-master/getid3 php
 
 RUN rm -rf getID3-master
 
+RUN apt update
+
+RUN apt install -y apache2 php7.0 php7.0-sqlite3 ffmpeg
+
 RUN ln -s /etc/apache2/mods-available/headers.load /etc/apache2/mods-enabled/headers.load
 
 RUN ln -s /etc/apache2/mods-available/rewrite.load /etc/apache2/mods-enabled/rewrite.load
 
-RUN echo Header set Content-Disposition "attachment" > /var/www/html/media/.htaccess
+RUN mkdir /var/www/html/media
+
+RUN echo Header set Content-Disposition \""attachment\"" > /var/www/html/media/.htaccess
 
 RUN echo Header set Content-Type application/force-download >> /var/www/html/media/.htaccess
 
-# Make enable SQLite3
-RUN cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
+# Enable SQLite3
+RUN sed -i 's/;extension=php_pdo_sqlite/extension=php_pdo_sqlite/g' /etc/php/7.0/apache2/php.ini
 
-RUN sed -i 's/;extension=pdo_sqlite/extension=pdo_sqlite/g' /usr/local/etc/php/php.ini
+RUN sed -i 's/;extension=php_sqlite3.dll/extension=php_sqlite3.dll/g' /etc/php/7.0/apache2/php.ini
 
-RUN sed -i 's/;extension=sqlite3/extension=sqlite3/g' /usr/local/etc/php/php.ini
+RUN apt install -y vim
 
-RUN apache2ctl restart
+RUN echo extension=sqlite3.so > /etc/php/7.0/mods-available/sqlite3.ini
+
+# Install youtube-dl
+RUN wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
+
+RUN chmod 755 /usr/local/bin/youtube-dl
+
+RUN chmod 777 /var/www/html/media/
+RUN chmod 777 /var/www/html/php
+
+COPY cmd.txt /tmp
+
+RUN echo "<Directory /var/www/html/media>" >> /etc/apache2/sites-enabled/000-default.conf
+RUN echo Header set Content-Disposition "attachment" >> /etc/apache2/sites-enabled/000-default.conf
+RUN echo Header set Content-Type application/force-download >> /etc/apache2/sites-enabled/000-default.conf
+RUN echo "</Directory>" >> /etc/apache2/sites-enabled/000-default.conf
 
 EXPOSE 80
+CMD apachectl -D FOREGROUND 
