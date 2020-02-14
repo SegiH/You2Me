@@ -34,7 +34,7 @@ You can run the application in one of 2 ways:
    - Install npm 6+ which includes Node.js and npm.
    - Download the latest source for You2Me.
    - Edit package.json and find the line that begins with "build". Edit --base-href to match the relative path that the application will be hosted at. If your site is hosted at http://www.mysite.com/You2Me, your build line should look like this: "build": "ng build --base-href /You2Me/ --prod", Don't forget to add / at the beginning and end of the path.
-   - Create a folder called media under the root of your web server where the file will be stored temporarily. Give this folder full write permissions chmod 777
+   - Create a folder called media under the root of your web server where the file will be stored temporarily. Give this folder write permissions by running chmod 775
    - Edit the file assets/php/serverTasks.php and set the following values: 
      - $destinationPath (Only needed if you are running in server mode) - The path where the media file will be moved to. This can be any path that is writable including a remote location such as a Samba mounted folder.
      - $sourcePath - The full path to the media folder on your web server that you created in step 3. Ex: /var/www/html/media/

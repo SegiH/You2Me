@@ -128,8 +128,8 @@ RUN wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube
 
 RUN chmod 755 /usr/local/bin/youtube-dl
 
-RUN chmod 777 /var/www/html/media/
-RUN chmod 777 /var/www/html/php
+RUN chmod 775 /var/www/html/media/
+RUN chmod 775 /var/www/html/php
 
 COPY cmd.txt /tmp
 
