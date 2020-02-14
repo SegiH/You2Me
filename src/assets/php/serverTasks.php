@@ -15,7 +15,7 @@
      $videoDestinationPath="/mnt/usb/";
      
      $sourcePath="/var/www/html/media/";
-     $domain="http://www.mysite.com/media/";
+     $domain=(isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"]=="on" ? "https" : "http") . "://" . $_SERVER["HTTP_HOST"] . "/media/";
 
      //$os=php_uname("s");
      $os=(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? "Windows" : "Unix");
