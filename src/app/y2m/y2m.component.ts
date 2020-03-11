@@ -2,10 +2,6 @@
      TODO:
      Before publishing make sure proxy.conf doesn't have my server address and make sure php doesn't have it either
 
-     See if you can get more than artist & title from Python script
-
-     CHANGES:
-
      URL for testing: https://www.youtube.com/watch?v=Wch3gJG2GJ4
 */
 import { Component, OnInit, ViewChild } from '@angular/core';
@@ -173,9 +169,21 @@ export class Y2mComponent implements OnInit {
 
      // Called by binding to Download button
      downloadLinkClicked() {
-          window.location.href = this.downloadLink;
+          this.dataService
+          .downloadFile(this.downloadLink)
+          .subscribe(blob => {
+               debugger;
+                const a = document.createElement('a')
+                const objectUrl = URL.createObjectURL(blob)
+                a.href = objectUrl
+                a.download = 'a.mp3';
+                a.click();
+                URL.revokeObjectURL(objectUrl);
+          })
 
-          this.downloadStarted = true;
+          //window.location.href = this.downloadLink;
+
+          //this.downloadStarted = true;
 
           this.downloadButtonVisible = false;
 
@@ -312,6 +320,8 @@ export class Y2mComponent implements OnInit {
 
           console.log(`An error occurred at step ${this.currentStep} with the error ${error}`);
 
+          this.downloadProgressSubscription.unsubscribe();
+
           this.finished(true);
      }
 
@@ -414,7 +424,7 @@ export class Y2mComponent implements OnInit {
                     this.getDownloadProgress();
 
                     // Call data service to download the file
-                    this.dataService.downloadFile(URL, fileName,this.moveToServer, this.isAudioFormat(), this.isMP3Format(),(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
+                    this.dataService.fetchFile(URL, fileName,this.moveToServer, this.isAudioFormat(), this.isMP3Format(),(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
                     .subscribe((response) => {
                          // Stop the REST service that gets the download status
                          this.downloadProgressSubscription.unsubscribe();

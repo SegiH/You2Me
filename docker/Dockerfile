@@ -104,20 +104,21 @@ RUN apt update
 
 RUN apt install -y apache2 php7.0 php7.0-sqlite3 ffmpeg
 
-RUN ln -s /etc/apache2/mods-available/headers.load /etc/apache2/mods-enabled/headers.load
-
-RUN ln -s /etc/apache2/mods-available/rewrite.load /etc/apache2/mods-enabled/rewrite.load
+# Since I now use an observable to fetch the song, we don't need to do this any more
+#RUN ln -s /etc/apache2/mods-available/headers.load /etc/apache2/mods-enabled/headers.load
+#RUN ln -s /etc/apache2/mods-available/rewrite.load /etc/apache2/mods-enabled/rewrite.load
 
 RUN mkdir /var/www/html/media
 
-RUN echo Header set Content-Disposition \""attachment\"" > /var/www/html/media/.htaccess
+# Since I now use an observable to fetch the song, we don't need to do this any more
 
-RUN echo Header set Content-Type application/force-download >> /var/www/html/media/.htaccess
+# RUN echo Header set Content-Disposition \""attachment\"" > /var/www/html/media/.htaccess
+#RUN echo Header set Content-Type application/force-download >> /var/www/html/media/.htaccess
 
 # Enable SQLite3
-RUN sed -i 's/;extension=php_pdo_sqlite/extension=php_pdo_sqlite/g' /etc/php/7.0/apache2/php.ini
+# RUN sed -i 's/;extension=php_pdo_sqlite/extension=php_pdo_sqlite/g' /etc/php/7.0/apache2/php.ini
 
-RUN sed -i 's/;extension=php_sqlite3.dll/extension=php_sqlite3.dll/g' /etc/php/7.0/apache2/php.ini
+# RUN sed -i 's/;extension=php_sqlite3.dll/extension=php_sqlite3.dll/g' /etc/php/7.0/apache2/php.ini
 
 RUN apt install -y vim
 
@@ -133,10 +134,11 @@ RUN chmod 775 /var/www/html/php
 
 COPY cmd.txt /tmp
 
-RUN echo "<Directory /var/www/html/media>" >> /etc/apache2/sites-enabled/000-default.conf
-RUN echo Header set Content-Disposition "attachment" >> /etc/apache2/sites-enabled/000-default.conf
-RUN echo Header set Content-Type application/force-download >> /etc/apache2/sites-enabled/000-default.conf
-RUN echo "</Directory>" >> /etc/apache2/sites-enabled/000-default.conf
+# Since I now use an observable to fetch the song, we don't need to do this any more
+# RUN echo "<Directory /var/www/html/media>" >> /etc/apache2/sites-enabled/000-default.conf
+# RUN echo Header set Content-Disposition "attachment" >> /etc/apache2/sites-enabled/000-default.conf
+# RUN echo Header set Content-Type application/force-download >> /etc/apache2/sites-enabled/000-default.conf
+# RUN echo "</Directory>" >> /etc/apache2/sites-enabled/000-default.conf
 
 EXPOSE 80
 CMD apachectl -D FOREGROUND 

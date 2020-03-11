@@ -1,7 +1,13 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { throwError } from 'rxjs/';
+import { HttpClient, HttpEvent, HttpEventType, HttpResponse, HttpProgressEvent } from '@angular/common/http';
+import { throwError, Observable } from 'rxjs/';
 import { catchError} from 'rxjs/operators';
+
+export interface Download {
+    state: 'PENDING' | 'IN_PROGRESS' | 'DONE'
+    progress: number
+    content: Blob | null
+}
 
 @Injectable()
 export class DataService {
@@ -11,7 +17,13 @@ export class DataService {
         return this.processStep(`?DeleteDownloadProgress=true`);
     }
 
-    downloadFile(URL: string, fileName: string, movetoServer: boolean, isAudioFormat: boolean,  isMP3Format: boolean, currentFormat: string) {
+    downloadFile(url: string): Observable<Blob> {
+        return this.http.get(url, {
+          responseType: 'blob'
+        })
+    }
+
+    fetchFile(URL: string, fileName: string, movetoServer: boolean, isAudioFormat: boolean,  isMP3Format: boolean, currentFormat: string) {
         const params = `?DownloadFile` +
                        `&URL=${URL}` +
                        `&Filename=${fileName}` +
@@ -41,6 +53,15 @@ export class DataService {
         }
 
         return throwError(error || 'Node.js server error');
+    }
+
+    isHttpResponse<T>(event: HttpEvent<T>): event is HttpResponse<T> {
+        return event.type === HttpEventType.Response
+    }
+      
+    isHttpProgressEvent(event: HttpEvent<unknown>): event is HttpProgressEvent {
+        return event.type === HttpEventType.DownloadProgress 
+            || event.type === HttpEventType.UploadProgress
     }
 
     moveFile(localFile: string, isAudio: boolean, moveToServer: boolean, artist: string, album: string, currentFormat: string) {
