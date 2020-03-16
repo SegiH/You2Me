@@ -4,13 +4,18 @@
 
      URL for testing: https://www.youtube.com/watch?v=Wch3gJG2GJ4
 */
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { DataService } from '../core/data.service';
 import {interval} from "rxjs";
+import { DownloadService } from '../core/download.service'
+import { Download } from '../core/download'
+import { Observable } from 'rxjs'
+import { tap } from 'rxjs/operators'
+import { DOCUMENT } from '@angular/common'
 
 @Component({
      selector: 'app-y2m',
@@ -40,6 +45,7 @@ export class Y2mComponent implements OnInit {
      currentVideoFormat = null;
      currentStep = 0;
      debugging = false; // This should never be true when running production build
+     download$: Observable<Download>;
      downloadLink = '';
      downloadButtonVisible = false; // default false
      downloadStarted = false; // default false
@@ -107,7 +113,11 @@ export class Y2mComponent implements OnInit {
      @ViewChild('supportedURLsPaginator') supportedURLsPaginator: MatPaginator;
      @ViewChild(MatSort) sort: MatSort;
 
-     constructor(public snackBar: MatSnackBar, public dataService: DataService) { }
+     constructor(public snackBar: MatSnackBar, public dataService: DataService,private downloads: DownloadService, @Inject(DOCUMENT) private document: Document) { }
+
+     /*download({name, url}: {name: string, url: string}) {
+          this.download$ = this.downloads.download(url, name)
+        }*/
 
      ngOnInit() {
           // Get URL parameter Format if it was provided
@@ -128,7 +138,7 @@ export class Y2mComponent implements OnInit {
           if (this.getURLParam('MoveToServer') === 'true' && this.allowMoveToServer === true) {
                this.moveToServer = true;
                document.title = 'You2Me (Server)';
-          }
+          }    
 
           if (this.moveToServer === true) {
                this.stepperStepNames.push('Moving the file to new location');
@@ -147,6 +157,9 @@ export class Y2mComponent implements OnInit {
                this.currentVideoFormat=null;
                this.saveValues=true;
           }
+
+          //this.downloadLink="http://localh";
+          //this.downloadLinkClicked();
      }
 
      applyFilter(filterValue: string) {
@@ -169,17 +182,40 @@ export class Y2mComponent implements OnInit {
 
      // Called by binding to Download button
      downloadLinkClicked() {
+          debugger;
+
           this.dataService
           .downloadFile(this.downloadLink)
           .subscribe(blob => {
-               debugger;
                 const a = document.createElement('a')
                 const objectUrl = URL.createObjectURL(blob)
                 a.href = objectUrl
-                a.download = 'a.mp3';
+                a.download = this.downloadLink.substring(this.downloadLink.lastIndexOf("/")+1);
                 a.click();
                 URL.revokeObjectURL(objectUrl);
           })
+
+          // Delete download progress temp db
+          this.dataService.deleteDownloadProgress().subscribe((response) => {
+          },
+          error => {
+               this.handleError(Response, error);
+          });
+
+          // Not used
+          //this.download$ = this.downloads.download("http://localhost:4200/media/b.mp3", "b.mp3");
+
+          /* Subscribe to DL service and wait for the done response 
+          this.downloads.download("http://localhost:4200/media/b.mp3", "b.mp3").subscribe((response) => {
+               console.log("Response: " + response.state);
+
+               if (response.state == "DONE") {
+                    //debugger;
+               }
+          },
+          error => {
+               this.handleError(Response, error);
+          });*/
 
           //window.location.href = this.downloadLink;
 
