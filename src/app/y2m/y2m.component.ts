@@ -90,7 +90,7 @@ export class Y2mComponent implements OnInit {
      readonly fieldKeys = Object.keys(this.fields); // Used in HTML template
      fileName = '';
      isFinished = false; // default false
-     isSubmitted = false; // default false
+     isSubmitted = true; // default false
      moveToServer = false; // default false
      moveToServerButtonVisible = false; // default false
      saveValues = false;
@@ -114,10 +114,6 @@ export class Y2mComponent implements OnInit {
      @ViewChild(MatSort) sort: MatSort;
 
      constructor(public snackBar: MatSnackBar, public dataService: DataService,private downloads: DownloadService, @Inject(DOCUMENT) private document: Document) { }
-
-     /*download({name, url}: {name: string, url: string}) {
-          this.download$ = this.downloads.download(url, name)
-        }*/
 
      ngOnInit() {
           // Get URL parameter Format if it was provided
@@ -158,8 +154,7 @@ export class Y2mComponent implements OnInit {
                this.saveValues=true;
           }
 
-          //this.downloadLink="http://localh";
-          //this.downloadLinkClicked();
+          this.downloadLinkClicked();
      }
 
      applyFilter(filterValue: string) {
@@ -182,8 +177,8 @@ export class Y2mComponent implements OnInit {
 
      // Called by binding to Download button
      downloadLinkClicked() {
-          debugger;
-
+          
+          // One way to download a file. Doesn't track progress
           this.dataService
           .downloadFile(this.downloadLink)
           .subscribe(blob => {
@@ -202,19 +197,21 @@ export class Y2mComponent implements OnInit {
                this.handleError(Response, error);
           });
 
-          // Not used
-          //this.download$ = this.downloads.download("http://localhost:4200/media/b.mp3", "b.mp3");
+          // Not used     
+          //this.download$ = this.downloads.download("https://web.hovav.org/media/a.mp3", "b.mp3");
 
-          /* Subscribe to DL service and wait for the done response 
-          this.downloads.download("http://localhost:4200/media/b.mp3", "b.mp3").subscribe((response) => {
+          // Subscribe to DL service and wait for the done response 
+          /*this.downloads.download("media/a.mp3", "a.mp3").subscribe((response) => {
                console.log("Response: " + response.state);
 
                if (response.state == "DONE") {
-                    //debugger;
+                    // Send request to delete the file
+                    
                }
           },
           error => {
-               this.handleError(Response, error);
+               console.log("An error occurred deleting the file from the server");
+               //this.handleError(Response, error);
           });*/
 
           //window.location.href = this.downloadLink;
