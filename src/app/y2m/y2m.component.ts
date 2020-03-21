@@ -154,7 +154,7 @@ export class Y2mComponent implements OnInit {
                this.saveValues=true;
           }
 
-          this.downloadLinkClicked();
+          //this.downloadLinkClicked();
      }
 
      applyFilter(filterValue: string) {
@@ -188,7 +188,7 @@ export class Y2mComponent implements OnInit {
                 a.download = this.downloadLink.substring(this.downloadLink.lastIndexOf("/")+1);
                 a.click();
                 URL.revokeObjectURL(objectUrl);
-          })
+          });
 
           // Delete download progress temp db
           this.dataService.deleteDownloadProgress().subscribe((response) => {
@@ -206,7 +206,7 @@ export class Y2mComponent implements OnInit {
 
                if (response.state == "DONE") {
                     // Send request to delete the file
-                    
+                    alert("done");        
                }
           },
           error => {
