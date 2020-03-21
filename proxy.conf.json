@@ -6,7 +6,7 @@
       "logLevel": "debug"
     },
     "/media/" : {
-      "target": "http://localhost/media/",
+      "target": "http://192.168.1.10/media/",
       "secure": false,
       "pathRewrite": {"^/media" : ""},
       "logLevel": "debug"
