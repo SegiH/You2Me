@@ -13,6 +13,13 @@ export interface Download {
 export class DataService {
     constructor(private http: HttpClient) { }
 
+    deleteDownloadFile(fileName: string) {
+        const params = `?DeleteDownloadFile` +
+                       `&Filename=${fileName}`
+                       
+        return this.processStep(params);
+    }
+
     deleteDownloadProgress() {
         return this.processStep(`?DeleteDownloadProgress=true`);
     }

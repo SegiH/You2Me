@@ -22,6 +22,10 @@
      $rowsLeft=false;
      $db_name="downloadProgress.sqlite3";
 
+     function deleteDownloadFile() {
+     
+     }
+
      function deleteDownloadProgress() {
 	  global $db_name;
 	  
@@ -393,10 +397,35 @@
 
           return;
      }
+ 
+     function lastIndexOf($str,$x) {
+          $index = -1;
 
-     if (isset($_GET["DeleteDownloadProgress"])) {
-          deleteDownloadProgress();
+	  for ($i=0; $i < strlen($str); $i++) 
+               if ($str[$i] == $x)
+		       $index=$i;
+
+	  return $index;
      }
+
+     if (isset($_GET["DeleteDownloadFile"])) {
+	     if (!isset($_GET["Filename"]))
+               die("Error: DownloadFile was called but not all audio arguments were provided");
+         
+	     $fileName = $_GET["Filename"];
+
+	     // only allow the delete if the file name begins with $domain 
+	     if (strcmp(substr($fileName,0,strlen($domain)),$domain) !== 0) 
+               die("Error: DownloadFile was called with an invalid argument");
+	  
+          try {
+               // Delete using $sourcePath
+	          unlink($sourcePath . substr($fileName,lastIndexOf($fileName,"/")+1));
+	     } catch(Exception $e) {
+	          die("Unable to delete the file");
+	     }
+     }
+
 
      if (isset($_GET["DownloadFile"])) {
           // Validate that the required arguments were provided

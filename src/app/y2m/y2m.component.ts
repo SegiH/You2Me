@@ -44,11 +44,10 @@ export class Y2mComponent implements OnInit {
      currentAudioFormat = null; // MP3 320K is the default format
      currentVideoFormat = null;
      currentStep = 0;
-     debugging = false; // This should never be true when running production build
+     debugging = true; // This should never be true when running production build
      download$: Observable<Download>;
      downloadLink = '';
      downloadButtonVisible = false; // default false
-     downloadStarted = false; // default false
      downloadStatus = ''; // displays youtube-dl output messages
      downloadProgressSubscription;
      readonly fields: any = {
@@ -90,7 +89,7 @@ export class Y2mComponent implements OnInit {
      readonly fieldKeys = Object.keys(this.fields); // Used in HTML template
      fileName = '';
      isFinished = false; // default false
-     isSubmitted = true; // default false
+     isSubmitted = false; // default false
      moveToServer = false; // default false
      moveToServerButtonVisible = false; // default false
      saveValues = false;
@@ -177,46 +176,25 @@ export class Y2mComponent implements OnInit {
 
      // Called by binding to Download button
      downloadLinkClicked() {
-          
-          // One way to download a file. Doesn't track progress
-          this.dataService
-          .downloadFile(this.downloadLink)
-          .subscribe(blob => {
-                const a = document.createElement('a')
-                const objectUrl = URL.createObjectURL(blob)
-                a.href = objectUrl
-                a.download = this.downloadLink.substring(this.downloadLink.lastIndexOf("/")+1);
-                a.click();
-                URL.revokeObjectURL(objectUrl);
-          });
-
-          // Delete download progress temp db
-          this.dataService.deleteDownloadProgress().subscribe((response) => {
-          },
-          error => {
-               this.handleError(Response, error);
-          });
-
-          // Not used     
-          //this.download$ = this.downloads.download("https://web.hovav.org/media/a.mp3", "b.mp3");
+          // File name without path
+          const fileNameWithoutPath=this.downloadLink.substr(this.downloadLink.lastIndexOf("/")+1);
 
           // Subscribe to DL service and wait for the done response 
-          /*this.downloads.download("media/a.mp3", "a.mp3").subscribe((response) => {
-               console.log("Response: " + response.state);
+          this.downloads.download(this.downloadLink, fileNameWithoutPath).subscribe((response) => {
+               //console.log("Response: " + response.state);
 
                if (response.state == "DONE") {
                     // Send request to delete the file
-                    alert("done");        
+                    this.dataService.deleteDownloadFile(this.downloadLink).subscribe((response) => { 
+                    },
+                    error => {
+                         console.log("An error occurred deleting the file from the server 1");
+                    });
                }
           },
           error => {
-               console.log("An error occurred deleting the file from the server");
-               //this.handleError(Response, error);
-          });*/
-
-          //window.location.href = this.downloadLink;
-
-          //this.downloadStarted = true;
+               console.log("An error occurred deleting the file from the server 2");
+          });
 
           this.downloadButtonVisible = false;
 
@@ -263,7 +241,8 @@ export class Y2mComponent implements OnInit {
           this.isFinished =  true;
 
           // Stop the REST service that gets the download status
-          this.downloadProgressSubscription.unsubscribe();
+          if (this.debugging === false)
+               this.downloadProgressSubscription.unsubscribe();
 
           // Delete download progress temp db
           this.dataService.deleteDownloadProgress().subscribe((response) => {
@@ -353,7 +332,8 @@ export class Y2mComponent implements OnInit {
 
           console.log(`An error occurred at step ${this.currentStep} with the error ${error}`);
 
-          this.downloadProgressSubscription.unsubscribe();
+          if (this.debugging === true)
+               this.downloadProgressSubscription.unsubscribe();
 
           this.finished(true);
      }
@@ -454,13 +434,15 @@ export class Y2mComponent implements OnInit {
                     const fileName = (this.isAudioFormat() === true && !isNaN(parseInt(trackNum)) ? (parseInt(trackNum) < 10 ? "0" : "") + trackNum + ' ' : '') + name;
 
                     // Start timer that gets download progress
-                    this.getDownloadProgress();
+                    if (this.debugging === false)
+                         this.getDownloadProgress();
 
                     // Call data service to download the file
                     this.dataService.fetchFile(URL, fileName,this.moveToServer, this.isAudioFormat(), this.isMP3Format(),(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
                     .subscribe((response) => {
                          // Stop the REST service that gets the download status
-                         this.downloadProgressSubscription.unsubscribe();
+                         if (this.debugging === false)
+                              this.downloadProgressSubscription.unsubscribe();
 
                          // Call REST service to delete download progress temp db
                          this.dataService.deleteDownloadProgress().subscribe((response) => {
@@ -653,8 +635,6 @@ export class Y2mComponent implements OnInit {
                this.isFinished = false;
 
                this.downloadButtonVisible = false;
-
-               this.downloadStarted = false;
 
                return;
           }
