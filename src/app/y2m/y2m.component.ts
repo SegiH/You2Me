@@ -11,11 +11,10 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { DataService } from '../core/data.service';
 import {interval} from "rxjs";
-import { DownloadService } from '../core/download.service'
-import { Download } from '../core/download'
-import { Observable } from 'rxjs'
-import { tap } from 'rxjs/operators'
-import { DOCUMENT } from '@angular/common'
+import { DownloadService } from '../core/download.service';
+import { Download } from '../core/download';
+import { Observable } from 'rxjs';
+import { DOCUMENT } from '@angular/common';
 
 @Component({
      selector: 'app-y2m',
