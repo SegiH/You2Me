@@ -1,11 +1,4 @@
 <?php
-     // in php
-     // create activesessions table in sqlitedb
-     // create random session id
-     // add to activesessions
-     // need to return to user
-     // when deleteDownloadProgress is called, delete all session info. if not active sessions close and delete db
-
      // Required binaries: youtube-dl, id3v2 
      require_once('getid3/getid3.php');
      require_once('getid3/write.php');
