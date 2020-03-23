@@ -116,9 +116,9 @@ RUN mkdir /var/www/html/media
 #RUN echo Header set Content-Type application/force-download >> /var/www/html/media/.htaccess
 
 # Enable SQLite3
-# RUN sed -i 's/;extension=php_pdo_sqlite/extension=php_pdo_sqlite/g' /etc/php/7.0/apache2/php.ini
+RUN sed -i 's/;extension=php_pdo_sqlite/extension=php_pdo_sqlite/g' /etc/php/7.0/apache2/php.ini
 
-# RUN sed -i 's/;extension=php_sqlite3.dll/extension=php_sqlite3.dll/g' /etc/php/7.0/apache2/php.ini
+RUN sed -i 's/;extension=php_sqlite3.dll/extension=php_sqlite3.dll/g' /etc/php/7.0/apache2/php.ini
 
 RUN apt install -y vim
 
@@ -129,10 +129,10 @@ RUN wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube
 
 RUN chmod 755 /usr/local/bin/youtube-dl
 
-RUN chmod 775 /var/www/html/media/
-RUN chmod 775 /var/www/html/php
+RUN chmod 777 /var/www/html/media/
+RUN chmod 777 /var/www/html/php
 
-COPY cmd.txt /tmp
+# COPY cmd.txt /tmp
 
 # Since I now use an observable to fetch the song, we don't need to do this any more
 # RUN echo "<Directory /var/www/html/media>" >> /etc/apache2/sites-enabled/000-default.conf
