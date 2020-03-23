@@ -31,7 +31,7 @@ There are 2 ways to build this application
    - Install Docker if it isn't installed already. Windows 10 users should install Virtualbox first then install Docker Toolbox, unselecting Virtualbox in the Docker toolbox install options
    - Go to the main You2Me folder in terminal
    - Build a Docker image based on my script: sudo docker build docker/ -t you2me
-   - Run the Docker image: sudo docker run -dit -p 8080:80 you2me If you want to change the port that it runs on, change the first 8080 so for example 80:80 to access You2Me on port 80 (The second 80 after the colon is the internal port used and should ALWAYS be 80).
+   - Run the Docker image: sudo docker run -dit -p 8080:80 you2me If you want to change the port that it runs on, change the first number to 8080 so for example 80:80 to access You2Me on port 80 (The second 80 after the colon is the internal port used and should ALWAYS be 80).
    - Visit dockeripaddress:port in your browser. You can run docker-machine ip to find the IP address of your docker instance on Windows or docker inspect $(sudo docker ps -q) | grep \"IPAddress.
 1. Run You2Me on your own web server (Tested with Apache and Nginx on Linux and Apache on Windows. [WampServer](http://www.wampserver.com) would be easiest to set up on Windows.)
    - Install  PHP 7 (Not tested with PHP 5) 
