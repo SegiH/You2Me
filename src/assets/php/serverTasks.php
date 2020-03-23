@@ -22,10 +22,6 @@
      $rowsLeft=false;
      $db_name="downloadProgress.sqlite3";
 
-     function deleteDownloadFile() {
-     
-     }
-
      function deleteDownloadProgress() {
 	  global $db_name;
 	  
