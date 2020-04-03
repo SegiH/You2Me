@@ -23,7 +23,7 @@ import { DOCUMENT } from '@angular/common';
 })
 
 export class Y2mComponent implements OnInit {
-     allowMoveToServer = false;
+     allowMoveToServer = true;
      readonly audioFormats: any = {
           '' : null, // Needed to the user can unselect audio options
           'aac' : 'aac',
@@ -152,6 +152,9 @@ export class Y2mComponent implements OnInit {
                this.saveValues=true;
           }
 
+          // Enable debugging if enabled at command line
+          this.debugging = this.getURLParam("Debugging");
+
           //this.downloadLinkClicked();
      }
 
@@ -253,6 +256,9 @@ export class Y2mComponent implements OnInit {
 
      // Get progress of youtube-dl
      getDownloadProgress() {
+          if (this.debugging)
+               return;
+
           this.downloadProgressSubscription = interval(50)
                .subscribe(()=>{
                     //Get progress status from the service every 100ms
@@ -278,14 +284,15 @@ export class Y2mComponent implements OnInit {
      }
 
      // Get URL parameter
-     getURLParam(name: string): string {
+     getURLParam(name: string) {
+
           // The first time this method gets called, this.urlParams will be undefined
           if (typeof this.urlParams === 'undefined')
                this.parseURLParameters();
 
           // If urlParams is still undefined, there are no url params
           if (typeof this.urlParams === 'undefined')
-               return null;
+               return (name === "Debugging" ? false : null);
           
           // Make URL params upper case when checking so they aren't case sensitive
           name=name.toUpperCase();
@@ -319,6 +326,8 @@ export class Y2mComponent implements OnInit {
                     return (typeof this.urlParams[name] !== 'undefined' ? this.urlParams[name] : null);
                case 'YEAR':
                     return (typeof this.urlParams[name] !== 'undefined' ? decodeURI(this.urlParams[name]) : null);
+               case 'DEBUGGING':
+                    return (typeof this.urlParams[name] !== 'undefined' ? false : false);
                default:
                     return null;
           }
