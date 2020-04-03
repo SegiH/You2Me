@@ -155,6 +155,8 @@ export class Y2mComponent implements OnInit {
           // Enable debugging if enabled at command line
           this.debugging = this.getURLParam("Debugging");
 
+         // alert(this.debugging)
+
           //this.downloadLinkClicked();
      }
 
@@ -327,7 +329,8 @@ export class Y2mComponent implements OnInit {
                case 'YEAR':
                     return (typeof this.urlParams[name] !== 'undefined' ? decodeURI(this.urlParams[name]) : null);
                case 'DEBUGGING':
-                    return (typeof this.urlParams[name] !== 'undefined' ? false : false);
+                    alert("ret val="+ (typeof this.urlParams[name] !== 'undefined' ? true : false));
+                    return (typeof this.urlParams[name] !== 'undefined' ? true : false);
                default:
                     return null;
           }
