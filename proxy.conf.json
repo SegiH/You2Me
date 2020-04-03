@@ -1,12 +1,12 @@
 {
     "/php/" : {
-      "target": "http://192.168.1.10/php/",
+      "target": "http://192.168.1.X/php/",
       "secure": false,
       "pathRewrite": {"^/php" : ""},
       "logLevel": "debug"
     },
     "/media/" : {
-      "target": "http://192.168.1.10/media/",
+      "target": "http://192.168.1.X/media/",
       "secure": false,
       "pathRewrite": {"^/media" : ""},
       "logLevel": "debug"
