@@ -329,7 +329,6 @@ export class Y2mComponent implements OnInit {
                case 'YEAR':
                     return (typeof this.urlParams[name] !== 'undefined' ? decodeURI(this.urlParams[name]) : null);
                case 'DEBUGGING':
-                    alert("ret val="+ (typeof this.urlParams[name] !== 'undefined' ? true : false));
                     return (typeof this.urlParams[name] !== 'undefined' ? true : false);
                default:
                     return null;
