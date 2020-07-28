@@ -20,9 +20,9 @@ export class DataService {
         return this.processStep(params);
     }
 
-    deleteDownloadProgress() {
+    /*deleteDownloadProgress() {
         return this.processStep(`?DeleteDownloadProgress=true`);
-    }
+    }*/
 
     downloadFile(url: string): Observable<Blob> {
         return this.http.get(url, {
@@ -42,9 +42,9 @@ export class DataService {
         return this.processStep(params);
     }
 
-    getDownloadProgress() {
+    /*getDownloadProgress() {
         return this.processStep(`?GetDownloadProgress=true`);
-    }
+    }*/
 
     getSupportedURLs() {
         return this.processStep(`?GetSupportedURLs`);
