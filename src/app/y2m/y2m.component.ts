@@ -253,7 +253,7 @@ export class Y2mComponent implements OnInit {
      }
 
      // Get progress of youtube-dl
-     getDownloadProgress() {
+     /*getDownloadProgress() {
           if (this.debugging)
                return;
 
@@ -271,8 +271,8 @@ export class Y2mComponent implements OnInit {
                          //show errors
                     }
                );
-          });*/
-     }
+          });
+     }*/
 
      // Return the key based on the value
      getFormatKeyByValue() {
@@ -440,8 +440,8 @@ export class Y2mComponent implements OnInit {
                     const fileName = (this.isAudioFormat() === true && !isNaN(parseInt(trackNum)) ? (parseInt(trackNum) < 10 ? "0" : "") + trackNum + ' ' : '') + name;
 
                     // Start timer that gets download progress
-                    if (this.debugging === false)
-                         this.getDownloadProgress();
+                    //if (this.debugging === false)
+                    //     this.getDownloadProgress();
 
                     // Call data service to download the file
                     this.dataService.fetchFile(URL, fileName,this.moveToServer, this.isAudioFormat(), this.isMP3Format(),(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
