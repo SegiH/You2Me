@@ -1,0 +1,18 @@
+version: '2.4'
+
+networks:
+    default:
+         name: ${DEFAULT_NETWORK}
+         external: true
+
+services:
+    you2me:
+        container_name: You2Me
+        stdin_open: true
+        tty: true
+        image: you2me:latest
+        command: bash -c "docker-php-ext-install mysqli pdo_mysql pdo_sqlite && apache2-foreground"
+        hostname: You2Me
+        networks: 
+            - default
+        restart: always

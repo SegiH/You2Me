@@ -15,19 +15,20 @@ This application can be set up to run in one of 2 different modes.
  - Client - A standalone version of this application which will display a download button for you to download the file to your computer or phone. (Default)
  - Server - A server version of this application which will automatically move the audio file to a specified location on your media server instead of showing a download button. Add ?MoveToServer=true at the end of the URL to enable this option.
 
-There are 2 ways to build this application
+There are 2 ways to run this application
 
-1. Docker - This is the easiest way to run You2Me as a standalone application. This will set up everything for you and let you run You2Me in your browser   
-   - Install Docker if it isn't installed already. If you have issues with regular Docker on Windows, try Docker Toolbox instead.
-   - Install npm 6+ which includes Node.js and npm.
-   - Go to the main You2Me folder in terminal or command prompt
-   - Edit package.json and find the line that begins with "build". Edit --base-href to match the relative path that the application will be hosted at. If your site is hosted at http://www.mysite.com/You2Me, your build line should look like this: "build": "ng build --base-href /You2Me/ --prod", Don't forget to add / at the beginning and end of the path.
-   - Run npm install - This will install all of the missing dependencies.
-   - Run npm run build - This will build You2Me.
-   - Move the entire dist folder into the docker folder
-   - Build a Docker image based on my script: sudo docker build docker/ -t you2me
-   - Run the Docker image: sudo docker run -dit -p 8080:80 you2me If you want to change the port that it runs on, change the first number to 8080 so for example 80:80 to access You2Me on port 80 (The second 80 after the colon is the internal port used and should ALWAYS be 80).
-   - Visit dockeripaddress:port/You2Me/ in your browser. You can run docker-machine ip to find the IP address of your docker instance on Windows or docker inspect $(sudo docker ps -q) | grep \"IPAddress\".
+1. Docker - This is the easiest way to run You2Me as a standalone application. The folder called docker contains a file called Dockerfile and a compiled version of this application in the dist folder. Copy this entire docker folder to your Docker host and start at step viii below. 
+   #### Build a you2me Docker image (optional)
+   1. Install Docker if it isn't installed already. If you have issues with regular Docker on Windows, try Docker Toolbox instead.
+   2. Install npm 6+ which includes Node.js and npm.
+   3. Go to the main You2Me folder in terminal or command prompt
+   4. Edit package.json and find the line that begins with "build". Edit --base-href to match the relative path that the application will be hosted at. If your site is hosted at http://www.mysite.com/You2Me, your build line should look like this: "build": "ng build --base-href /You2Me/ --prod", Don't forget to add / at the beginning and end of the path.
+   5. Run `npm install` - This will install all of the missing dependencies.
+   6. Run `npm run build` - This will build You2Me.
+   7. Move the entire dist folder into the docker folder
+   8. Build a Docker image based on my you2me: `sudo docker build docker/ -t you2me`
+   9. Run `sudo docker run -dit -p 8080:80 you2me` to create a new container based on the you2me image that you create above. If you want to change the port that it runs on, change the first number before the colon. So for example, it would be 80:80 to access You2Me on port 80 (The second 80 after the colon is the internal port used and should ALWAYS be 80).
+   10. Visit dockeripaddress:port/You2Me/ in your browser. You can run docker-machine ip to find the IP address of your docker instance on Windows or docker inspect $(sudo docker ps -q) | grep \"IPAddress\".
 1. Run You2Me on your own web server (Tested with Apache and Nginx on Linux and Apache on Windows. [WampServer](http://www.wampserver.com) would be easiest to set up on Windows.)
    - Install  PHP 7 (Not tested with PHP 5) 
    - Open source utility [youtube-dl](https://rg3.github.io/youtube-dl/) which does NOT need root permissions. If you are using Linux, it should be available in your repo so you can install it by running apt-get install youtube-dl. A Windows binary is also available on the official site.

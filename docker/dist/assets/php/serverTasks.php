@@ -2,13 +2,17 @@
      // Required binaries: youtube-dl, id3v2 
      require_once('getid3/getid3.php');
      require_once('getid3/write.php');
-  
+     
+     /*ini_set('display_errors',1);
+     ini_set('display_startup_errors',1);
+     error_reporting(E_ALL);*/
+
      // The path where the file will be moved to. Make sure the path has a slash at the end
      $audioDestinationPath="/mnt/usb/";
      $videoDestinationPath="/mnt/usb/";
      
      $sourcePath="/var/www/html/media/";
-     $domain=(isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"]=="on" ? "https" : "http") . "://" . $_SERVER["HTTP_HOST"] . "/media/";
+     $domain="https://" . $_SERVER["HTTP_HOST"] . "/media/";
 
      //$os=php_uname("s");
      $os=(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? "Windows" : "Unix");
@@ -16,19 +20,19 @@
      $db_name="downloadProgress.sqlite3";
 
      function deleteDownloadProgress() {
-	  global $db_name;
+	     global $db_name;
 	  
           try {
-	       if (file_exists($db_name))
+	          if (file_exists($db_name))
                     $result=unlink($db_name);
 	           
-                    die(json_encode(array($result)));
-	  } catch(Exception $e) {
-	  }
+               die(json_encode(array($result)));
+	     } catch(Exception $e) {
+	     }
      }
 
      function downloadFile() {
-	  global $db_name;
+	     global $db_name;
           global $domain;
           global $sourcePath;
 
@@ -37,7 +41,7 @@
           $moveToServer=(isset($_GET["MoveToServer"]) && $_GET["MoveToServer"] == "true" ? true : false);
           $isAudioFormat=(isset($_GET["IsAudioFormat"]) && $_GET["IsAudioFormat"] == "true" ? true : false);
           $isMP3Format=(isset($_GET["Bitrate"]) ? true : false);
-          $bitrate=($isAudio == true && isset($_GET["Bitrate"]) ? htmlspecialchars($_GET["Bitrate"]) : "320k");
+          $bitrate=($isAudioFormat == true && isset($_GET["Bitrate"]) ? htmlspecialchars($_GET["Bitrate"]) : "320k");
           $audioFormat=(isset($_GET["AudioFormat"]) ?  htmlspecialchars($_GET["AudioFormat"]) : null);
  
           // Default to MP3 format if $audioformat isn't specified
@@ -47,7 +51,7 @@
           $isVideoFormat=(isset($_GET["IsVideoFormat"]) && $_GET["IsVideoFormat"] == true ? true : false);
           $videoFormat=(isset($_GET["VideoFormat"]) && $_GET["VideoFormat"] != "Original" ?  htmlspecialchars($_GET["VideoFormat"]) : null);
           
-          if ($isiVideoFormat == true && !isset($videoFormat))
+          if ($isVideoFormat == true && !isset($videoFormat))
                $videoFormat="mp4";
 
           $valid_audio_formats=array('0','5','9','128k','192k','256k','320k','aac','flac','m4a','opus','vorbis','wav');
@@ -80,33 +84,30 @@
                    $cmd=$cmd . " --audio-format " . $audioFormat;
                }
           } else if ($isVideoFormat && $videoFormat != "original") {
-              $cmd=$cmd . " --recode-video " . $videoFormat;
+               $cmd=$cmd . " --recode-video " . $videoFormat;
           } else if ($isVideoFormat && $videoFormat == "original") {
-              $cmd=$cmd . " -f best";
+               $cmd=$cmd . " -f best";
           }
-	  ini_set('display_errors',1);
-	  ini_set('display_startup_errors',1);
-	  error_reporting(E_ALL);
-
-	  // Delete DB if it exists already 
-	  try {
-	       if (file_exists($db_name))
-                    unlink($db_name);
-	  } catch(Exception $e) {
-	  }
-
-	  // Create database 
-	  $file_db = new PDO('sqlite:' . $db_name);
-
-	  // Create the table
-	  try {
-              $file_db->exec("CREATE TABLE IF NOT EXISTS downloadProgress (id INTEGER PRIMARY KEY, message TEXT, shown BIT);"); 	       
-	  } catch(PDOException $e) {
-	       die("Unable to create the database");
-	  } 
           
-          //header('Content-Encoding: none;');
+          /*
+          Download progress
+	     // Delete DB if it exists already 
+	     try {
+	          if (file_exists($db_name))
+                    unlink($db_name);
+	     } catch(Exception $e) {
+	     }
 
+	     // Create database 
+	     $file_db = new PDO('sqlite:' . $db_name);
+
+	     // Create the table
+	     try {
+               $file_db->exec("CREATE TABLE IF NOT EXISTS downloadProgress (id INTEGER PRIMARY KEY, message TEXT, shown BIT);"); 	       
+	     } catch(PDOException $e) {
+	          die("Unable to create the database");
+	     } 
+          
           set_time_limit(0);
 
           $handle = popen($cmd,"r");
@@ -115,29 +116,25 @@
                ob_start();
 
           while (!feof($handle)) {
-              $buffer= fgets($handle);
-              $buffer = trim(htmlspecialchars($buffer));
-             
-	      // echo $buffer . "<br />";
-	      if ($buffer != '') {
-	           $insert="INSERT INTO downloadProgress(message,shown) VALUES('" . $buffer . "',0)";
-	           $stmt=$file_db->prepare($insert);
-	           $stmt->execute();
-	      }
+               $buffer= fgets($handle);
+               $buffer = trim(htmlspecialchars($buffer));
 
-              ob_flush();
+	          if ($buffer != '') {
+	               $insert="INSERT INTO downloadProgress(message,shown) VALUES('" . $buffer . "',0)";
+	               $stmt=$file_db->prepare($insert);
+	               $stmt->execute();
+	          }
 
-              flush();
+               ob_flush();
 
-              sleep(1);  
+               flush();
+
+               sleep(1);  
           }
 
           pclose($handle);
 
-          ob_end_flush();
-
-	  // echo json_encode(array(urlencode($fileName)));
-          // exec($cmd,$retArr,$retVal);
+          ob_end_flush();*/
           
           if ($isAudioFormat) {
                if ($audioFormat != "vorbis") // Vorbis audio files have the extension ogg not vorbis
@@ -148,38 +145,39 @@
                     $fileName=$fileName . "." . $videoFormat;
           } else if ($isVideoFormat && $videoFormat == 'original') { // When the format is original, we don't know the format that video is encoded in so we don't know the file extension so use --get-filename parameter to get the output file name
                exec($cmd . " --get-filename",$videoFileName);
+
                $fileName=str_replace($sourcePath,"",$videoFileName[0]);
           }
            
           if (!file_exists($sourcePath . $fileName))  {
-                // die($cmd . " with the expected file " . $sourcePath . $fileName); // die(json_encode(array("Error: Unable to create the file")));
-                die(json_encode(array("Error: Unable to create the file")));
+               // die($cmd . " with the expected file " . $sourcePath . $fileName); // die(json_encode(array("Error: Unable to create the file")));
+               die(json_encode(array("Error: Unable to create the file")));
           }
 
           // If the format is audio and its mp3, try to tag it
           if (!chmod($sourcePath . $fileName,0777)) {
-	       die(json_encode(array("Error: Failed to set the file mode")));
+	          die(json_encode(array("Error: Failed to set the file mode")));
           }
  
           // If move To Server is true, we have more steps to process 
           if ($isMP3Format == true || $moveToServer == true) {
-	       die(json_encode(array($fileName)));
+	          die(json_encode(array($fileName)));
           } else if ($isMP3Format == false && $moveToServer == false) { // If the file is not MP3, we don't need to write ID3 tags. If MoveTo Server is false, we are done and there are no more steps to process to provide download link
                die(json_encode(array($domain . urlencode($fileName))));
-	  }
+	     }
 
           /*$cmd="python ../python/aidmatch.py \"" . $sourcePath . $fileName . "\" 2>&1";
 
-	  exec($cmd,$retArr2,$retVal2);
+	     exec($cmd,$retArr2,$retVal2);
 
           $tagged=false;
 
-	  /*$artist = "";
-	  $title = "";
+	     $artist = "";
+	     $title = "";
 
-	  // Since we only care about the first result, we only save the first key value pair
-	  foreach ($retArr2 as $key => $value) {
-	       // echo "Key: " . $key . " Value: " . $value;
+	     // Since we only care about the first result, we only save the first key value pair
+	     foreach ($retArr2 as $key => $value) {
+	          // echo "Key: " . $key . " Value: " . $value;
                if ($value=="fingerprint could not be calculated") {
                     break;
                }
@@ -188,45 +186,46 @@
  
                $tags=$value;
 
-	       $tags=explode(',',$tags);
-	       $artist=str_replace('"','',$tags[0]);
+	          $tags=explode(',',$tags);
+	          $artist=str_replace('"','',$tags[0]);
 
-	       $title=str_replace('"','',$tags[1]);
+	          $title=str_replace('"','',$tags[1]);
 
-	       break;   
-	  }
+	          break;   
+	     }
 
-	  // if tagged is false, nothing was written above
-	  if ($tagged == false)
-	       echo json_encode(array(urlencode($fileName),"",""));
+	     // if tagged is false, nothing was written above
+	     if ($tagged == false)
+	          echo json_encode(array(urlencode($fileName),"",""));
           else 
-	       echo json_encode(array(urlencode($fileName),$artist,$title));
+	          echo json_encode(array(urlencode($fileName),$artist,$title));
           */
 
           return;
      } 
     
      function getDownloadProgress() {
-	  global $db_name;
+	     global $db_name;
 
           $file_db = new PDO('sqlite:' . $db_name);
-	  $result=$file_db->query('SELECT id,message FROM downloadProgress WHERE shown=0 LIMIT 1');
-
-	  foreach($result as $result) {
-		  $file_db->exec("UPDATE downloadProgress SET shown=1 WHERE id=" . $result['id']);
+          
+          $result=$file_db->query('SELECT id,message FROM downloadProgress WHERE shown=0 LIMIT 1');
+          
+          foreach($result as $result) {
+		     $file_db->exec("UPDATE downloadProgress SET shown=1 WHERE id=" . $result['id']);
                   
-                  // Store message so we can close DB
-                  $message = $result['message'];
+               // Store message so we can close DB
+               $message = $result['message'];
                   
-                  // CLose DB
-                  $file_db = null;
+               // CLose DB
+               $file_db = null;
 
-		  die(json_encode(array($message,false))); 
-	  }
+		     die(json_encode(array($message,false))); 
+	     }
            
           $file_db = null;
 
-	  die(json_encode(array(null,true))); 
+	     die(json_encode(array(null,true))); 
      }
 
      function getSupportedURLs() {
@@ -240,11 +239,11 @@
 
           $htmlContent = curl_exec($curl);
  
-	  curl_close($curl);
+	     curl_close($curl);
          
-	  $dom = new DOMDocument();
+	     $dom = new DOMDocument();
          
-	  $dom->loadHTML($htmlContent);
+	     $dom->loadHTML($htmlContent);
          
           $nodes=$dom->getElementsByTagName('li');
           
@@ -264,6 +263,7 @@
           global $videoDestinationPath;
 
           $fileName=htmlspecialchars($_GET["Filename"]);
+
           $moveToServer=(isset($_GET["MoveToServer"]) && $_GET["MoveToServer"] == "true" ? true : false);
  
           if (isset($_GET["IsVideoFormat"]) && $_GET["IsVideoFormat"] == true) {
@@ -284,6 +284,7 @@
           }
 	
           $artist=htmlspecialchars($_GET["Artist"]);
+
           $artist=str_replace("'","",$artist);
 
           $album=htmlspecialchars($_GET["Album"]);
@@ -390,11 +391,11 @@
      function lastIndexOf($str,$x) {
           $index = -1;
 
-	  for ($i=0; $i < strlen($str); $i++) 
+	     for ($i=0; $i < strlen($str); $i++) 
                if ($str[$i] == $x)
-		       $index=$i;
+		          $index=$i;
 
-	  return $index;
+	     return $index;
      }
 
      if (isset($_GET["DeleteDownloadFile"])) {

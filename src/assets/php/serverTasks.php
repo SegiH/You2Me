@@ -106,7 +106,7 @@
                $file_db->exec("CREATE TABLE IF NOT EXISTS downloadProgress (id INTEGER PRIMARY KEY, message TEXT, shown BIT);"); 	       
 	     } catch(PDOException $e) {
 	          die("Unable to create the database");
-	     } 
+	     }*/ 
           
           set_time_limit(0);
 
@@ -119,11 +119,11 @@
                $buffer= fgets($handle);
                $buffer = trim(htmlspecialchars($buffer));
 
-	          if ($buffer != '') {
+	          /*if ($buffer != '') {
 	               $insert="INSERT INTO downloadProgress(message,shown) VALUES('" . $buffer . "',0)";
 	               $stmt=$file_db->prepare($insert);
 	               $stmt->execute();
-	          }
+	       }*/
 
                ob_flush();
 
@@ -134,7 +134,7 @@
 
           pclose($handle);
 
-          ob_end_flush();*/
+          ob_end_flush();
           
           if ($isAudioFormat) {
                if ($audioFormat != "vorbis") // Vorbis audio files have the extension ogg not vorbis
@@ -453,6 +453,9 @@
      }
 
      if (isset($_GET["WriteID3Tags"])) {
+          // Validate that the required arguments were provided
+	  $missingParams=false;
+
           if (!isset($_GET["Artist"]) || !isset($_GET["TrackName"])) 
                $missingParams=true;
           
