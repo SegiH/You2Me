@@ -84,7 +84,7 @@ export class DataService {
     }
 
     processStep(params: String) {
-        return this.http.get<any>('./php/serverTasks.php' + params)
+        return this.http.get<any>('/php/serverTasks.php' + params)
             .pipe(
                 catchError(this.handleError)
             );
