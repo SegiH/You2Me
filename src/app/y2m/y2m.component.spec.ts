@@ -1,7 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
-import { Y2mComponent } from './y2m.component';
+import { Y2MComponent } from './y2m.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -15,13 +15,13 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { DataService } from '../core/data.service';
 import { HttpClientModule } from '@angular/common/http';
 
-describe('Y2mComponent', () => {
-    let component: Y2mComponent;
-    let fixture: ComponentFixture<Y2mComponent>;
+describe('Y2MComponent', () => {
+    let component: Y2MComponent;
+    let fixture: ComponentFixture<Y2MComponent>;
 
     beforeEach(async(() => {
         TestBed.configureTestingModule({
-            declarations: [Y2mComponent],
+            declarations: [Y2MComponent],
             imports: [ 
                 BrowserAnimationsModule,
                 FormsModule,
@@ -43,7 +43,7 @@ describe('Y2mComponent', () => {
     }));
 
     beforeEach(() => {
-        fixture = TestBed.createComponent(Y2mComponent);
+        fixture = TestBed.createComponent(Y2MComponent);
         component = fixture.componentInstance;
         fixture.detectChanges();
     });
