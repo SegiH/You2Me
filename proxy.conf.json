@@ -1,7 +1,14 @@
 {
     "/php" : {
-      "target": "https://you2me.hovav.org/php",
+      "target": "http://localhost/php",
       "secure": false,
-      "logLevel": "debug"
+      "logLevel": "debug",
+      "pathRewrite": {"^/php" : ""}
+    },
+    "/media" : {
+      "target": "http://localhost/media",
+      "secure": false,
+      "logLevel": "debug",
+      "pathRewrite": {"^/media" : ""}
     }
   }

@@ -129,17 +129,17 @@ export class Y2mComponent implements OnInit {
           }
 
           // If URL parameter MoveToServer was provided and is allowed, add Moving the file to new location
-          if (this.getURLParam('MoveToServer') === 'true' && this.allowMoveToServer === true) {
+          if (this.getURLParam('MoveToServer') === 'true' && this.allowMoveToServer) {
                this.moveToServer = true;
                document.title = 'You2Me (Server)';
           }    
 
-          if (this.moveToServer === true) {
+          if (this.moveToServer) {
                this.stepperStepNames.push('Moving the file to new location');
           }
 
           // Default field values
-          if (this.debugging === true) {
+          if (this.debugging) {
                this.fields.URL.Value="https://www.youtube.com/watch?v=Wch3gJG2GJ4";
                this.fields.Artist.Value="Monkeeys";
                //this.fields.Album.Value="Greatest Hits";
@@ -164,7 +164,7 @@ export class Y2mComponent implements OnInit {
      createSupportedURLsFilter() {
           let filterFunction = function (data: any, filter: string): boolean {
                let customSearch = () => {
-                    if (data.toLowerCase().includes(filter.toLowerCase()) === true)
+                    if (data.toLowerCase().includes(filter.toLowerCase()))
                          return true;
                }
 
@@ -226,22 +226,22 @@ export class Y2mComponent implements OnInit {
           this.isSubmitted = true;
 
           // If MoveToServer is NOT enabled, show the download link
-          if (!this.moveToServer && !isError) {
+          if (!this.moveToServer && !isError && this.currentStep <=2)
                this.downloadButtonVisible = true;
-          }
+          else
+               this.downloadButtonVisible = false;
 
           // If the user is allowed to move the file to the server but didn't provide MoveToServer parameter, show the MoveToServer button
           // so the user has the option of moving the file to the server. This is here in case you forgot to pass MoveToServe=true URL parameter but meant to
-          if (!isError && this.allowMoveToServer === true && this.moveToServerButtonVisible === false) {
+          if (!isError && this.allowMoveToServer && !this.moveToServerButtonVisible && this.currentStep <=2)
                this.moveToServerButtonVisible = true;
-          } else {
+          else
                this.moveToServerButtonVisible = false;
-          }
-
+          
           this.isFinished =  true;
 
           // Stop the REST service that gets the download status
-          //if (this.debugging === false)
+          //if (!this.debugging)
           //     this.downloadProgressSubscription.unsubscribe();
 
           // Delete download progress temp db
@@ -262,7 +262,7 @@ export class Y2mComponent implements OnInit {
                     //Get progress status from the service every 100ms
                     this.dataService.getDownloadProgress()
                     .subscribe((jsonResult:any)=>{
-                         if(jsonResult[1] === false) {
+                         if(!jsonResult[1]) {
                               //console.log(jsonResult[0]);
                               this.downloadStatus=jsonResult[0];
                          }
@@ -338,7 +338,7 @@ export class Y2mComponent implements OnInit {
 
           console.log(`An error occurred at step ${this.currentStep} with the error ${error}`);
 
-          //if (this.debugging === true)
+          //if (this.debugging)
           //     this.downloadProgressSubscription.unsubscribe();
 
           this.finished(true);
@@ -362,8 +362,10 @@ export class Y2mComponent implements OnInit {
 
      // Event if the user clicks on the Move To Server button
      moveToServerClick() {
+          //this.moveToServer=true; // Set this here because even though the URL param for MovetoServer wasn't set, user clicked on movetoserver
+
           // If we are able to move to server 
-          if (this.allowMoveToServer === true) {
+          if (this.allowMoveToServer) {
                this.processSteps();
           }
      }
@@ -437,17 +439,17 @@ export class Y2mComponent implements OnInit {
 
                     // Build file name without the extension (The php script adds the extension based on the format). 
                     // If the format selected is an audio format and there's a track number, use it. Otherwise only use the Name field
-                    const fileName = (this.isAudioFormat() === true && !isNaN(parseInt(trackNum)) ? (parseInt(trackNum) < 10 ? "0" : "") + trackNum + ' ' : '') + name;
+                    const fileName = (this.isAudioFormat() && !isNaN(parseInt(trackNum)) ? (parseInt(trackNum) < 10 ? "0" : "") + trackNum + ' ' : '') + name;
 
                     // Start timer that gets download progress
-                    //if (this.debugging === false)
+                    //if (!this.debugging)
                     //     this.getDownloadProgress();
 
                     // Call data service to download the file
                     this.dataService.fetchFile(URL, fileName,this.moveToServer, this.isAudioFormat(), this.isMP3Format(),(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
                     .subscribe((response) => {
                          // Stop the REST service that gets the download status
-                         //if (this.debugging === false)
+                         //if (!this.debugging)
                          //     this.downloadProgressSubscription.unsubscribe();
 
                          // Call REST service to delete download progress temp db
@@ -555,7 +557,7 @@ export class Y2mComponent implements OnInit {
 
                     break;
                case 2: // Call the data service to move the file to the media server
-                    if (this.moveToServer) {
+                    if (this.moveToServer || this.allowMoveToServer) {
                          this.dataService.moveFile(this.fileName, this.isAudioFormat(), this.moveToServer, artist, album,(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
                          .subscribe((response) => {
                               // Trap server side errors
@@ -565,6 +567,8 @@ export class Y2mComponent implements OnInit {
                               }
 
                               this.updateStatus('The file has been moved to the server');
+
+                              this.currentStep++;
 
                               this.finished();
                          },
@@ -583,7 +587,7 @@ export class Y2mComponent implements OnInit {
      }
 
      showSupportedSitesToggle() {
-          if (this.supportedURLsVisible == true && typeof this.supportedURLsDataSource === 'undefined') {
+          if (this.supportedURLsVisible && typeof this.supportedURLsDataSource === 'undefined') {
 
                this.dataService.getSupportedURLs().subscribe((response) => {
                     const supportedURLs=response.reduce(function(result, item, index, array) {
@@ -618,9 +622,9 @@ export class Y2mComponent implements OnInit {
      submitClick() {
           // After the last step has completed, the submit button text changes to restart. When this button is clicked, 
           // the form will reset itself and only save the values if the save values checkbox is checked
-          if (this.isFinished === true) {
+          if (this.isFinished) {
                // If the Save Values checkbox is not checked
-               if (this.saveValues === false) {
+               if (!this.saveValues) {
                     // Clear all of the field values
                     for (const key in this.fields) {
                          if (key !== null) {

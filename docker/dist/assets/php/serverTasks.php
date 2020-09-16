@@ -8,10 +8,10 @@
      error_reporting(E_ALL);*/
 
      // The path where the file will be moved to. Make sure the path has a slash at the end
-     $audioDestinationPath="/mnt/usb/";
-     $videoDestinationPath="/mnt/usb/";
+     $audioDestinationPath="..\\newlocation\\";
+     $videoDestinationPath="..\\newlocation\\";
      
-     $sourcePath="/var/www/html/media/";
+     $sourcePath="../media/";
      $domain="https://" . $_SERVER["HTTP_HOST"] . "/media/";
 
      //$os=php_uname("s");
@@ -32,8 +32,9 @@
      }
 
      function downloadFile() {
-	     global $db_name;
+	      global $db_name;
           global $domain;
+		  global $os;
           global $sourcePath;
 
           $url=htmlspecialchars($_GET["URL"]);
@@ -73,8 +74,8 @@
           }
           
           // Build command that will download the audio/video
-          $cmd="youtube-dl " . $url . " -o '" . $sourcePath . $fileName . ".%(ext)s'";
-         
+          $cmd="youtube-dl " . $url . " -o " . ($os != "Windows" ? "'" : "") . $sourcePath . $fileName . ".%(ext)s" . ($os != "Windows" ? "'" : "");
+        
           if ($isAudioFormat == true) {
                $cmd=$cmd . " -x";
  
@@ -88,7 +89,9 @@
           } else if ($isVideoFormat && $videoFormat == "original") {
                $cmd=$cmd . " -f best";
           }
-          
+            
+		  //die($cmd);
+			
           /*
           Download progress
 	     // Delete DB if it exists already 
@@ -106,7 +109,7 @@
                $file_db->exec("CREATE TABLE IF NOT EXISTS downloadProgress (id INTEGER PRIMARY KEY, message TEXT, shown BIT);"); 	       
 	     } catch(PDOException $e) {
 	          die("Unable to create the database");
-	     } 
+	     }*/ 
           
           set_time_limit(0);
 
@@ -119,11 +122,11 @@
                $buffer= fgets($handle);
                $buffer = trim(htmlspecialchars($buffer));
 
-	          if ($buffer != '') {
+	          /*if ($buffer != '') {
 	               $insert="INSERT INTO downloadProgress(message,shown) VALUES('" . $buffer . "',0)";
 	               $stmt=$file_db->prepare($insert);
 	               $stmt->execute();
-	          }
+	          }*/
 
                ob_flush();
 
@@ -134,7 +137,7 @@
 
           pclose($handle);
 
-          ob_end_flush();*/
+          ob_end_flush();
           
           if ($isAudioFormat) {
                if ($audioFormat != "vorbis") // Vorbis audio files have the extension ogg not vorbis
@@ -150,7 +153,7 @@
           }
            
           if (!file_exists($sourcePath . $fileName))  {
-               // die($cmd . " with the expected file " . $sourcePath . $fileName); // die(json_encode(array("Error: Unable to create the file")));
+               // die($cmd . " with the expected file " . $sourcePath . $fileName);
                die(json_encode(array("Error: Unable to create the file")));
           }
 
@@ -259,6 +262,7 @@
      function moveFile() {
           global $audioDestinationPath;
           global $domain;
+		  global $os;
           global $sourcePath;
           global $videoDestinationPath;
 
@@ -287,11 +291,12 @@
 
           $artist=str_replace("'","",$artist);
 
-          $album=htmlspecialchars($_GET["Album"]);
+          $album=(isset($_GET["Album"]) && $_GET["Album"] != "null" ? htmlspecialchars($_GET["Album"]) : "Unknown");
+		  
           $pathBuildSucceeded=false;
 
           // Try to build path if it exists 
-	     if ($moveToServer == true && $artist != null && $artist != "" && $album != null && $album != "") {
+	      if ($moveToServer == true && $artist != null && $artist != "" && $album != null && $album != "") {
                if (file_exists($audioDestinationPath . $artist)==false) {
                     if (mkdir($audioDestinationPath . $artist)) {
                          if (!file_exists($audioDestinationPath . $artist . ($os=="Windows" ? "\\" : "/") . $album)) {
@@ -325,13 +330,13 @@
           // Rename the audio file     
           $res=rename($sourcePath . $fileName,$audioDestinationPath . $fileName);
        
-          if ($res==true) {
+	      if ($res==true) {
                // Pass the download link and the local file link
                // echo json_encode(array($domain . urlencode($fileName), $sourcePath . urlencode($fileName)));
                echo json_encode(array($domain . urlencode($fileName)));
           } else {
                echo json_encode(array("Error: An error occurred while copying the audio file to the new location"));
-	     }
+	      }
 
           return;
      }
@@ -346,11 +351,11 @@
           $tagData = array(
                'artist'   => array(htmlspecialchars($_GET["Artist"])),
                'band'     => array(htmlspecialchars($_GET["Artist"])), // album artist
-               'album'    => array(($_GET["Album"] != null ? htmlspecialchars($_GET["Album"]) : "")),
+               'album'    => array((isset($_GET["Album"]) ? htmlspecialchars($_GET["Album"]) : "")),
                'title'    => array(($_GET["TrackName"] != null ? htmlspecialchars($_GET["TrackName"]) : "")),
-               'track'    => array(($_GET["TrackNum"] != null ? htmlspecialchars($_GET["TrackNum"]) : 0)),
-               'genre'    => array(($_GET["Genre"] != null ? htmlspecialchars($_GET["Genre"]) : "")),
-               'year'     => array(($_GET["Year"] != null ? htmlspecialchars($_GET["Year"]) : 0))
+               'track'    => array((isset($_GET["TrackNum"]) ? htmlspecialchars($_GET["TrackNum"]) : 0)),
+               'genre'    => array((isset($_GET["Genre"]) ? htmlspecialchars($_GET["Genre"]) : "")),
+               'year'     => array((isset($_GET["Year"]) ? htmlspecialchars($_GET["Year"]) : 0))
           );
    
           // id3 object 
@@ -441,7 +446,9 @@
      if (isset($_GET["MoveFile"])) {
           if (!isset($_GET["Artist"]) || !isset($_GET["Filename"]) || !isset($_GET["MoveToServer"])) 
                $missingParams=true;
-         
+          else
+			  $missingParams=false;
+			  
           if ($missingParams==true)
                die("Error: MoveFile was called but not all arguments were provided");
           else
@@ -453,6 +460,9 @@
      }
 
      if (isset($_GET["WriteID3Tags"])) {
+          // Validate that the required arguments were provided
+	  $missingParams=false;
+
           if (!isset($_GET["Artist"]) || !isset($_GET["TrackName"])) 
                $missingParams=true;
           

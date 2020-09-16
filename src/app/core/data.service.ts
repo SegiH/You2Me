@@ -73,7 +73,7 @@ export class DataService {
 
     moveFile(localFile: string, isAudio: boolean, moveToServer: boolean, artist: string, album: string, currentFormat: string) {
         const params = `?MoveFile` +
-                       `&MoveToServer=${moveToServer}`  +
+                       `&MoveToServer=true`  +
                        `&Filename=${localFile}` +
                        `&Artist=${artist}` +
                        (isAudio === true
