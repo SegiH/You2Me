@@ -17,13 +17,13 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { Y2mComponent } from './y2m/y2m.component';
+import { Y2MComponent } from './y2m/y2m.component';
 import { CoreModule } from './core/core.module';
 import { SAVER, getSaver } from './core/saver.provider'
 
 @NgModule({
      declarations: [
-          Y2mComponent
+          Y2MComponent
      ],
      imports: [
           BrowserModule,
@@ -47,7 +47,7 @@ import { SAVER, getSaver } from './core/saver.provider'
           MatToolbarModule,
      ],
      providers: [{provide: SAVER, useFactory: getSaver}],
-     bootstrap: [Y2mComponent]
+     bootstrap: [Y2MComponent]
 })
 
 export class AppModule { }

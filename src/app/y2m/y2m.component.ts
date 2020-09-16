@@ -22,7 +22,7 @@ import { DOCUMENT } from '@angular/common';
      styleUrls: ['./y2m.component.css']
 })
 
-export class Y2mComponent implements OnInit {
+export class Y2MComponent implements OnInit {
      allowMoveToServer = true;
      readonly audioFormats: any = {
           '' : null, // Needed to the user can unselect audio options
