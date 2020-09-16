@@ -20,6 +20,7 @@ This is the easiest way to run You2Me. The docker folder contains 2 files named 
    1. Run `npm run build` - This will build You2Me and create the dist folder.
    1. Move the entire dist folder into the docker folder
    1. Build a Docker image based on my you2me: `docker build docker/ -t you2me`
+   1. Edit you2me.docker-compose.yml and change `YourNetworkName` to the name of the network that you want this container to be on.
    1. Run `docker-compose -f you2me.docker-compose.yml up --no-start && docker start You2Me` to create a new Docker container based on the you2me image that you create above.
    10. Visit https://dockeripaddress:port/You2Me/ in your browser. You can run `docker-machine ip` to find the IP address of your docker instance on Windows or `docker inspect $(sudo docker ps -q) | grep \"IPAddress\"` on Linux.
 

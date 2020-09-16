@@ -1,8 +1,8 @@
-version: '2.4'
+version: '3.7'
 
 networks:
     default:
-         name: ${DEFAULT_NETWORK}
+         name: YourNetworkName
          external: true
 
 services:
@@ -16,3 +16,4 @@ services:
         networks: 
             - default
         restart: always
+

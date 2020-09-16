@@ -1,6 +1,8 @@
 /*
      TODO:
-     Before publishing make sure proxy.conf doesn't have my server address and make sure php doesn't have it either
+     Before publishing:
+          1.  Make sure proxy.conf doesn't have my server address and make sure php doesn't have it either.
+          2. Build the application and move dist to the docker folder replacing the old copy of dist
 
      URL for testing: https://www.youtube.com/watch?v=Wch3gJG2GJ4
 */
