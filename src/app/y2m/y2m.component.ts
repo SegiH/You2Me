@@ -48,7 +48,7 @@ export class Y2mComponent implements OnInit {
      downloadLink = '';
      downloadButtonVisible = false; // default false
      downloadStatus = ''; // displays youtube-dl output messages
-     //downloadProgressSubscription;
+     downloadProgressSubscription;
      readonly fields: any = {
           URL: { // This field shouldn't ever be disabled
                Required: true,
@@ -116,19 +116,20 @@ export class Y2mComponent implements OnInit {
      ngOnInit() {
           // Get URL parameter Format if it was provided
           const format = this.getURLParam('Format');
-
-          if (format !== null && Object.values(this.audioFormats).includes(format)) {
-               this.currentAudioFormat = format;
-               this.currentVideoFormat = null;
-          } else if (format !== null && Object.values(this.videoFormats).includes(format)) {
-               this.currentVideoFormat = format;
-               this.currentAudioFormat = null
-          } else if (format !== null) {
-               // The filter removes the null value otherwise you will see a leading comma in front of each format
-               alert(`Valid formats are ${Object.values(this.audioFormats).filter(format => format !== null)} for audio or ${Object.values(this.videoFormats).filter(format => format !== null)} for video`);
+          
+          if (format !== null) {
+               if (Object.values(this.audioFormats).includes(format)) {
+                    this.currentAudioFormat = format;
+                    this.currentVideoFormat = null;
+               } else if (Object.values(this.videoFormats).includes(format)) {
+                    this.currentVideoFormat = format;
+                    this.currentAudioFormat = null
+               } else
+                    alert(`Valid formats are ${Object.values(this.audioFormats).filter(format => format !== null)} for audio or ${Object.values(this.videoFormats).filter(format => format !== null)} for video`);          
           }
+          
 
-          // If URL parameter MoveToServer was provided and is allowed, add Moving the file to new location
+          // If URL parameter MoveToServer was provided and is allowed, add Moving the file to new location as a step
           if (this.getURLParam('MoveToServer') === 'true' && this.allowMoveToServer) {
                this.moveToServer = true;
                document.title = 'You2Me (Server)';
@@ -138,7 +139,7 @@ export class Y2mComponent implements OnInit {
                this.stepperStepNames.push('Moving the file to new location');
           }
 
-          // Default field values
+          // Debugging default field values
           if (this.debugging) {
                this.fields.URL.Value="https://www.youtube.com/watch?v=Wch3gJG2GJ4";
                this.fields.Artist.Value="Monkeeys";
@@ -176,7 +177,6 @@ export class Y2mComponent implements OnInit {
 
      // Called by binding to Download button
      downloadLinkClicked() {
-          // File name without path
           const fileNameWithoutPath=this.downloadLink.substr(this.downloadLink.lastIndexOf("/")+1);
 
           // Subscribe to DL service and wait for the done response 
@@ -204,7 +204,7 @@ export class Y2mComponent implements OnInit {
 
      // Called by binding to [class.hidden] of mat-form-field. Returns true if any condition is met
      fieldIsHidden(key: string) {
-          // Specified keys are the fields to hide
+          // Specified values are the fields to hide
           const videoHideFields = ['Artist', 'Album', 'TrackNum', 'Genre', 'Year'];
           const nonMP3HideFields = ['TrackNum', 'Genre', 'Year'];
 
@@ -253,11 +253,11 @@ export class Y2mComponent implements OnInit {
      }
 
      // Get progress of youtube-dl
-     /*getDownloadProgress() {
+     getDownloadProgress() {
           if (this.debugging)
                return;
 
-          /*this.downloadProgressSubscription = interval(50)
+          this.downloadProgressSubscription = interval(50)
                .subscribe(()=>{
                     //Get progress status from the service every 100ms
                     this.dataService.getDownloadProgress()
@@ -272,18 +272,19 @@ export class Y2mComponent implements OnInit {
                     }
                );
           });
-     }*/
+     }
 
      // Return the key based on the value
      getFormatKeyByValue() {
           // Since there are 2 format dropdowns, either one of them has a selected value or neither has a selected value
-          return (this.currentAudioFormat !== null ? Object.keys(this.audioFormats).find(key => this.audioFormats[key] === this.currentAudioFormat) 
-                                          : (this.currentVideoFormat !== null ? Object.keys(this.videoFormats).find(key => this.videoFormats[key] === this.currentVideoFormat) : null));
+          return (
+               this.currentAudioFormat !== null 
+                    ? Object.keys(this.audioFormats).find(key => this.audioFormats[key] === this.currentAudioFormat) 
+                    : (this.currentVideoFormat !== null ? Object.keys(this.videoFormats).find(key => this.videoFormats[key] === this.currentVideoFormat) : null));
      }
 
      // Get URL parameter
      getURLParam(name: string) {
-
           // The first time this method gets called, this.urlParams will be undefined
           if (typeof this.urlParams === 'undefined')
                this.parseURLParameters();
@@ -353,21 +354,17 @@ export class Y2mComponent implements OnInit {
      isMP3Format() {
           const format = this.getFormatKeyByValue();
 
-          if (format != null && this.isAudioFormat() && format.includes('mp3')) {
+          if (format != null && this.isAudioFormat() && format.includes('mp3'))
                return true;
-          } else {
+          else
                return false;
-          }
      }
 
      // Event if the user clicks on the Move To Server button
      moveToServerClick() {
-          //this.moveToServer=true; // Set this here because even though the URL param for MovetoServer wasn't set, user clicked on movetoserver
-
           // If we are able to move to server 
-          if (this.allowMoveToServer) {
+          if (this.allowMoveToServer)
                this.processSteps();
-          }
      }
 
      // Parse title URL param
@@ -375,35 +372,31 @@ export class Y2mComponent implements OnInit {
           // section can be artist name or song name
           let titleParam = this.getURLParam('Title');
 
-          if (!titleParam) {
+          if (!titleParam)
                return null;
-          }
 
           // Remove these strings from the URL
           titleParam = titleParam.toString().replace(' - [HQ] - YouTube', '');
           titleParam = titleParam.replace(' - YouTube', '');
 
           // If no dash is in the title, assume that the title is the song name
-          if (titleParam.includes('-') && section.toUpperCase() === 'TITLE') {
+          if (titleParam.includes('-') && section.toUpperCase() === 'TITLE')
                return titleParam;
-          }
 
           const res = titleParam.split('-');
 
-          if (section === 'Artist' && res[0]) {
+          if (section === 'Artist' && res[0])
                return decodeURI(res[0].trim());
-          } else if (section === 'Title' && res[1]) {
+          else if (section === 'Title' && res[1])
                return decodeURI(res[1].trim());
-          }
      }
 
      // Parse and store all URL parameters in a key/pair value
      parseURLParameters() {
           const query = window.location.search.substr(1);
 
-          if (query === '') {
+          if (query === '')
                return;
-          }
 
           const res = query.split('&');
 
@@ -437,7 +430,7 @@ export class Y2mComponent implements OnInit {
           switch (this.currentStep) {
                case 0: // Download the file
 
-                    // Build file name without the extension (The php script adds the extension based on the format). 
+                    // Build file name without the extension (The youtube-dl command in the php script adds the extension based on the format). 
                     // If the format selected is an audio format and there's a track number, use it. Otherwise only use the Name field
                     const fileName = (this.isAudioFormat() && !isNaN(parseInt(trackNum)) ? (parseInt(trackNum) < 10 ? "0" : "") + trackNum + ' ' : '') + name;
 
@@ -588,7 +581,6 @@ export class Y2mComponent implements OnInit {
 
      showSupportedSitesToggle() {
           if (this.supportedURLsVisible && typeof this.supportedURLsDataSource === 'undefined') {
-
                this.dataService.getSupportedURLs().subscribe((response) => {
                     const supportedURLs=response.reduce(function(result, item, index, array) {
                          result["URL" + index] = item;
@@ -626,11 +618,9 @@ export class Y2mComponent implements OnInit {
                // If the Save Values checkbox is not checked
                if (!this.saveValues) {
                     // Clear all of the field values
-                    for (const key in this.fields) {
-                         if (key !== null) {
+                    for (const key in this.fields)
+                         if (key !== null)
                               this.fields[key].Value = '';
-                         }
-                    }
                }
 
                // reset the stepper count
@@ -691,9 +681,8 @@ export class Y2mComponent implements OnInit {
           }
           
           // Set initial status
-          if (this.currentStep === 0) {
+          if (this.currentStep === 0)
                this.updateStatus('Starting the download');
-          }
 
           // Show steps
           this.isSubmitted = true;

@@ -232,7 +232,7 @@
      }
 
      function getSupportedURLs() {
-          $url="https://ytdl-org.github.io/youtube-dl/supportedsites.html";
+          $url="http://ytdl-org.github.io/youtube-dl/supportedsites.html";
           
           $curl = curl_init($url);
 

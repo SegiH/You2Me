@@ -153,7 +153,7 @@
           }
            
           if (!file_exists($sourcePath . $fileName))  {
-               // die($cmd . " with the expected file " . $sourcePath . $fileName);
+               //die($cmd . " with the expected file " . $sourcePath . $fileName);
                die(json_encode(array("Error: Unable to create the file")));
           }
 
@@ -232,7 +232,7 @@
      }
 
      function getSupportedURLs() {
-          $url="https://ytdl-org.github.io/youtube-dl/supportedsites.html";
+          $url="http://ytdl-org.github.io/youtube-dl/supportedsites.html";
           
           $curl = curl_init($url);
 
