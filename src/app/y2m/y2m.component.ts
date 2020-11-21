@@ -129,7 +129,6 @@ export class Y2MComponent implements OnInit {
                } else
                     alert(`Valid formats are ${Object.values(this.audioFormats).filter(format => format !== null)} for audio or ${Object.values(this.videoFormats).filter(format => format !== null)} for video`);          
           }
-          
 
           // If URL parameter MoveToServer was provided and is allowed, add Moving the file to new location as a step
           if (this.getURLParam('MoveToServer') === 'true' && this.allowMoveToServer) {
@@ -157,6 +156,9 @@ export class Y2MComponent implements OnInit {
 
           // Enable debugging if enabled at command line
           this.debugging = this.getURLParam("Debugging");
+     
+          // Remove Artist name from title if it exists. You can't do this in getURLParam because it ends up getting called recursively
+          this.fields.Name.Value=this.fields.Name.Value.replace(this.fields.Artist.Value + " - ","")
      }
 
      applyFilter(filterValue: string) {
@@ -165,8 +167,8 @@ export class Y2MComponent implements OnInit {
 
      // Custom Material UI table filter function
      createSupportedURLsFilter() {
-          let filterFunction = function (data: any, filter: string): boolean {
-               let customSearch = () => {
+          const filterFunction = function (data: any, filter: string): boolean {
+               const customSearch = () => {
                     if (data.toLowerCase().includes(filter.toLowerCase()))
                          return true;
                }
@@ -188,14 +190,15 @@ export class Y2MComponent implements OnInit {
                if (response.state == "DONE") {
                     // Send request to delete the file
                     this.dataService.deleteDownloadFile(this.downloadLink).subscribe((response) => { 
+                         console.log(response)
                     },
                     error => {
-                         console.log("An error occurred deleting the file from the server 1");
+                         console.log("An error " + error + " occurred deleting the file from the server 1");
                     });
                }
           },
           error => {
-               console.log("An error occurred deleting the file from the server 2");
+               console.log("An error " + error + " occurred deleting the file from the server 2");
           });
 
           this.downloadButtonVisible = false;
@@ -271,6 +274,7 @@ export class Y2MComponent implements OnInit {
                     },
                     error => {
                          //show errors
+                         console.log(error)
                     }
                );
           });
@@ -319,7 +323,9 @@ export class Y2MComponent implements OnInit {
 
                     title = title.replace('Title=', '');
                     title = title.replace(' (HQ)', '');
-
+                    title = title.replace(' (Acoustic / Audio) - YouTube', '');
+                    title = title.replace(' - YouTube', '');
+                    
                     return decodeURI(title);
                case 'TRACKNUM':
                     return (typeof this.urlParams[name] !== 'undefined' && decodeURI(this.urlParams[name])  || null);
@@ -419,9 +425,9 @@ export class Y2MComponent implements OnInit {
      processSteps() {
           // Normalize all text fields by encoding special characters so we don't run into issues passing them as URL parameters
           const URL=this.rfc3986EncodeURIComponent(this.fields.URL.Value);          
-          let artist=this.rfc3986EncodeURIComponent(this.fields.Artist.Value);
+          const artist=this.rfc3986EncodeURIComponent(this.fields.Artist.Value);
           const album=this.rfc3986EncodeURIComponent(this.fields.Album.Value);
-          let name=this.rfc3986EncodeURIComponent(this.fields.Name.Value);
+          const name=this.rfc3986EncodeURIComponent(this.fields.Name.Value);
           
           // Use tracknum if provided and pad with leading 0 if tracknum < 10
           const trackNum = (this.fields.TrackNum.Value !== null ? (parseInt(this.rfc3986EncodeURIComponent(this.fields.TrackNum.Value), 10) < 10 ? '0' : '') + this.rfc3986EncodeURIComponent(this.fields.TrackNum.Value) : null);
@@ -584,11 +590,11 @@ export class Y2MComponent implements OnInit {
      showSupportedSitesToggle() {
           if (this.supportedURLsVisible && typeof this.supportedURLsDataSource === 'undefined') {
                this.dataService.getSupportedURLs().subscribe((response) => {
-                    const supportedURLs=response.reduce(function(result, item, index, array) {
+                    /*const supportedURLs=response.reduce(function(result, item, index) {
                          result["URL" + index] = item;
                          return result;
-                       }, {}) 
-     
+                       }, {})*/
+
                     this.supportedURLsDataSource=new MatTableDataSource(response);
      
                      // Assign custom filter function
@@ -681,6 +687,10 @@ export class Y2MComponent implements OnInit {
                this.showSnackBarMessage('Please select the audio or video format');
                return;
           }
+
+          // Default album to Unknown if not provided
+          if (!this.fieldIsHidden('Album') && this.fields.Album.Value === null)
+               this.fields.Album.Value = 'Unknown';
           
           // Set initial status
           if (this.currentStep === 0)
