@@ -2,7 +2,13 @@ FROM php:7.4-apache
 
 ENV TZ=America/Los_Angeles
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y sqlite3 ffmpeg libsqlite3-dev python tzdata unzip vim wget
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y sqlite3 ffmpeg libsqlite3-dev python python3 python3-distutils tzdata unzip vim wget
+
+# Install pip
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python3 get-pip.py
+
+# Install Python dependencies
+RUN pip install pyacoustid requests
 
 # install php modules
 RUN docker-php-ext-install pdo_sqlite && docker-php-ext-enable pdo_sqlite
@@ -17,13 +23,12 @@ ADD dist /var/www/html
 
 RUN mkdir /var/www/html/media
 
+# Set up PHP
 RUN chmod 755 assets/php/serverTasks.php
 
 RUN mkdir php
 
 RUN mv assets/php/serverTasks.php php
-
-RUN rm -rf assets
 
 RUN unzip master.zip
 
@@ -38,6 +43,12 @@ RUN mv /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
 RUN echo extension=pdo_sqlite >> /usr/local/etc/php/php.ini
 
 RUN echo extension=sqlite3 >> /usr/local/etc/php/php.ini
+
+RUN mkdir python
+
+RUN cp assets/python/* python
+
+RUN rm -rf assets
 
 RUN chmod 755 /usr/local/bin/youtube-dl
 

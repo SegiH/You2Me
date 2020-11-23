@@ -32,9 +32,9 @@
      }
 
      function downloadFile() {
-	      global $db_name;
+	  global $db_name;
           global $domain;
-		  global $os;
+	  global $os;
           global $sourcePath;
 
           $url=htmlspecialchars($_GET["URL"]);
@@ -163,24 +163,28 @@
           }
  
           // If move To Server is true, we have more steps to process 
-          if ($isMP3Format == true || $moveToServer == true) {
+          /*if ($isMP3Format == true || $moveToServer == true) {
 	          die(json_encode(array($fileName)));
           } else if ($isMP3Format == false && $moveToServer == false) { // If the file is not MP3, we don't need to write ID3 tags. If MoveTo Server is false, we are done and there are no more steps to process to provide download link
                die(json_encode(array($domain . urlencode($fileName))));
-	     }
+	  }*/
 
-          /*$cmd="python ../python/aidmatch.py \"" . $sourcePath . $fileName . "\" 2>&1";
+	  if ($isMP3Format == false)
+	       die(json_encode(array($fileName)));
 
-	     exec($cmd,$retArr2,$retVal2);
+	  # Start of Python fingerprinting
+          $cmd="python3 ../python/aidmatch.py \"" . $sourcePath . $fileName . "\" 2>&1";
+
+	  exec($cmd,$retArr2,$retVal2);
 
           $tagged=false;
 
-	     $artist = "";
-	     $title = "";
+	  $artist = "";
+	  $title = "";
 
-	     // Since we only care about the first result, we only save the first key value pair
-	     foreach ($retArr2 as $key => $value) {
-	          // echo "Key: " . $key . " Value: " . $value;
+	  // Since we only care about the first result, we only save the first key value pair
+	  foreach ($retArr2 as $key => $value) {
+	       // echo "Key: " . $key . " Value: " . $value;
                if ($value=="fingerprint could not be calculated") {
                     break;
                }
@@ -189,20 +193,22 @@
  
                $tags=$value;
 
-	          $tags=explode(',',$tags);
-	          $artist=str_replace('"','',$tags[0]);
+	       $tags=explode(',',$tags);
+	       $artist=str_replace('"','',$tags[0]);
 
-	          $title=str_replace('"','',$tags[1]);
+	       $title=str_replace('"','',$tags[1]);
 
-	          break;   
-	     }
+	       break;   
+	  }
 
-	     // if tagged is false, nothing was written above
-	     if ($tagged == false)
-	          echo json_encode(array(urlencode($fileName),"",""));
-          else 
-	          echo json_encode(array(urlencode($fileName),$artist,$title));
-          */
+	  // if tagged is false, nothing was written above
+	  if ($tagged == false)
+	       echo json_encode(array(urlencode($fileName),"",""));
+	  else {
+               os.rename($fileName,$artist . " " . $title . ".mp3");
+               $fileName=$artist . " " . $title . ".mp3";	       
+	       echo json_encode(array(urlencode($fileName),$artist,$title));
+          }
 
           return;
      } 

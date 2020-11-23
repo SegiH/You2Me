@@ -1,5 +1,8 @@
 /*
      TODO:
+     When using JS bookmark auto submit 
+     Re-enable d/l progress
+     
      Before publishing:
           1.  Make sure proxy.conf doesn't have my server address and make sure php doesn't have it either.
           2. Build the application and move dist to the docker folder replacing the old copy of dist
@@ -437,7 +440,6 @@ export class Y2MComponent implements OnInit {
           // Call data service based on the current task
           switch (this.currentStep) {
                case 0: // Download the file
-
                     // Build file name without the extension (The youtube-dl command in the php script adds the extension based on the format). 
                     // If the format selected is an audio format and there's a track number, use it. Otherwise only use the Name field
                     const fileName = (this.isAudioFormat() && !isNaN(parseInt(trackNum)) ? (parseInt(trackNum) < 10 ? "0" : "") + trackNum + ' ' : '') + name;
@@ -472,19 +474,18 @@ export class Y2MComponent implements OnInit {
                          // Disabled for now. Having Python issues with Docker, Python fingerprinting is broken
 
                          // Second index will be Artist if matched through Python script that does audio fingerprinting
-                         /*if (response[1] !== null && response[1] !== '') {
-                              artist = response[1];
+                         if (response[1] !== null && response[1] !== '') {
+                              this.fields.Artist.Value = response[1];
                          }
 
                          // Third index will be Title if matched through Python script that does audio fingerprinting
                          if (response[2] !== null && response[2] !== '') {
-                              name = response[2];
-                         }*/
+                              this.fields.Name.Value = response[2];
+                         }
 
-                         /* 
                          // This is only useful if the artist and album fields arent required and the Python script tried but fails to get the artist and album
                          // At the moment submitClick() requires the artist and album to be entered before you can start step 1
-                         /*if (this.isMP3Format() && this.fields.Artist.Value === null) {
+                         if (this.isMP3Format() && this.fields.Artist.Value === null) {
                               this.showSnackBarMessage('Please enter the artist');
                               return;
                          }
@@ -492,7 +493,7 @@ export class Y2MComponent implements OnInit {
                          if (this.isMP3Format() && this.fields.Name.Value === null) {
                               this.showSnackBarMessage('Please enter the title');
                               return;
-                         }*/
+                         }
 
                          // When the format is MP3 write the ID3 tags
                          if (this.isMP3Format()) {
@@ -647,6 +648,12 @@ export class Y2MComponent implements OnInit {
                return;
           }
 
+          // Since we use Python fingerprinting, you don't have to fill in the artist and name
+          if (this.isMP3Format()) {
+               this.fields.Artist.Required=false;
+               this.fields.Name.Required=false;
+          }
+
           // Validate the required fields
           if (this.fields.URL.Value === '') {
                this.showSnackBarMessage('Please enter the URL');
@@ -658,7 +665,7 @@ export class Y2MComponent implements OnInit {
                return;
           }
 
-          if (!this.fieldIsHidden('Artist') && this.fields.Artist.Required && (this.fields.Artist.Value === null || this.fields.Artist.Value === '')) {
+          if (!this.fieldIsHidden('Artist') && (this.fields.Artist.Required && (this.fields.Artist.Value === null || this.fields.Artist.Value === ''))) {
                this.showSnackBarMessage('Please enter the artist');
                return;
           }
