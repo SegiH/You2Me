@@ -1,10 +1,8 @@
 /*
      TODO:
-     When using JS bookmark auto submit 
-     Re-enable d/l progress
-     
+
      Before publishing:
-          1.  Make sure proxy.conf doesn't have my server address and make sure php doesn't have it either.
+          1. Make sure proxy.conf doesn't have my server address and make sure php doesn't have it either.
           2. Build the application and move dist to the docker folder replacing the old copy of dist
 
      URL for testing: https://www.youtube.com/watch?v=Wch3gJG2GJ4
@@ -161,7 +159,7 @@ export class Y2MComponent implements OnInit {
           this.debugging = this.getURLParam("Debugging");
      
           // Remove Artist name from title if it exists. You can't do this in getURLParam because it ends up getting called recursively
-          this.fields.Name.Value=this.fields.Name.Value.replace(this.fields.Artist.Value + " - ","")
+          this.fields.Name.Value=this.fields.Name.Value.replace(this.fields.Artist.Value + " - ","");
      }
 
      applyFilter(filterValue: string) {
@@ -249,15 +247,15 @@ export class Y2MComponent implements OnInit {
           this.isFinished =  true;
 
           // Stop the REST service that gets the download status
-          //if (!this.debugging)
-          //     this.downloadProgressSubscription.unsubscribe();
+          if (!this.debugging)
+               this.downloadProgressSubscription.unsubscribe();
 
           // Delete download progress temp db
-          /*this.dataService.deleteDownloadProgress().subscribe((response) => {
+          this.dataService.deleteDownloadProgress().subscribe((response) => {
           },
           error => {
                this.handleError(Response, error);
-          });*/
+          });
      }
 
      // Get progress of youtube-dl
@@ -350,8 +348,8 @@ export class Y2MComponent implements OnInit {
 
           console.log(`An error occurred at step ${this.currentStep} with the error ${error}`);
 
-          //if (this.debugging)
-          //     this.downloadProgressSubscription.unsubscribe();
+          if (this.debugging)
+               this.downloadProgressSubscription.unsubscribe();
 
           this.finished(true);
      }
@@ -445,22 +443,22 @@ export class Y2MComponent implements OnInit {
                     const fileName = (this.isAudioFormat() && !isNaN(parseInt(trackNum)) ? (parseInt(trackNum) < 10 ? "0" : "") + trackNum + ' ' : '') + name;
 
                     // Start timer that gets download progress
-                    //if (!this.debugging)
-                    //     this.getDownloadProgress();
+                    if (!this.debugging)
+                         this.getDownloadProgress();
 
                     // Call data service to download the file
                     this.dataService.fetchFile(URL, fileName,this.moveToServer, this.isAudioFormat(), this.isMP3Format(),(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
                     .subscribe((response) => {
                          // Stop the REST service that gets the download status
-                         //if (!this.debugging)
-                         //     this.downloadProgressSubscription.unsubscribe();
+                         if (!this.debugging)
+                              this.downloadProgressSubscription.unsubscribe();
 
                          // Call REST service to delete download progress temp db
-                         /*this.dataService.deleteDownloadProgress().subscribe((response) => {
+                         this.dataService.deleteDownloadProgress().subscribe((response) => {
                          },
                          error => {
                               this.handleError(Response, error);
-                         });*/
+                         });
 
                          // Trap server side errors
                          if (response[0].includes('Error:')) {
@@ -513,14 +511,14 @@ export class Y2MComponent implements OnInit {
                     },
                     error => {
                          // Stop the REST service that gets the download status
-                         //this.downloadProgressSubscription.unsubscribe();
+                         this.downloadProgressSubscription.unsubscribe();
 
                          // Call REST service to delete download progress temp db
-                         /*this.dataService.deleteDownloadProgress().subscribe((response) => {
+                         this.dataService.deleteDownloadProgress().subscribe((response) => {
                          },
                          error => {
                               this.handleError(Response, error);
-                         });*/
+                         });
                          
                          this.handleError(Response, error);
                     });

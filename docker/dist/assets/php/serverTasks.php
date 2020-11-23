@@ -145,7 +145,7 @@
                else
                     $fileName=$fileName . ".ogg";
           } else if ($isVideoFormat && $videoFormat != 'original') {
-                    $fileName=$fileName . "." . $videoFormat;
+               $fileName=$fileName . "." . $videoFormat;
           } else if ($isVideoFormat && $videoFormat == 'original') { // When the format is original, we don't know the format that video is encoded in so we don't know the file extension so use --get-filename parameter to get the output file name
                exec($cmd . " --get-filename",$videoFileName);
 
@@ -184,30 +184,42 @@
 
 	  // Since we only care about the first result, we only save the first key value pair
 	  foreach ($retArr2 as $key => $value) {
-	       // echo "Key: " . $key . " Value: " . $value;
-               if ($value=="fingerprint could not be calculated") {
-                    break;
-               }
-          
+	       // echo "Key: " . $key . " Value: " . $value . "<BR><BR>";
+
+	       // A traceback may happen if no match was made
+	       if ($value=="fingerprint could not be calculated" || strpos($value,"Traceback") !== false) {
+		       break;
+	       }
+	       
                $tagged=true;
  
                $tags=$value;
 
 	       $tags=explode(',',$tags);
+
 	       $artist=str_replace('"','',$tags[0]);
 
 	       $title=str_replace('"','',$tags[1]);
-
-	       break;   
+               
+	       break;
 	  }
 
 	  // if tagged is false, nothing was written above
 	  if ($tagged == false)
 	       echo json_encode(array(urlencode($fileName),"",""));
-	  else {
-               os.rename($fileName,$artist . " " . $title . ".mp3");
-               $fileName=$artist . " " . $title . ".mp3";	       
-	       echo json_encode(array(urlencode($fileName),$artist,$title));
+	  else { 
+		  // If the track was tagged, create new filename based on artist  
+		  chdir($sourcePath);
+
+		  $newFileName=$artist . " - " . $title . ".mp3";
+		  
+		  $cmd="mv " . chr(34) . $fileName . chr(34) . " " . chr(34) . $newFileName . chr(34);
+
+		  exec($cmd,$retArr2,$retVal2);
+
+		  $fileName=$newFileName;
+
+	          echo json_encode(array(urlencode($fileName),$artist,$title));
           }
 
           return;

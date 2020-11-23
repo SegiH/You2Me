@@ -62,10 +62,10 @@
           <button *ngIf="!isSubmitted || isFinished" matInput mat-raised-button color="primary" (click)="submitClick()">{{(!this.isSubmitted ? "Start" : "Restart")}}</button>
 
           <!-- Download Button -->
-          <button *ngIf="downloadButtonVisible" matInput mat-raised-button (click)="downloadLinkClicked()">Download</button>
+          <button id="download" *ngIf="downloadButtonVisible" matInput mat-raised-button (click)="downloadLinkClicked()">Download</button>
 
           <!-- Move To Server Button-->
-          <button *ngIf="allowMoveToServer && moveToServerButtonVisible" matInput mat-raised-button (click)="moveToServerClick()">Move To Server</button>
+          <button id="moveToServer" *ngIf="allowMoveToServer && moveToServerButtonVisible && isSubmitted" matInput mat-raised-button (click)="moveToServerClick()">Move To Server</button>
      </span>
 </mat-card>
 

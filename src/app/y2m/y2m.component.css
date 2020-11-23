@@ -8,14 +8,14 @@
 }
 
 /* MoveToServer button */
-.buttonClass button:nth-of-type(3) {
+#moveToServer {
      background-color: red !important;
      color: white;
 }
 
 
 /* Download button */
-.buttonClass button:nth-of-type(2) {
+#download {
      background-color: green !important;
      color: white;
 }
