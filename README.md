@@ -4,6 +4,8 @@ You2Me is an Angular web application that acts as a front-end for [youtube-dl](h
 
 The app can be set up so that the media file can either be downloaded or the file can be moved to a location that you specify on your media server if you have one. 
 
+The application uses Python based fingerprinting to automatically identify the track if you select an mp3 format.
+
 ### Formats
 This web app supports saving the file in multiple formats.
 

@@ -63,15 +63,17 @@ You2Me supports a bookmark which will automatically load You2Me in a new tab wit
 Client mode:
 
 ```
-javascript:window.open('https://mysite.com/You2Me/?URL='+window.location.toString()+'&Title='+document.title,'_parent','');event.preventDefault();
+javascript:window.open('https://mysite.com/You2Me/?URL='+window.location.toString()+'&Title='+document.title+'&Format=320k','_parent','');event.preventDefault();
 ```
 Server mode:
 
 ```
-javascript:window.open('https://mysite.com/You2Me/?MoveToServer=true&URL='+window.location.toString()+'&Title='+document.title,'_parent','');event.preventDefault();
+javascript:window.open('https://mysite.com/You2Me/?MoveToServer=true&URL='+window.location.toString()+'&Title='+document.title+'&Format=320k','_parent','');event.preventDefault();
 ```
 
 Don't forget to replace mysite.com/You2Me with the full URL of your instance of You2Me. Now visit a supported site like YouTube and click on the bookmark. A new You2Me tab/window will open with the URL already filled in. 
+
+When you use this shortcut, you do not need to enter the artist and or track title and don't need to fix the filled in artist or track title because it will be fixed automatically if Python is able to identify the song.
 
 ### Troubleshooting
 
