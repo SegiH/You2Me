@@ -11,7 +11,9 @@ This application can be set up to run in one of 2 different ways:
 You2Me can be run as a Docker container or installed on your own web server (Apache or Nginx). 
 
 #### Docker
-This is the easiest way to run You2Me. The docker folder contains 2 files named Dockerfile and you2me.docker-compose.yml and a folder called dist which is a compiled version of this application. If the dist folder is not there or if you want to build the image yourself, start at step 1. Otherwise,  skip to step 7 to begin installation using the defaults.
+This is the easiest way to run You2Me. You can now pull an image of You2Me directly from Docker Hub if you want to use You2Me with the default options. If you want to build it yourself, follow steps 1-7 below. Otherwise, you can skip to step 8 to create a container based on the You2Me image that you pulled from Docker Hub.
+
+The docker folder contains 2 files named Dockerfile and you2me.docker-compose.yml and a folder called dist which is a compiled version of this application. To build a You2Me image and container:
 
    1. Install npm 6+ which includes Node.js and npm.
    1. Go to the main You2Me folder in terminal or command prompt
@@ -19,10 +21,10 @@ This is the easiest way to run You2Me. The docker folder contains 2 files named 
    1. Run `npm install` - This will install all of the missing dependencies.
    1. Run `npm run build` - This will build You2Me and create the dist folder.
    1. Move the entire dist folder into the docker folder
-   1. Build a Docker image based on my you2me: `docker build docker/ -t you2me`
-   1. Edit you2me.docker-compose.yml and change `YourNetworkName` to the name of the network that you want this container to be on.
+   1. Build the you2me Docker image: `docker build docker/ -t you2me`
+   1. Edit you2me.docker-compose.yml and change `YourNetworkName` to the name of the Docker network that you want this container to be on.
    1. Build the container using the you2me image you created above by running `docker-compose -f you2me.docker-compose.yml up --no-start && docker start You2Me`.
-   10. Visit https://dockeripaddress:port/You2Me/ in your browser. You can run `docker-machine ip` to find the IP address of your docker instance on Windows or `docker inspect $(sudo docker ps -q) | grep \"IPAddress\"` on Linux.
+   1. Visit https://dockeripaddress:port in your browser. You can run `docker-machine ip` to find the IP address of your docker instance on Windows or `docker inspect $(sudo docker ps -q) | grep \"IPAddress\"` on Linux.
 
 #### Install on your own web server
    1. Install  PHP 7 (Not tested with PHP 5) 
