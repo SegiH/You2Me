@@ -11,7 +11,7 @@ This application can be set up to run in one of 2 different ways:
 You2Me can be run as a Docker container or installed on your own web server (Apache or Nginx). 
 
 #### Docker
-This is the easiest way to run You2Me. You can now pull an image of You2Me directly from Docker Hub if you want to use You2Me with the default options. If you want to build it yourself, follow steps 1-7 below. Otherwise, you can skip to step 8 to create a container based on the You2Me image that you pulled from Docker Hub.
+This is the easiest way to run You2Me. You can now pull an image of You2Me directly from Docker Hub if you want to use You2Me with the default options by running the command `docker pull shovav/you2me:latest`. If you want to build it yourself, follow steps 1-7 below. Otherwise, you can skip to step 8 to create a container based on the You2Me image that you pulled from Docker Hub.
 
 The docker folder contains 2 files named Dockerfile and you2me.docker-compose.yml and a folder called dist which is a compiled version of this application. To build a You2Me image and container:
 
