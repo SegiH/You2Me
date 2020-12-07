@@ -90,12 +90,9 @@
                $cmd=$cmd . " -f best";
           }
             
-		  //die($cmd);
-			
-          /*
-          Download progress
-	     // Delete DB if it exists already 
-	     try {
+          // Download progress
+	  // Delete DB if it exists already 
+	   try {
 	          if (file_exists($db_name))
                     unlink($db_name);
 	     } catch(Exception $e) {
@@ -109,7 +106,7 @@
                $file_db->exec("CREATE TABLE IF NOT EXISTS downloadProgress (id INTEGER PRIMARY KEY, message TEXT, shown BIT);"); 	       
 	     } catch(PDOException $e) {
 	          die("Unable to create the database");
-	     }*/ 
+	     } 
           
           set_time_limit(0);
 
@@ -138,7 +135,7 @@
           pclose($handle);
 
           ob_end_flush();
-          
+         
           if ($isAudioFormat) {
                if ($audioFormat != "vorbis") // Vorbis audio files have the extension ogg not vorbis
                     $fileName=$fileName . "." . (!$isMP3Format ? $audioFormat : "mp3");
@@ -150,8 +147,8 @@
                exec($cmd . " --get-filename",$videoFileName);
 
                $fileName=str_replace($sourcePath,"",$videoFileName[0]);
-          }
-           
+	  }
+       
           if (!file_exists($sourcePath . $fileName))  {
                //die($cmd . " with the expected file " . $sourcePath . $fileName);
                die(json_encode(array("Error: Unable to create the file")));
@@ -169,10 +166,11 @@
                die(json_encode(array($domain . urlencode($fileName))));
 	  }*/
 
+	  die(json_encode(array($fileName)));
 	  if ($isMP3Format == false)
 	       die(json_encode(array($fileName)));
 
-	  # Start of Python fingerprinting
+	  // Start of Python fingerprinting
           $cmd="python3 ../python/aidmatch.py \"" . $sourcePath . $fileName . "\" 2>&1";
 
 	  exec($cmd,$retArr2,$retVal2);

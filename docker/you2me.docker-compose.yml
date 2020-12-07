@@ -11,9 +11,10 @@ services:
         stdin_open: true
         tty: true
         image: you2me:latest
-        command: bash -c "docker-php-ext-install mysqli pdo_mysql pdo_sqlite && apache2-foreground"
         hostname: You2Me
         networks: 
             - default
+        ports:
+            - 80:80
         restart: always
 

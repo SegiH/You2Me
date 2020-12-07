@@ -251,15 +251,16 @@ export class Y2MComponent implements OnInit {
           this.isFinished =  true;
 
           // Stop the REST service that gets the download status
-          if (!this.debugging)
+          if (!this.debugging) {
                this.downloadProgressSubscription.unsubscribe();
 
-          // Delete download progress temp db
-          this.dataService.deleteDownloadProgress().subscribe((response) => {
-          },
-          error => {
-               this.handleError(Response, error);
-          });
+               // Delete download progress temp db
+               this.dataService.deleteDownloadProgress().subscribe((response) => {
+               },
+               error => {
+                    this.handleError(Response, error);
+               });
+          }
      }
 
      // Get progress of youtube-dl
@@ -353,7 +354,7 @@ export class Y2MComponent implements OnInit {
 
           console.log(`An error occurred at step ${this.currentStep} with the error ${error}`);
 
-          if (this.debugging)
+          if (!this.debugging)
                this.downloadProgressSubscription.unsubscribe();
 
           this.finished(true);
@@ -440,8 +441,6 @@ export class Y2MComponent implements OnInit {
           const genre=this.rfc3986EncodeURIComponent(this.fields.Genre.Value);
           const year=this.rfc3986EncodeURIComponent(this.fields.Year.Value);
 
-          debugger;
-
           // Call data service based on the current task
           switch (this.currentStep) {
                case 0: // Download the file
@@ -518,14 +517,16 @@ export class Y2MComponent implements OnInit {
                     },
                     error => {
                          // Stop the REST service that gets the download status
-                         this.downloadProgressSubscription.unsubscribe();
+                         if (!this.debugging) {
+                              this.downloadProgressSubscription.unsubscribe();
 
-                         // Call REST service to delete download progress temp db
-                         this.dataService.deleteDownloadProgress().subscribe((response) => {
-                         },
-                         error => {
-                              this.handleError(Response, error);
-                         });
+                              // Call REST service to delete download progress temp db
+                              this.dataService.deleteDownloadProgress().subscribe((response) => {
+                              },
+                              error => {
+                                   this.handleError(Response, error);
+                              });
+                         }
                          
                          this.handleError(Response, error);
                     });
