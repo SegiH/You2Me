@@ -1,5 +1,8 @@
 /*
      TODO:
+     this.fields.Name.Value is null error
+     debugging is fucked
+     doesnt run
 
      Before publishing:
           1. Make sure proxy.conf doesn't have my server address and make sure php doesn't have it either.
@@ -46,7 +49,7 @@ export class Y2MComponent implements OnInit {
      currentAudioFormat = null; // MP3 320K is the default format
      currentVideoFormat = null;
      currentStep = 0;
-     debugging = false; // This should never be true when running production build
+     debugging = true; // This should never be true when running production build
      download$: Observable<Download>;
      downloadLink = '';
      downloadButtonVisible = false; // default false
@@ -141,6 +144,11 @@ export class Y2MComponent implements OnInit {
                this.stepperStepNames.push('Moving the file to new location');
           }
 
+          // Enable debugging if enabled at command line
+          const currDebugging=this.debugging;
+
+          this.debugging = (this.getURLParam("Debugging") != this.debugging && this.getURLParam("Debugging")  == true ? this.getURLParam("Debugging") : currDebugging);
+
           // Debugging default field values
           if (this.debugging) {
                this.fields.URL.Value="https://www.youtube.com/watch?v=Wch3gJG2GJ4";
@@ -154,10 +162,7 @@ export class Y2MComponent implements OnInit {
                this.currentVideoFormat=null;
                this.saveValues=true;
           }
-
-          // Enable debugging if enabled at command line
-          this.debugging = this.getURLParam("Debugging");
-     
+          
           // Remove Artist name from title if it exists. You can't do this in getURLParam because it ends up getting called recursively
           this.fields.Name.Value=this.fields.Name.Value.replace(this.fields.Artist.Value + " - ","");
      }
@@ -191,7 +196,7 @@ export class Y2MComponent implements OnInit {
                if (response.state == "DONE") {
                     // Send request to delete the file
                     this.dataService.deleteDownloadFile(this.downloadLink).subscribe((response) => { 
-                         console.log(response)
+                         //console.log(response)
                     },
                     error => {
                          console.log("An error " + error + " occurred deleting the file from the server 1");
@@ -335,7 +340,8 @@ export class Y2MComponent implements OnInit {
                case 'YEAR':
                     return (typeof this.urlParams[name] !== 'undefined' ? decodeURI(this.urlParams[name]) : null);
                case 'DEBUGGING':
-                    return (typeof this.urlParams[name] !== 'undefined' ? true : false);
+                    return 'SEGI'
+                    //'return (typeof this.urlParams[name] !== 'undefined' && this.urlParams[name] == true ? true : null);
                default:
                     return null;
           }
@@ -434,6 +440,8 @@ export class Y2MComponent implements OnInit {
           const trackNum = (this.fields.TrackNum.Value !== null ? (parseInt(this.rfc3986EncodeURIComponent(this.fields.TrackNum.Value), 10) < 10 ? '0' : '') + this.rfc3986EncodeURIComponent(this.fields.TrackNum.Value) : null);
           const genre=this.rfc3986EncodeURIComponent(this.fields.Genre.Value);
           const year=this.rfc3986EncodeURIComponent(this.fields.Year.Value);
+
+          debugger;
 
           // Call data service based on the current task
           switch (this.currentStep) {
