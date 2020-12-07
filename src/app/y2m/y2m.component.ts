@@ -1,7 +1,5 @@
 /*
      TODO:
-     this.fields.Name.Value is null error
-     debugging is fucked
      doesnt run
 
      Before publishing:
@@ -154,7 +152,7 @@ export class Y2MComponent implements OnInit {
                this.fields.URL.Value="https://www.youtube.com/watch?v=Wch3gJG2GJ4";
                this.fields.Artist.Value="Monkeeys";
                //this.fields.Album.Value="Greatest Hits";
-               this.fields.Name.Value="Goin Down";
+               //this.fields.Name.Value="Goin Down";
                //this.fields.TrackNum.Value="13";
                this.fields.Genre.Value="60s";
               // this.fields.Year.Value="1994";
@@ -164,7 +162,8 @@ export class Y2MComponent implements OnInit {
           }
           
           // Remove Artist name from title if it exists. You can't do this in getURLParam because it ends up getting called recursively
-          this.fields.Name.Value=this.fields.Name.Value.replace(this.fields.Artist.Value + " - ","");
+          if (this.fields.Name.Value != null)
+               this.fields.Name.Value=this.fields.Name.Value.replace(this.fields.Artist.Value + " - ","");
      }
 
      applyFilter(filterValue: string) {
