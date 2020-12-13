@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { Y2MComponent } from './y2m.component';
@@ -19,7 +19,7 @@ describe('Y2MComponent', () => {
     let component: Y2MComponent;
     let fixture: ComponentFixture<Y2MComponent>;
 
-    beforeEach(async(() => {
+    beforeEach(waitForAsync(() => {
         TestBed.configureTestingModule({
             declarations: [Y2MComponent],
             imports: [ 
