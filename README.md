@@ -6,6 +6,12 @@ The app can be set up so that the media file can either be downloaded or the fil
 
 The application uses Python based fingerprinting to automatically identify the track if you select an mp3 format.
 
+### Screenshots
+
+![Completed Form](https://raw.githubusercontent.com/SegiH/You2Me/master/screenshots/CompletedForm.png)
+
+![Final Result](https://raw.githubusercontent.com/SegiH/You2Me/master/screenshots/FinalStage.png)
+
 ### Formats
 This web app supports saving the file in multiple formats.
 
