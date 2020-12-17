@@ -1,6 +1,5 @@
 /*
      TODO:
-     doesnt run
 
      Before publishing:
           1. Make sure proxy.conf doesn't have my server address and make sure php doesn't have it either.
