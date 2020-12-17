@@ -57,7 +57,7 @@
 
           $valid_audio_formats=array('0','5','9','128k','192k','256k','320k','aac','flac','m4a','opus','vorbis','wav');
           $valid_video_formats=array('original','mp4','flv','ogg','webm','mkv','avi');
-          
+
           // Validate Audio/Video format
           if (isset($audioFormat) && !in_array($audioFormat,$valid_audio_formats))
                die("Invalid audio format");
@@ -166,7 +166,7 @@
                die(json_encode(array($domain . urlencode($fileName))));
 	  }*/
 
-	  die(json_encode(array($fileName)));
+	  // die(json_encode(array($fileName)));
 	  if ($isMP3Format == false)
 	       die(json_encode(array($fileName)));
 
@@ -204,27 +204,27 @@
 
 	  // if tagged is false, nothing was written above
 	  if ($tagged == false)
-	       echo json_encode(array(urlencode($fileName),"",""));
+               echo json_encode(array(urlencode($fileName),"",""));
 	  else { 
-		  // If the track was tagged, create new filename based on artist  
-		  chdir($sourcePath);
+	       // If the track was tagged, create new filename based on artist  
+	       chdir($sourcePath);
 
-		  $newFileName=$artist . " - " . $title . ".mp3";
+	       $newFileName=$artist . " - " . $title . ".mp3";
 		  
-		  $cmd="mv " . chr(34) . $fileName . chr(34) . " " . chr(34) . $newFileName . chr(34);
+	       $cmd="mv " . chr(34) . $fileName . chr(34) . " " . chr(34) . $newFileName . chr(34);
 
-		  exec($cmd,$retArr2,$retVal2);
+	       exec($cmd,$retArr2,$retVal2);
 
-		  $fileName=$newFileName;
-
-	          echo json_encode(array(urlencode($fileName),$artist,$title));
+	       $fileName=$newFileName;
+ 
+               echo json_encode(array(urlencode($fileName),$artist,$title));
           }
-
+ 
           return;
      } 
     
      function getDownloadProgress() {
-	     global $db_name;
+	  global $db_name;
 
           $file_db = new PDO('sqlite:' . $db_name);
           
