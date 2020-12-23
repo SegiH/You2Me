@@ -1,5 +1,8 @@
 /*
      TODO:
+     Move To Server button not visible at the right time
+     Strip Extra YT URL params
+     - Generated Filename has extra leading 0 if you specify track number
 
      Before publishing:
           1. Make sure proxy.conf doesn't have my server address and make sure php doesn't have it either.
@@ -445,7 +448,7 @@ export class Y2MComponent implements OnInit {
                case 0: // Download the file
                     // Build file name without the extension (The youtube-dl command in the php script adds the extension based on the format). 
                     // If the format selected is an audio format and there's a track number, use it. Otherwise only use the Name field
-                    const fileName = (this.isAudioFormat() && !isNaN(parseInt(trackNum)) ? (parseInt(trackNum) < 10 ? "0" : "") + trackNum + ' ' : '') + name;
+                    const fileName = (this.isAudioFormat() && !isNaN(parseInt(trackNum)) ? (parseInt(trackNum) < 10 && trackNum[0] != "0" ? "0" : "") + trackNum + ' ' : '') + name;
 
                     // Start timer that gets download progress
                     if (!this.debugging)
