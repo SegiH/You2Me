@@ -1,9 +1,7 @@
 /*
      TODO:
-     Move To Server button not visible at the right time
      Strip Extra YT URL params
-     - Generated Filename has extra leading 0 if you specify track number
-     I had to manually set chmod 777 on php and media folder. should be fixed in Dockerfile
+     Can't write track num since getID3 throws an error writing this field
 
      Before publishing:
           1. Make sure debugging is off!
@@ -655,6 +653,8 @@ export class Y2MComponent implements OnInit {
                this.isFinished = false;
 
                this.downloadButtonVisible = false;
+
+               this.moveToServerButtonVisible = false;
 
                return;
           }
