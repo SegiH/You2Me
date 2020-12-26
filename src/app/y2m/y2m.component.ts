@@ -3,10 +3,12 @@
      Move To Server button not visible at the right time
      Strip Extra YT URL params
      - Generated Filename has extra leading 0 if you specify track number
+     I had to manually set chmod 777 on php and media folder. should be fixed in Dockerfile
 
      Before publishing:
-          1. Make sure proxy.conf doesn't have my server address and make sure php doesn't have it either.
-          2. Build the application and move dist to the docker folder replacing the old copy of dist
+          1. Make sure debugging is off!
+          2. Make sure proxy.conf doesn't have my server address and make sure php doesn't have it either.
+          3. Build the application and move dist to the docker folder replacing the old copy of dist
 
      URL for testing: https://www.youtube.com/watch?v=Wch3gJG2GJ4
 */
@@ -49,7 +51,7 @@ export class Y2MComponent implements OnInit {
      currentAudioFormat = null; // MP3 320K is the default format
      currentVideoFormat = null;
      currentStep = 0;
-     debugging = true; // This should never be true when running production build
+     debugging = false; // This should never be true when running production build
      download$: Observable<Download>;
      downloadLink = '';
      downloadButtonVisible = false; // default false
@@ -352,9 +354,9 @@ export class Y2MComponent implements OnInit {
      // Handle errors returned by observable
      handleError(response, error) {
           // write error status
-          this.updateStatus(`A fatal error occurred: ${response[0]}`);
+          this.updateStatus(`A fatal error occurred`  +(response[0] != null ? `: ${response[0]}` : ``));
 
-          console.log(`An error occurred at step ${this.currentStep} with the error ${error}`);
+          console.log(`An error occurred at step ${this.currentStep} with the error ${error[0]}`);
 
           if (!this.debugging)
                this.downloadProgressSubscription.unsubscribe();
@@ -458,15 +460,16 @@ export class Y2MComponent implements OnInit {
                     this.dataService.fetchFile(URL, fileName,this.moveToServer, this.isAudioFormat(), this.isMP3Format(),(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
                     .subscribe((response) => {
                          // Stop the REST service that gets the download status
-                         if (!this.debugging)
+                         if (!this.debugging) {
                               this.downloadProgressSubscription.unsubscribe();
 
-                         // Call REST service to delete download progress temp db
-                         this.dataService.deleteDownloadProgress().subscribe((response) => {
-                         },
-                         error => {
-                              this.handleError(Response, error);
-                         });
+                              // Call REST service to delete download progress temp db
+                              this.dataService.deleteDownloadProgress().subscribe((response) => {
+                              },
+                              error => {
+                                   this.handleError(Response, error);
+                              });
+                         }
 
                          // Trap server side errors
                          if (response[0].includes('Error:')) {
@@ -559,7 +562,7 @@ export class Y2MComponent implements OnInit {
                               return;
                          } else { // Move To Server is enabled so process next step
                               this.processSteps();
-                         }   
+                         }
                     },
                     error => {
                          this.handleError(Response, error);

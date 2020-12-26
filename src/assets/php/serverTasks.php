@@ -3,9 +3,9 @@
      require_once('getid3/getid3.php');
      require_once('getid3/write.php');
      
-     /*ini_set('display_errors',1);
+     ini_set('display_errors',1);
      ini_set('display_startup_errors',1);
-     error_reporting(E_ALL);*/
+     error_reporting(E_ALL);
 
      // The path where the file will be moved to. Make sure the path has a slash at the end
      $audioDestinationPath="..\\newlocation\\";
@@ -57,7 +57,7 @@
 
           $valid_audio_formats=array('0','5','9','128k','192k','256k','320k','aac','flac','m4a','opus','vorbis','wav');
           $valid_video_formats=array('original','mp4','flv','ogg','webm','mkv','avi');
-
+          
           // Validate Audio/Video format
           if (isset($audioFormat) && !in_array($audioFormat,$valid_audio_formats))
                die("Invalid audio format");
@@ -89,41 +89,42 @@
           } else if ($isVideoFormat && $videoFormat == "original") {
                $cmd=$cmd . " -f best";
           }
-            
+           
           // Download progress
 	  // Delete DB if it exists already 
-	   try {
-	          if (file_exists($db_name))
+	  try {
+	       if (file_exists($db_name))
                     unlink($db_name);
-	     } catch(Exception $e) {
-	     }
+	  } catch(Exception $e) {
+	  }
 
-	     // Create database 
-	     $file_db = new PDO('sqlite:' . $db_name);
-
-	     // Create the table
-	     try {
+	  // Create database 
+	  $file_db = new PDO('sqlite:' . $db_name);
+/*
+	  // Create the table
+	  try {
                $file_db->exec("CREATE TABLE IF NOT EXISTS downloadProgress (id INTEGER PRIMARY KEY, message TEXT, shown BIT);"); 	       
-	     } catch(PDOException $e) {
-	          die("Unable to create the database");
-	     } 
-          
-          set_time_limit(0);
+	  } catch(PDOException $e) {
+	     die("Unable to create the database");
+	  } 
+	   */ 
+	  
+	  set_time_limit(0);
 
           $handle = popen($cmd,"r");
 
           if (ob_get_level() == 0)
                ob_start();
-
-          while (!feof($handle)) {
+	   
+	  while (!feof($handle)) {
                $buffer= fgets($handle);
                $buffer = trim(htmlspecialchars($buffer));
 
-	          /*if ($buffer != '') {
-	               $insert="INSERT INTO downloadProgress(message,shown) VALUES('" . $buffer . "',0)";
-	               $stmt=$file_db->prepare($insert);
-	               $stmt->execute();
-	          }*/
+	          ///*if ($buffer != '') {
+	          //     $insert="INSERT INTO downloadProgress(message,shown) VALUES('" . $buffer . "',0)";
+	          //     $stmt=$file_db->prepare($insert);
+	          //     $stmt->execute();
+	          //}
 
                ob_flush();
 
@@ -160,13 +161,12 @@
           }
  
           // If move To Server is true, we have more steps to process 
-          /*if ($isMP3Format == true || $moveToServer == true) {
+          if ($isMP3Format == true || $moveToServer == true) {
 	          die(json_encode(array($fileName)));
           } else if ($isMP3Format == false && $moveToServer == false) { // If the file is not MP3, we don't need to write ID3 tags. If MoveTo Server is false, we are done and there are no more steps to process to provide download link
                die(json_encode(array($domain . urlencode($fileName))));
-	  }*/
+	  }
 
-	  // die(json_encode(array($fileName)));
 	  if ($isMP3Format == false)
 	       die(json_encode(array($fileName)));
 
@@ -204,27 +204,27 @@
 
 	  // if tagged is false, nothing was written above
 	  if ($tagged == false)
-               echo json_encode(array(urlencode($fileName),"",""));
+	       echo json_encode(array(urlencode($fileName),"",""));
 	  else { 
-	       // If the track was tagged, create new filename based on artist  
-	       chdir($sourcePath);
+		  // If the track was tagged, create new filename based on artist  
+		  chdir($sourcePath);
 
-	       $newFileName=$artist . " - " . $title . ".mp3";
+		  $newFileName=$artist . " - " . $title . ".mp3";
 		  
-	       $cmd="mv " . chr(34) . $fileName . chr(34) . " " . chr(34) . $newFileName . chr(34);
+		  $cmd="mv " . chr(34) . $fileName . chr(34) . " " . chr(34) . $newFileName . chr(34);
 
-	       exec($cmd,$retArr2,$retVal2);
+		  exec($cmd,$retArr2,$retVal2);
 
-	       $fileName=$newFileName;
- 
-               echo json_encode(array(urlencode($fileName),$artist,$title));
-          }
- 
+		  $fileName=$newFileName;
+
+	          echo json_encode(array(urlencode($fileName),$artist,$title));
+	  }
+
           return;
      } 
     
      function getDownloadProgress() {
-	  global $db_name;
+	     global $db_name;
 
           $file_db = new PDO('sqlite:' . $db_name);
           
@@ -363,14 +363,17 @@
     
           $fileName = htmlspecialchars($_GET["Filename"]);
           $isLastStep=(isset($_GET["IsLastStep"]) && $_GET["IsLastStep"] == "true" ? true : false);
+	  
+	  if (isset($_GET["TrackNum"]))
+	       die(htmlspecialchars($_GET["TrackNum"]));
 
           $tagData = array(
-               'artist'   => array(htmlspecialchars($_GET["Artist"])),
-               'band'     => array(htmlspecialchars($_GET["Artist"])), // album artist
+	       'artist'   => array(htmlspecialchars($_GET["Artist"])),
+	       'band'     => array(htmlspecialchars($_GET["Artist"])), // album artist
                'album'    => array((isset($_GET["Album"]) ? htmlspecialchars($_GET["Album"]) : "")),
-               'title'    => array(($_GET["TrackName"] != null ? htmlspecialchars($_GET["TrackName"]) : "")),
-               'track'    => array((isset($_GET["TrackNum"]) ? htmlspecialchars($_GET["TrackNum"]) : 0)),
-               'genre'    => array((isset($_GET["Genre"]) ? htmlspecialchars($_GET["Genre"]) : "")),
+	       'title'    => array(($_GET["TrackName"] != null ? htmlspecialchars($_GET["TrackName"]) : "")),
+  	       // 'track'    => array((isset($_GET["TrackNum"]) ? htmlspecialchars($_GET["TrackNum"]) : 0)), 
+	       'genre'    => array((isset($_GET["Genre"]) ? htmlspecialchars($_GET["Genre"]) : "")),
                'year'     => array((isset($_GET["Year"]) ? htmlspecialchars($_GET["Year"]) : 0))
           );
    
@@ -392,19 +395,19 @@
 
           // write tags
           if ($tagWriter->WriteTags()) {
-               if (!$isLastStep)
-                    die(json_encode(array($domain . urlencode($fileName), $sourcePath . urlencode($fileName))));
+	       if (!$isLastStep) 
+	            die(json_encode(array($domain . urlencode($fileName), $sourcePath . urlencode($fileName))));
                else
                     $status="Successfully wrote the ID3 tags";
 	     
                if (!empty($tagWriter->warnings)) {
                     $status .= "There were some warnings: " . implode('<br><br>', $tagWriter->warnings);
-               }
+	       }
           } else {
                $status="Error: Failed to write tags! " . implode('<br><br>', $tagWriter->errors);
-          }
+	  }
 
-          echo json_encode(array($status));
+          // echo json_encode(array($status));
 
           return;
      }

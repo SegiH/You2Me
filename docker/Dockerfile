@@ -28,8 +28,8 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     chmod 755 /usr/local/bin/youtube-dl && \
     sed -i 's/www.mysite.com/\/localhost/g' php/serverTasks.php && \
     sed -i 's/You2Me\///g' index.html && \
-    chmod 400 /var/www/html/media/ && \
-    chmod 400 /var/www/html/php && \
+    chmod 777 /var/www/html/media/ && \
+    chmod 777 /var/www/html/php && \
     docker-php-ext-install mysqli pdo_mysql pdo_sqlite && \
     apt -y clean
 
