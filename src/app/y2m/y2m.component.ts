@@ -1,6 +1,5 @@
 /*
-     TODO:
-     Strip Extra YT URL params
+     TODO:     
      Can't write track num since getID3 throws an error writing this field
 
      Before publishing:
@@ -596,6 +595,12 @@ export class Y2MComponent implements OnInit {
      rfc3986EncodeURIComponent(str) {  
           return encodeURIComponent(str).replace(/[!'()*]/g, escape);  
      }
+     
+     scrubYouTubeURL() {
+          let arr=this.fields.URL.Value.split('&');
+
+          this.fields.URL.Value=arr[0];
+     }
 
      showSupportedSitesToggle() {
           if (this.supportedURLsVisible && typeof this.supportedURLsDataSource === 'undefined') {
@@ -675,6 +680,9 @@ export class Y2MComponent implements OnInit {
                this.showSnackBarMessage('Please enter a valid URL beginning with http:// or https://');
                return;
           }
+
+          if (this.fields.URL.Value.includes('youtube.com'))
+               this.scrubYouTubeURL();
 
           if (!this.fieldIsHidden('Artist') && (this.fields.Artist.Required && (this.fields.Artist.Value === null || this.fields.Artist.Value === ''))) {
                this.showSnackBarMessage('Please enter the artist');
