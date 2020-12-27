@@ -1,19 +1,6 @@
-<!-- Supported sites dropdown
-<mat-card>
-     
-     Supported sites
-     <mat-form-field>
-          <mat-select placeholder='Supported Sites' name="audioformat">
-               <mat-option *ngFor="let currSite of this.supportedURLs" [value]="currSite">
-                    {{currSite}}
-               </mat-option>
-          </mat-select>
-     </mat-form-field>
-</mat-card>
- -->
 <mat-card>
      <mat-toolbar color="primary">
-          <span>You2Me {{this.moveToServer == true ? " (Server)" : ""}}</span>
+          <span>You2Me {{(this.moveToServer ? " (Server)" : "") + (this.debugging ? " (Debugging enabled)" : "")}}</span>
      </mat-toolbar>
 
      <!-- Fields -->

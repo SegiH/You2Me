@@ -15,7 +15,7 @@ import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { DataService } from '../core/data.service';
-import {interval} from "rxjs";
+import { interval } from "rxjs";
 import { DownloadService } from '../core/download.service';
 import { Download } from '../core/download';
 import { Observable } from 'rxjs';
@@ -48,7 +48,7 @@ export class Y2MComponent implements OnInit {
      currentAudioFormat = null; // MP3 320K is the default format
      currentVideoFormat = null;
      currentStep = 0;
-     debugging = false; // This should never be true when running production build
+     debugging = true; // This should never be true when running production build
      download$: Observable<Download>;
      downloadLink = '';
      downloadButtonVisible = false; // default false
@@ -152,11 +152,11 @@ export class Y2MComponent implements OnInit {
           if (this.debugging) {
                this.fields.URL.Value="https://www.youtube.com/watch?v=Wch3gJG2GJ4";
                this.fields.Artist.Value="Monkeeys";
-               //this.fields.Album.Value="Greatest Hits";
-               //this.fields.Name.Value="Goin Down";
-               //this.fields.TrackNum.Value="13";
+               this.fields.Album.Value="Greatest Hits";
+               this.fields.Name.Value="Goin Down";
+               this.fields.TrackNum.Value="13";
                this.fields.Genre.Value="60s";
-              // this.fields.Year.Value="1994";
+               this.fields.Year.Value="1994";
                this.currentAudioFormat='320k';
                this.currentVideoFormat=null;
                this.saveValues=true;
