@@ -597,10 +597,10 @@ export class Y2MComponent implements OnInit {
      }
      
      scrubYouTubeURL() {
-          let arr=this.fields.URL.Value.split('&');
+          const arr=this.fields.URL.Value.split('&');
 
           this.fields.URL.Value=arr[0];
-     }
+     } 
 
      showSupportedSitesToggle() {
           if (this.supportedURLsVisible && typeof this.supportedURLsDataSource === 'undefined') {
