@@ -48,7 +48,7 @@ export class Y2MComponent implements OnInit {
      currentAudioFormat = null; // MP3 320K is the default format
      currentVideoFormat = null;
      currentStep = 0;
-     debugging = true; // This should never be true when running production build
+     debugging = false; // This should never be true when running production build
      download$: Observable<Download>;
      downloadLink = '';
      downloadButtonVisible = false; // default false
