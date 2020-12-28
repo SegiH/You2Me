@@ -482,12 +482,12 @@ export class Y2MComponent implements OnInit {
                          // Disabled for now. Having Python issues with Docker, Python fingerprinting is broken
 
                          // Second index will be Artist if matched through Python script that does audio fingerprinting
-                         if (response[1] !== null && response[1] !== '') {
+                         if (typeof response[1] != 'undefined') {
                               this.fields.Artist.Value = response[1];
                          }
 
                          // Third index will be Title if matched through Python script that does audio fingerprinting
-                         if (response[2] !== null && response[2] !== '') {
+                         if (typeof response[2] != 'undefined') {
                               this.fields.Name.Value = response[2];
                          }
 
