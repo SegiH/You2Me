@@ -22,4 +22,4 @@ For video, the supported formats are original (don't re-encode the video which i
 This web app supports over 1000 sites. The app has a searchable list of the sites supported by You2Me at 
 the bottom by checking "Show Supported Sites".
 
-Please see INSTALL.md for installation instructions
+Please see INSTALL.md for installation instructions.
