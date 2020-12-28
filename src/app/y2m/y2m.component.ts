@@ -194,13 +194,15 @@ export class Y2MComponent implements OnInit {
                //console.log("Response: " + response.state);
 
                if (response.state == "DONE") {
-                    // Send request to delete the file
-                    this.dataService.deleteDownloadFile(this.downloadLink).subscribe((response) => { 
-                         //console.log(response)
-                    },
-                    error => {
-                         console.log("An error " + error + " occurred deleting the file from the server 1");
-                    });
+                    if (!this.debugging) {
+                         // Send request to delete the file
+                         this.dataService.deleteDownloadFile(this.downloadLink).subscribe((response) => { 
+                              //console.log(response)
+                         },
+                         error => {
+                              console.log("An error " + error + " occurred deleting the file from the server 1");
+                         });
+                    }
                }
           },
           error => {
