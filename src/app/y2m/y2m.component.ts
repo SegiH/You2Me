@@ -3,6 +3,7 @@
      Even when setting Debugging=true, terminal network shows getdownloadProgress being called
      ID3 tags aren't getting written
      Can't write track num since getID3 throws an error writing this field
+     Disabled download call to start download progress since it runs even when debugging is enabled even though it shouldn't
 
      Before publishing:
           1. Make sure debugging is off!
