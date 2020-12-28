@@ -12,7 +12,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     wget https://github.com/JamesHeinrich/getID3/archive/master.zip && \
     wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl && \
     mkdir /var/www/html/media && \
-    chmod 400 assets/php/serverTasks.php && \
+    chmod 755 assets/php/serverTasks.php && \
     mkdir php && \
     mv assets/php/serverTasks.php php && \
     unzip master.zip && \
