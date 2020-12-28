@@ -81,12 +81,12 @@ When you use this shortcut, you do not need to enter the artist and or track tit
 
 If you get an error downloading the track, there are a few things that you can do to figure out what is causing the problem.
 
-1. Make sure that youtube-dl is up to date. It gets updated fairly often and is usually the most common reason that this app  will stop working.
-1. Make sure that youtube-dl has the right permissions by running `chmod a+rx /usr/local/bin/youtube-dl` (Change the path if youtube-dl is located in a different location)
+1. Make sure that youtube-dl is up to date. It gets updated fairly often and is usually the most common reason that this app  will stop working. Run the command `sudo pip install --upgrade youtube_dl` to upgrade YouTube-dl. If you are using Docker, the command is `docker exec You2Me pip install --upgrade youtube_dl`.
+1. Make sure that youtube-dl has the right permissions by running `chmod a+rx /usr/local/bin/youtube-dl` (Change the path if youtube-dl is located in a different location).
 1. Make sure that the php directory has write permissions.
 1. Make sure that the media folder has write permissions. 
 1. Run the following command in a terminal: `youtube-dl URL -x --audio-format mp3 --audio-quality 320` where URL is the full URL of the site that you want to download. Make sure that the command completes and generates an mp3.
 1. If you get the error "ERROR: WARNING: unable to obtain file audio codec with ffprobe" when running the step above, make sure that ffprobe is working     correctly by running ffprobe -version. If you are using Plex and get this error, it is caused by the envirnment variable LD_LIBRARY_PATH=/usr/lib/plexmediaserver. You can verify this by running the command export and looking for this variable. If you see this path, remove it by editing /etc/environment and add # in front of this line.
-1. Make sure that the youtube URL is in the format https://www.youtube.com/watch?v=<YOUTUBEID> where <YOUTUBEID> is random letters and number
+1. Make sure that the youtube URL is in the format https://www.youtube.com/watch?v=<YOUTUBEID> where <YOUTUBEID> is random letters and number.
 
 Please contact me if you have any questons, run into any problems or would like to suggest new features. 
