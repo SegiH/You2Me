@@ -1,9 +1,7 @@
 /*
      TODO:
-     Even when setting Debugging=true, terminal network shows getdownloadProgress being called
      ID3 tags aren't getting written
      Can't write track num since getID3 throws an error writing this field
-     Disabled download call to start download progress since it runs even when debugging is enabled even though it shouldn't
 
      Before publishing:
           1. Make sure debugging is off!
@@ -346,8 +344,7 @@ export class Y2MComponent implements OnInit {
                case 'YEAR':
                     return (typeof this.urlParams[name] !== 'undefined' ? decodeURI(this.urlParams[name]) : null);
                case 'DEBUGGING':
-                    return 'SEGI'
-                    //'return (typeof this.urlParams[name] !== 'undefined' && this.urlParams[name] == true ? true : null);
+                    return (typeof this.urlParams[name] !== 'undefined' && this.urlParams[name] == 'true' ? true : null);
                default:
                     return null;
           }
@@ -455,8 +452,8 @@ export class Y2MComponent implements OnInit {
                     const fileName = (this.isAudioFormat() && !isNaN(parseInt(trackNum)) ? (parseInt(trackNum) < 10 && trackNum[0] != "0" ? "0" : "") + trackNum + ' ' : '') + name;
 
                     // Start timer that gets download progress
-                    //if (!this.debugging)
-                    //     this.getDownloadProgress();
+                    if (!this.debugging)
+                         this.getDownloadProgress();
 
                     // Call data service to download the file
                     this.dataService.fetchFile(URL, fileName,this.moveToServer, this.isAudioFormat(), this.isMP3Format(),(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
