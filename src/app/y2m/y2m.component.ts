@@ -1,6 +1,8 @@
 /*
      TODO:
 
+     Can't D/L when using Angular proxy server
+
      Before publishing:
           1. Make sure debugging is off!
           2. Make sure proxy.conf doesn't have my server address and make sure php doesn't have it either.
