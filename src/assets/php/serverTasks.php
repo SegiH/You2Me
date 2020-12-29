@@ -275,6 +275,16 @@
           echo json_encode($supportedSites);
      }
 
+     function lastIndexOf($str,$x) {
+          $index = -1;
+
+	     for ($i=0; $i < strlen($str); $i++) 
+               if ($str[$i] == $x)
+		          $index=$i;
+
+	     return $index;
+     }
+
      function moveFile() {
           global $audioDestinationPath;
           global $domain;
@@ -364,19 +374,47 @@
           $fileName = htmlspecialchars($_GET["Filename"]);
           $isLastStep=(isset($_GET["IsLastStep"]) && $_GET["IsLastStep"] == "true" ? true : false);
 	  
-	  if (isset($_GET["TrackNum"]))
-	       die(htmlspecialchars($_GET["TrackNum"]));
+	  $artist=(isset($_GET["Artist"]) ? htmlspecialchars($_GET["Artist"]) : "");
+	  $album=(isset($_GET["ALbum"]) ? htmlspecialchars($_GET["Album"]) : "");
+	  $title=(isset($_GET["TrackName"]) ? htmlspecialchars($_GET["TrackName"]) : "");
+	  $trackNum=(isset($_GET["TrackNum"]) ? htmlspecialchars($_GET["TrackNum"]) : "");
+	  $genre=(isset($_GET["Genre"]) ? htmlspecialchars($_GET["Genre"]) : "");
+	  $year=(isset($_GET["Year"]) ? htmlspecialchars($_GET["Year"]) : "");
 
-          $tagData = array(
+	  $tagData=array();
+
+	  if ($artist != "") {
+              $tagData['artist']=array($artist);
+              $tagData['band']=array($artist);
+	  }
+	  
+	  if ($album != "") {
+              $tagData['album']=array($album);
+	  }
+	  
+	  if ($title != "") {
+              $tagData['title']=array($title);
+	  }
+	  
+	  if ($genre != "") {
+              $tagData['genre']=array($genre);
+	  }
+	  
+	  if ($year != "") {
+              $tagData['year']=array($year);
+	  }
+	  
+
+          /*$tagData = array(
 	       'artist'   => array(htmlspecialchars($_GET["Artist"])),
 	       'band'     => array(htmlspecialchars($_GET["Artist"])), // album artist
                'album'    => array((isset($_GET["Album"]) ? htmlspecialchars($_GET["Album"]) : "")),
 	       'title'    => array(($_GET["TrackName"] != null ? htmlspecialchars($_GET["TrackName"]) : "")),
-  	       // 'track'    => array((isset($_GET["TrackNum"]) ? htmlspecialchars($_GET["TrackNum"]) : 0)), 
 	       'genre'    => array((isset($_GET["Genre"]) ? htmlspecialchars($_GET["Genre"]) : "")),
                'year'     => array((isset($_GET["Year"]) ? htmlspecialchars($_GET["Year"]) : 0))
-          );
+          );*/
    
+  	  // 'track'    => array((isset($_GET["TrackNum"]) ? htmlspecialchars($_GET["TrackNum"]) : 0)), 
           // id3 object 
           $getID3=new getID3;
           $getID3->setOption(array('encoding'=>'UTF-8'));
@@ -396,7 +434,7 @@
           // write tags
           if ($tagWriter->WriteTags()) {
 	       if (!$isLastStep) 
-	            die(json_encode(array($domain . urlencode($fileName), $sourcePath . urlencode($fileName))));
+	            die(json_encode(array($domain . $fileName, $sourcePath . urlencode($fileName))));
                else
                     $status="Successfully wrote the ID3 tags";
 	     
@@ -410,16 +448,6 @@
           // echo json_encode(array($status));
 
           return;
-     }
- 
-     function lastIndexOf($str,$x) {
-          $index = -1;
-
-	     for ($i=0; $i < strlen($str); $i++) 
-               if ($str[$i] == $x)
-		          $index=$i;
-
-	     return $index;
      }
 
      if (isset($_GET["DeleteDownloadFile"])) {
