@@ -146,11 +146,11 @@ export class Y2MComponent implements OnInit {
           // Enable debugging if enabled at command line
           const currDebugging=this.debugging;
 
-          this.debugging = (this.getURLParam("Debugging") != this.debugging && this.getURLParam("Debugging")  == true ? this.getURLParam("Debugging") : currDebugging);
+          this.debugging = (this.getURLParam("Debugging") != this.debugging && this.getURLParam("Debugging") == true ? this.getURLParam("Debugging") : currDebugging);
 
           // Debugging default field values
           if (this.debugging) {
-               this.fields.URL.Value="https://www.youtube.com/watch?v=Wch3gJG2GJ4";
+               /*this.fields.URL.Value="https://www.youtube.com/watch?v=Wch3gJG2GJ4";
                this.fields.Artist.Value="Monkeeys";
                this.fields.Album.Value="Greatest Hits";
                this.fields.Name.Value="Goin Down";
@@ -159,7 +159,7 @@ export class Y2MComponent implements OnInit {
                this.fields.Year.Value="1994";
                this.currentAudioFormat='320k';
                this.currentVideoFormat=null;
-               this.saveValues=true;
+               this.saveValues=true;*/
           }
           
           // Remove Artist name from title if it exists. You can't do this in getURLParam because it ends up getting called recursively
