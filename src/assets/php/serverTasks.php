@@ -374,35 +374,39 @@
           $fileName = htmlspecialchars($_GET["Filename"]);
           $isLastStep=(isset($_GET["IsLastStep"]) && $_GET["IsLastStep"] == "true" ? true : false);
 	  
-	  $artist=(isset($_GET["Artist"]) ? htmlspecialchars($_GET["Artist"]) : "");
-	  $album=(isset($_GET["ALbum"]) ? htmlspecialchars($_GET["Album"]) : "");
-	  $title=(isset($_GET["TrackName"]) ? htmlspecialchars($_GET["TrackName"]) : "");
-	  $trackNum=(isset($_GET["TrackNum"]) ? htmlspecialchars($_GET["TrackNum"]) : "");
-	  $genre=(isset($_GET["Genre"]) ? htmlspecialchars($_GET["Genre"]) : "");
-	  $year=(isset($_GET["Year"]) ? htmlspecialchars($_GET["Year"]) : "");
+	     $artist=(isset($_GET["Artist"]) ? htmlspecialchars($_GET["Artist"]) : "");
+	     $album=(isset($_GET["ALbum"]) ? htmlspecialchars($_GET["Album"]) : "");
+	     $title=(isset($_GET["TrackName"]) ? htmlspecialchars($_GET["TrackName"]) : "");
+	     $trackNum=(isset($_GET["TrackNum"]) ? htmlspecialchars($_GET["TrackNum"]) : "");
+	     $genre=(isset($_GET["Genre"]) ? htmlspecialchars($_GET["Genre"]) : "");
+	     $year=(isset($_GET["Year"]) ? htmlspecialchars($_GET["Year"]) : "");
 
-	  $tagData=array();
+	     $tagData=array();
 
-	  if ($artist != "") {
+	     if ($artist != "") {
               $tagData['artist']=array($artist);
               $tagData['band']=array($artist);
-	  }
+	     }
 	  
-	  if ($album != "") {
+	     if ($album != "") {
               $tagData['album']=array($album);
-	  }
+	     }
 	  
-	  if ($title != "") {
+	     if ($title != "") {
               $tagData['title']=array($title);
-	  }
+          }
+          
+          if ($trackNum != "") {
+               $tagData['track']=array($trackNum);
+           }
 	  
-	  if ($genre != "") {
+	     if ($genre != "") {
               $tagData['genre']=array($genre);
-	  }
+	     }
 	  
-	  if ($year != "") {
+	     if ($year != "") {
               $tagData['year']=array($year);
-	  }
+	     }
 	  
 
           /*$tagData = array(

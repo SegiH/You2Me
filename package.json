@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
-    "build": "ng build --base-href /You2Me/ --prod",
+    "build": "ng build --base-href /You2Me/ --prod && rm -rf docker/dist && mv dist docker",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"

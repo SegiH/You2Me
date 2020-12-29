@@ -1,12 +1,9 @@
 /*
      TODO:
-     ID3 tags aren't getting written
-     Can't write track num since getID3 throws an error writing this field
 
      Before publishing:
           1. Make sure debugging is off!
           2. Make sure proxy.conf doesn't have my server address and make sure php doesn't have it either.
-          3. Build the application and move dist to the docker folder replacing the old copy of dist
 
      URL for testing: https://www.youtube.com/watch?v=Wch3gJG2GJ4
 */
