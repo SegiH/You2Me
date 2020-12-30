@@ -30,7 +30,6 @@ import { DOCUMENT } from '@angular/common';
 export class Y2MComponent implements OnInit {
      allowMoveToServer = true;
      readonly audioFormats: any = {
-          '' : null, // Needed to the user can unselect audio options
           'aac' : 'aac',
           'flac' : 'flac',
           'm4a' : 'm4a',
@@ -45,8 +44,7 @@ export class Y2MComponent implements OnInit {
           'vorbis' : 'vorbis',
           'wav' : 'wav',
      };
-     currentAudioFormat = null; // MP3 320K is the default format
-     currentVideoFormat = null;
+     currentFormat = '';
      currentStep = 0;
      debugging = false; // This should never be true when running production build
      download$: Observable<Download>;
@@ -92,6 +90,7 @@ export class Y2MComponent implements OnInit {
      };
      readonly fieldKeys = Object.keys(this.fields); // Used in HTML template
      fileName = '';
+     formats: any = {};
      isFinished = false; // default false
      isSubmitted = false; // default false
      moveToServer = false; // default false
@@ -103,7 +102,6 @@ export class Y2MComponent implements OnInit {
      supportedURLsVisible = false;
      urlParams: {};
      readonly videoFormats: any = {
-          '' : null,
           'No conversion' : 'original',
           'Convert to avi' : 'avi',
           'Convert to flv': 'flv',
@@ -119,18 +117,25 @@ export class Y2MComponent implements OnInit {
      constructor(public snackBar: MatSnackBar, public dataService: DataService,private downloads: DownloadService, @Inject(DOCUMENT) private document: Document) { }
 
      ngOnInit() {
+          // Init formats dropdown
+          this.formats['']=null; // Needed so the user can unselect format
+
+          Object.keys(this.audioFormats).forEach(key => {
+               this.formats['Audio: ' + key]=this.audioFormats[key]; 
+          });
+
+          Object.keys(this.videoFormats).forEach(key => {
+               this.formats['Video: ' + key]=this.videoFormats[key]; 
+          });
+
           // Get URL parameter Format if it was provided
           const format = this.getURLParam('Format');
           
-          if (format !== null) {
-               if (Object.values(this.audioFormats).includes(format)) {
-                    this.currentAudioFormat = format;
-                    this.currentVideoFormat = null;
-               } else if (Object.values(this.videoFormats).includes(format)) {
-                    this.currentVideoFormat = format;
-                    this.currentAudioFormat = null
-               } else
-                    alert(`Valid formats are ${Object.values(this.audioFormats).filter(format => format !== null)} for audio or ${Object.values(this.videoFormats).filter(format => format !== null)} for video`);          
+          if (format != null) {
+               if(!Object.values(this.formats).includes(format))
+                    alert(`Valid formats are ${Object.values(this.formats).filter(format => format !== null)}`);
+               else
+                    this.currentFormat=format;
           }
 
           // If URL parameter MoveToServer was provided and is allowed, add Moving the file to new location as a step
@@ -192,7 +197,6 @@ export class Y2MComponent implements OnInit {
           // Subscribe to DL service and wait for the done response 
           this.downloads.download(this.downloadLink, fileNameWithoutPath).subscribe((response) => {
                //console.log("Response: " + response.state);
-
                if (response.state == "DONE") {
                     if (!this.debugging) {
                          // Send request to delete the file
@@ -289,15 +293,6 @@ export class Y2MComponent implements OnInit {
           });
      }
 
-     // Return the key based on the value
-     getFormatKeyByValue() {
-          // Since there are 2 format dropdowns, either one of them has a selected value or neither has a selected value
-          return (
-               this.currentAudioFormat !== null 
-                    ? Object.keys(this.audioFormats).find(key => this.audioFormats[key] === this.currentAudioFormat) 
-                    : (this.currentVideoFormat !== null ? Object.keys(this.videoFormats).find(key => this.videoFormats[key] === this.currentVideoFormat) : null));
-     }
-
      // Get URL parameter
      getURLParam(name: string) {
           // The first time this method gets called, this.urlParams will be undefined
@@ -364,17 +359,28 @@ export class Y2MComponent implements OnInit {
 
      // Is currently selected format an audio format
      isAudioFormat() {
-          return this.currentAudioFormat !== null;
+          let isAudio=false;
+
+          Object.keys(this.audioFormats).forEach(key => {
+               if (this.audioFormats[key] == this.currentFormat) {
+                    isAudio=true; 
+               }
+          });
+
+          return isAudio;
      }
 
      // Is currently selected format an mp3 format
      isMP3Format() {
-          const format = this.getFormatKeyByValue();
+          let isMP3=false;
 
-          if (format != null && this.isAudioFormat() && format.includes('mp3'))
-               return true;
-          else
-               return false;
+          Object.keys(this.audioFormats).forEach(key => {
+               if (this.audioFormats[key] == this.currentFormat && key.includes('mp3')) {
+                    isMP3=true; 
+               }
+          });
+
+          return isMP3;
      }
 
      // Event if the user clicks on the Move To Server button
@@ -455,7 +461,7 @@ export class Y2MComponent implements OnInit {
                          this.getDownloadProgress();
 
                     // Call data service to download the file
-                    this.dataService.fetchFile(URL, fileName,this.moveToServer, this.isAudioFormat(), this.isMP3Format(),(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
+                    this.dataService.fetchFile(URL, fileName,this.moveToServer, this.isAudioFormat(), this.isMP3Format(),this.currentFormat)
                     .subscribe((response) => {
                          // Stop the REST service that gets the download status
                          if (!this.debugging) {
@@ -569,7 +575,7 @@ export class Y2MComponent implements OnInit {
                     break;
                case 2: // Call the data service to move the file to the media server
                     if (this.moveToServer || this.allowMoveToServer) {
-                         this.dataService.moveFile(this.fileName, this.isAudioFormat(), this.moveToServer, artist, album,(this.currentAudioFormat ? this.currentAudioFormat : this.currentVideoFormat))
+                         this.dataService.moveFile(this.fileName, this.isAudioFormat(), this.moveToServer, artist, album,this.currentFormat)
                          .subscribe((response) => {
                               // Trap server side errors
                               if (response[0].includes('Error:')) {
@@ -710,8 +716,8 @@ export class Y2MComponent implements OnInit {
                return;
           }
 
-          if (this.currentAudioFormat === null && this.currentVideoFormat === null) {
-               this.showSnackBarMessage('Please select the audio or video format');
+          if (this.currentFormat === null) {
+               this.showSnackBarMessage('Please select the format');
                return;
           }
 
