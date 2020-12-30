@@ -8,10 +8,10 @@
      error_reporting(E_ALL);
 
      // The path where the file will be moved to. Make sure the path has a slash at the end
-     $audioDestinationPath="..\\newlocation\\";
-     $videoDestinationPath="..\\newlocation\\";
+     $audioDestinationPath="/mnt/usb/";
+     $videoDestinationPath="/mnt/usb/";
      
-     $sourcePath="../media/";
+     $sourcePath="/var/www/html/media/";
      $domain="https://" . $_SERVER["HTTP_HOST"] . "/media/";
 
      //$os=php_uname("s");
