@@ -20,21 +20,21 @@
      $db_name="downloadProgress.sqlite3";
 
      function deleteDownloadProgress() {
-	     global $db_name;
-	  
+          global $db_name;
+       
           try {
-	          if (file_exists($db_name))
+               if (file_exists($db_name))
                     $result=unlink($db_name);
-	           
+                
                die(json_encode(array($result)));
-	     } catch(Exception $e) {
-	     }
+          } catch(Exception $e) {
+          }
      }
 
      function downloadFile() {
-	  global $db_name;
+          global $db_name;
           global $domain;
-	  global $os;
+          global $os;
           global $sourcePath;
 
           $url=htmlspecialchars($_GET["URL"]);
@@ -79,11 +79,10 @@
           if ($isAudioFormat == true) {
                $cmd=$cmd . " -x";
  
-               if ($isMP3Format) {
+               if ($isMP3Format)
                     $cmd=$cmd . " --audio-format mp3 --audio-quality " . $bitrate; 
-               } else {
+               else
                    $cmd=$cmd . " --audio-format " . $audioFormat;
-               }
           } else if ($isVideoFormat && $videoFormat != "original") {
                $cmd=$cmd . " --recode-video " . $videoFormat;
           } else if ($isVideoFormat && $videoFormat == "original") {
@@ -91,40 +90,39 @@
           }
            
           // Download progress
-	  // Delete DB if it exists already 
-	  try {
-	       if (file_exists($db_name))
+          // Delete DB if it exists already 
+          try {
+               if (file_exists($db_name))
                     unlink($db_name);
-	  } catch(Exception $e) {
-	  }
+          } catch(Exception $e) {
+          }
 
-	  // Create database 
-	  $file_db = new PDO('sqlite:' . $db_name);
-/*
-	  // Create the table
-	  try {
-               $file_db->exec("CREATE TABLE IF NOT EXISTS downloadProgress (id INTEGER PRIMARY KEY, message TEXT, shown BIT);"); 	       
-	  } catch(PDOException $e) {
-	     die("Unable to create the database");
-	  } 
-	   */ 
-	  
-	  set_time_limit(0);
+          // Create database 
+          $file_db = new PDO('sqlite:' . $db_name);
+
+          // Create the table
+          try {
+               $file_db->exec("CREATE TABLE IF NOT EXISTS downloadProgress (id INTEGER PRIMARY KEY, message TEXT, shown BIT);");             
+          } catch(PDOException $e) {
+               die("Unable to create the database");
+          }
+       
+          set_time_limit(0);
 
           $handle = popen($cmd,"r");
 
           if (ob_get_level() == 0)
-               ob_start();
-	   
-	  while (!feof($handle)) {
+                ob_start();
+        
+          while (!feof($handle)) {
                $buffer= fgets($handle);
                $buffer = trim(htmlspecialchars($buffer));
 
-	          ///*if ($buffer != '') {
-	          //     $insert="INSERT INTO downloadProgress(message,shown) VALUES('" . $buffer . "',0)";
-	          //     $stmt=$file_db->prepare($insert);
-	          //     $stmt->execute();
-	          //}
+               if ($buffer != '') {
+                    $insert="INSERT INTO downloadProgress(message,shown) VALUES('" . $buffer . "',0)";
+                    $stmt=$file_db->prepare($insert);
+                    $stmt->execute();
+               }
 
                ob_flush();
 
@@ -148,90 +146,85 @@
                exec($cmd . " --get-filename",$videoFileName);
 
                $fileName=str_replace($sourcePath,"",$videoFileName[0]);
-	  }
-       
-          if (!file_exists($sourcePath . $fileName))  {
-               //die($cmd . " with the expected file " . $sourcePath . $fileName);
-               die(json_encode(array("Error: Unable to create the file")));
           }
+       
+          if (!file_exists($sourcePath . $fileName))
+               die(json_encode(array("Error: An error occurred downloading the file")));
 
           // If the format is audio and its mp3, try to tag it
-          if (!chmod($sourcePath . $fileName,0777)) {
-	          die(json_encode(array("Error: Failed to set the file mode")));
-          }
+          if (!chmod($sourcePath . $fileName,0777))
+               die(json_encode(array("Error: Failed to set the file mode")));
  
           // If move To Server is true, we have more steps to process 
-          if ($isMP3Format == true || $moveToServer == true) {
-	          die(json_encode(array($fileName)));
-          } else if ($isMP3Format == false && $moveToServer == false) { // If the file is not MP3, we don't need to write ID3 tags. If MoveTo Server is false, we are done and there are no more steps to process to provide download link
+          if ($isMP3Format == true || $moveToServer == true)
+               die(json_encode(array($fileName)));
+          else if ($isMP3Format == false && $moveToServer == false) // If the file is not MP3, we don't need to write ID3 tags. If MoveTo Server is false, we are done and there are no more steps to process to provide download link
                die(json_encode(array($domain . urlencode($fileName))));
-	  }
 
-	  if ($isMP3Format == false)
-	       die(json_encode(array($fileName)));
+          if ($isMP3Format == false)
+               die(json_encode(array($fileName)));
 
-	  // Start of Python fingerprinting
+          // Start of Python fingerprinting
           $cmd="python3 ../python/aidmatch.py \"" . $sourcePath . $fileName . "\" 2>&1";
 
-	  exec($cmd,$retArr2,$retVal2);
+          exec($cmd,$retArr2,$retVal2);
 
           $tagged=false;
 
-	  $artist = "";
-	  $title = "";
+          $artist = "";
+          $title = "";
 
-	  // Since we only care about the first result, we only save the first key value pair
-	  foreach ($retArr2 as $key => $value) {
-	       // echo "Key: " . $key . " Value: " . $value . "<BR><BR>";
+          // Since we only care about the first result, we only save the first key value pair
+          foreach ($retArr2 as $key => $value) {
+               // echo "Key: " . $key . " Value: " . $value . "<BR><BR>";
 
-	       // A traceback may happen if no match was made
-	       if ($value=="fingerprint could not be calculated" || strpos($value,"Traceback") !== false) {
-		       break;
-	       }
-	       
+               // A traceback may happen if no match was made
+               if ($value=="fingerprint could not be calculated" || strpos($value,"Traceback") !== false)
+                    break;
+            
                $tagged=true;
  
                $tags=$value;
 
-	       $tags=explode(',',$tags);
+               $tags=explode(',',$tags);
 
-	       $artist=str_replace('"','',$tags[0]);
+               $artist=str_replace('"','',$tags[0]);
 
-	       $title=str_replace('"','',$tags[1]);
+               $title=str_replace('"','',$tags[1]);
                
-	       break;
-	  }
+               break;
+          }
 
-	  // if tagged is false, nothing was written above
-	  if ($tagged == false)
-	       echo json_encode(array(urlencode($fileName),"",""));
-	  else { 
-		  // If the track was tagged, create new filename based on artist  
-		  chdir($sourcePath);
+          // if tagged is false, nothing was written above
+          if ($tagged == false)
+               echo json_encode(array(urlencode($fileName),"",""));
+          else { 
+               // If the track was tagged, create new filename based on artist  
+               chdir($sourcePath);
 
-		  $newFileName=$artist . " - " . $title . ".mp3";
-		  
-		  $cmd="mv " . chr(34) . $fileName . chr(34) . " " . chr(34) . $newFileName . chr(34);
+               $newFileName=$artist . " - " . $title . ".mp3";
+            
+               $cmd="mv " . chr(34) . $fileName . chr(34) . " " . chr(34) . $newFileName . chr(34);
 
-		  exec($cmd,$retArr2,$retVal2);
+               exec($cmd,$retArr2,$retVal2);
 
-		  $fileName=$newFileName;
+               $fileName=$newFileName;
 
-	          echo json_encode(array(urlencode($fileName),$artist,$title));
-	  }
+               echo json_encode(array(urlencode($fileName),$artist,$title));
+          }
 
           return;
      } 
     
      function getDownloadProgress() {
-	     global $db_name;
+          global $db_name;
 
           $file_db = new PDO('sqlite:' . $db_name);
           
           $result=$file_db->query('SELECT id,message FROM downloadProgress WHERE shown=0 LIMIT 1');
           
           foreach($result as $result) {
-		     $file_db->exec("UPDATE downloadProgress SET shown=1 WHERE id=" . $result['id']);
+               $file_db->exec("UPDATE downloadProgress SET shown=1 WHERE id=" . $result['id']);
                   
                // Store message so we can close DB
                $message = $result['message'];
@@ -239,12 +232,12 @@
                // CLose DB
                $file_db = null;
 
-		     die(json_encode(array($message,false))); 
-	     }
+               die(json_encode(array($message,false))); 
+          }
            
           $file_db = null;
 
-	     die(json_encode(array(null,true))); 
+          die(json_encode(array(null,true))); 
      }
 
      function getSupportedURLs() {
@@ -258,11 +251,11 @@
 
           $htmlContent = curl_exec($curl);
  
-	     curl_close($curl);
+          curl_close($curl);
          
-	     $dom = new DOMDocument();
+          $dom = new DOMDocument();
          
-	     $dom->loadHTML($htmlContent);
+          $dom->loadHTML($htmlContent);
          
           $nodes=$dom->getElementsByTagName('li');
           
@@ -278,17 +271,17 @@
      function lastIndexOf($str,$x) {
           $index = -1;
 
-	     for ($i=0; $i < strlen($str); $i++) 
+          for ($i=0; $i < strlen($str); $i++) 
                if ($str[$i] == $x)
-		          $index=$i;
+                    $index=$i;
 
-	     return $index;
+          return $index;
      }
 
      function moveFile() {
           global $audioDestinationPath;
           global $domain;
-		  global $os;
+          global $os;
           global $sourcePath;
           global $videoDestinationPath;
 
@@ -305,24 +298,24 @@
                          echo json_encode(array("The video has been moved to the new location"));
                     } else {
                          echo json_encode(array("Error: An error occurred while copying the video to the new location"));
-	               }
+                    }
                } else {
                     echo json_encode(array($domain . urlencode($fileName)));
                }
 
                return;
           }
-	
+     
           $artist=htmlspecialchars($_GET["Artist"]);
 
           $artist=str_replace("'","",$artist);
 
           $album=(isset($_GET["Album"]) && $_GET["Album"] != "null" ? htmlspecialchars($_GET["Album"]) : "Unknown");
-		  
+            
           $pathBuildSucceeded=false;
 
           // Try to build path if it exists 
-	      if ($moveToServer == true && $artist != null && $artist != "" && $album != null && $album != "") {
+           if ($moveToServer == true && $artist != null && $artist != "" && $album != null && $album != "") {
                if (file_exists($audioDestinationPath . $artist)==false) {
                     if (mkdir($audioDestinationPath . $artist)) {
                          if (!file_exists($audioDestinationPath . $artist . ($os=="Windows" ? "\\" : "/") . $album)) {
@@ -335,8 +328,8 @@
                               $pathBuildSucceeded=true;
                          }
                     }
-	          } else {
-	               // Artist already exists so try to create album
+               } else {
+                    // Artist already exists so try to create album
                     if (!file_exists($audioDestinationPath . $artist . ($os=="Windows" ? "\\" : "/") . $album)) {
                          if (mkdir($audioDestinationPath . $artist . ($os=="Windows" ? "\\" : "/") . $album)) {
                               // If we were able to create the path with artist and album when it didn't exist before
@@ -346,23 +339,19 @@
                          // If the path artist\album already exists
                          $pathBuildSucceeded=true;
                     }
-	          }
-	     }
-
-          if ($pathBuildSucceeded) {
-               $audioDestinationPath=$audioDestinationPath . $artist . ($os=="Windows" ? "\\" : "/") . $album . ($os=="Windows" ? "\\" : "/");
+               }
           }
+
+          if ($pathBuildSucceeded)
+               $audioDestinationPath=$audioDestinationPath . $artist . ($os=="Windows" ? "\\" : "/") . $album . ($os=="Windows" ? "\\" : "/");
           
           // Rename the audio file     
           $res=rename($sourcePath . $fileName,$audioDestinationPath . $fileName);
        
-	      if ($res==true) {
-               // Pass the download link and the local file link
-               // echo json_encode(array($domain . urlencode($fileName), $sourcePath . urlencode($fileName)));
-               echo json_encode(array($domain . urlencode($fileName)));
-          } else {
+          if ($res==true) // Pass the download link and the local file link
+               echo json_encode(array($domain . urlencode($fileName), $sourcePath . urlencode($fileName)));
+          else
                echo json_encode(array("Error: An error occurred while copying the audio file to the new location"));
-	      }
 
           return;
      }
@@ -373,52 +362,37 @@
     
           $fileName = htmlspecialchars($_GET["Filename"]);
           $isLastStep=(isset($_GET["IsLastStep"]) && $_GET["IsLastStep"] == "true" ? true : false);
-	  
-	     $artist=(isset($_GET["Artist"]) ? htmlspecialchars($_GET["Artist"]) : "");
-	     $album=(isset($_GET["ALbum"]) ? htmlspecialchars($_GET["Album"]) : "");
-	     $title=(isset($_GET["TrackName"]) ? htmlspecialchars($_GET["TrackName"]) : "");
-	     $trackNum=(isset($_GET["TrackNum"]) ? htmlspecialchars($_GET["TrackNum"]) : "");
-	     $genre=(isset($_GET["Genre"]) ? htmlspecialchars($_GET["Genre"]) : "");
-	     $year=(isset($_GET["Year"]) ? htmlspecialchars($_GET["Year"]) : "");
+       
+          $artist=(isset($_GET["Artist"]) ? htmlspecialchars($_GET["Artist"]) : "");
+          $album=(isset($_GET["ALbum"]) ? htmlspecialchars($_GET["Album"]) : "");
+          $title=(isset($_GET["TrackName"]) ? htmlspecialchars($_GET["TrackName"]) : "");
+          $trackNum=(isset($_GET["TrackNum"]) ? htmlspecialchars($_GET["TrackNum"]) : "");
+          $genre=(isset($_GET["Genre"]) ? htmlspecialchars($_GET["Genre"]) : "");
+          $year=(isset($_GET["Year"]) ? htmlspecialchars($_GET["Year"]) : "");
 
-	     $tagData=array();
+          $tagData=array();
 
-	     if ($artist != "") {
+          if ($artist != "") {
               $tagData['artist']=array($artist);
               $tagData['band']=array($artist);
-	     }
-	  
-	     if ($album != "") {
-              $tagData['album']=array($album);
-	     }
-	  
-	     if ($title != "") {
-              $tagData['title']=array($title);
           }
+       
+          if ($album != "")
+              $tagData['album']=array($album);
           
-          if ($trackNum != "") {
+       
+          if ($title != "")
+              $tagData['title']=array($title);
+          
+          if ($trackNum != "")
                $tagData['track']=array($trackNum);
-           }
-	  
-	     if ($genre != "") {
+       
+          if ($genre != "")
               $tagData['genre']=array($genre);
-	     }
-	  
-	     if ($year != "") {
+       
+          if ($year != "")
               $tagData['year']=array($year);
-	     }
-	  
-
-          /*$tagData = array(
-	       'artist'   => array(htmlspecialchars($_GET["Artist"])),
-	       'band'     => array(htmlspecialchars($_GET["Artist"])), // album artist
-               'album'    => array((isset($_GET["Album"]) ? htmlspecialchars($_GET["Album"]) : "")),
-	       'title'    => array(($_GET["TrackName"] != null ? htmlspecialchars($_GET["TrackName"]) : "")),
-	       'genre'    => array((isset($_GET["Genre"]) ? htmlspecialchars($_GET["Genre"]) : "")),
-               'year'     => array((isset($_GET["Year"]) ? htmlspecialchars($_GET["Year"]) : 0))
-          );*/
-   
-  	  // 'track'    => array((isset($_GET["TrackNum"]) ? htmlspecialchars($_GET["TrackNum"]) : 0)), 
+          
           // id3 object 
           $getID3=new getID3;
           $getID3->setOption(array('encoding'=>'UTF-8'));
@@ -437,41 +411,38 @@
 
           // write tags
           if ($tagWriter->WriteTags()) {
-	       if (!$isLastStep) 
-	            die(json_encode(array($domain . $fileName, $sourcePath . urlencode($fileName))));
+               if (!$isLastStep) 
+                    die(json_encode(array($domain . $fileName, $sourcePath . urlencode($fileName))));
                else
                     $status="Successfully wrote the ID3 tags";
-	     
-               if (!empty($tagWriter->warnings)) {
+          
+               if (!empty($tagWriter->warnings))
                     $status .= "There were some warnings: " . implode('<br><br>', $tagWriter->warnings);
-	       }
-          } else {
+          } else
                $status="Error: Failed to write tags! " . implode('<br><br>', $tagWriter->errors);
-	  }
 
-          // echo json_encode(array($status));
+          echo json_encode(array($status));
 
           return;
      }
 
      if (isset($_GET["DeleteDownloadFile"])) {
-	     if (!isset($_GET["Filename"]))
+          if (!isset($_GET["Filename"]))
                die("Error: DownloadFile was called but not all audio arguments were provided");
          
-	     $fileName = $_GET["Filename"];
+          $fileName = $_GET["Filename"];
 
-	     // only allow the delete if the file name begins with $domain 
-	     if (strcmp(substr($fileName,0,strlen($domain)),$domain) !== 0) 
+          // only allow the delete if the file name begins with $domain 
+          if (strcmp(substr($fileName,0,strlen($domain)),$domain) !== 0) 
                die("Error: DownloadFile was called with an invalid argument");
-	  
+       
           try {
                // Delete using $sourcePath
-	          unlink($sourcePath . substr($fileName,lastIndexOf($fileName,"/")+1));
-	     } catch(Exception $e) {
-	          die("Unable to delete the file");
-	     }
+               unlink($sourcePath . substr($fileName,lastIndexOf($fileName,"/")+1));
+          } catch(Exception $e) {
+               die("Unable to delete the file");
+          }
      }
-
 
      if (isset($_GET["DownloadFile"])) {
           // Validate that the required arguments were provided
@@ -490,29 +461,27 @@
                downloadFile();
      }
 
-     if (isset($_GET["GetDownloadProgress"])) {
+     if (isset($_GET["GetDownloadProgress"]))
           getDownloadProgress();
-     }
 
      if (isset($_GET["MoveFile"])) {
           if (!isset($_GET["Artist"]) || !isset($_GET["Filename"]) || !isset($_GET["MoveToServer"])) 
                $missingParams=true;
           else
-			  $missingParams=false;
-			  
+                 $missingParams=false;
+                 
           if ($missingParams==true)
                die("Error: MoveFile was called but not all arguments were provided");
           else
                moveFile();
      }
      
-     if (isset($_GET["GetSupportedURLs"])) {
+     if (isset($_GET["GetSupportedURLs"]))
           getSupportedURLs();
-     }
 
      if (isset($_GET["WriteID3Tags"])) {
           // Validate that the required arguments were provided
-	  $missingParams=false;
+          $missingParams=false;
 
           if (!isset($_GET["Artist"]) || !isset($_GET["TrackName"])) 
                $missingParams=true;
