@@ -88,8 +88,7 @@ If you get an error downloading the track, there are a few things that you can d
 1. Run the following command in a terminal: `youtube-dl URL -x --audio-format mp3 --audio-quality 320` where URL is the full URL of the site that you want to download. Make sure that the command completes and generates an mp3.
 1. If you get the error "ERROR: WARNING: unable to obtain file audio codec with ffprobe" when running the step above, make sure that ffprobe is working     correctly by running ffprobe -version. If you are using Plex and get this error, it is caused by the envirnment variable LD_LIBRARY_PATH=/usr/lib/plexmediaserver. You can verify this by running the command export and looking for this variable. If you see this path, remove it by editing /etc/environment and add # in front of this line.
 1. Make sure that the youtube URL is in the format https://www.youtube.com/watch?v=<YOUTUBEID> where <YOUTUBEID> is random letters and number.
-1. When using the Angular dev server, downloading won't work unless you allow CORS Headers. For Traefik you would add something like this:
-   (Replace MY-NETWORK-NAME with your network and you2me.mysite.com with your actual domain in 2 places )
+1. When using the Angular dev server, downloading won't work unless you allow CORS Headers. You will need to look up how to do to this for your web server. For Traefik you would add something like this: (Replace MY-NETWORK-NAME with your network and you2me.mysite.com with your actual domain in 2 places )
 `
 labels:
      - "traefik.enable=true"
