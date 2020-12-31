@@ -1,7 +1,7 @@
 /*
      TODO:
 
-     Can't D/L when using Angular proxy server
+     Can't D/L when using Angular proxy server because of error "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://mysite.com/media/A.mp3. (Reason: CORS header ‘Access-Control-Allow-Origin’ missing)." Don't want to enable this CORS header just for develoment"
 
      Before publishing:
           1. Make sure debugging is off!
@@ -678,18 +678,20 @@ export class Y2MComponent implements OnInit {
           }
 
           // Validate the required fields
-          if (this.fields.URL.Value === '') {
+          if (this.fields.URL.Value ===  null || this.fields.URL.Value === '') {
                this.showSnackBarMessage('Please enter the URL');
                return;
           }
 
-          if (!this.fields.URL.Value.startsWith('http://') && !this.fields.URL.Value.startsWith('https://')) {
-               this.showSnackBarMessage('Please enter a valid URL beginning with http:// or https://');
-               return;
-          }
+          if (this.fields.URL.Value !== null && this.fields.URL.Value !== '') {
+               if (!this.fields.URL.Value.startsWith('http://') && !this.fields.URL.Value.startsWith('https://')) {
+                    this.showSnackBarMessage('Please enter a valid URL beginning with http:// or https://');
+                    return;
+               }
 
-          if (this.fields.URL.Value.includes('youtube.com'))
-               this.scrubYouTubeURL();
+               if (this.fields.URL.Value.includes('youtube.com'))
+                    this.scrubYouTubeURL();
+          }
 
           if (!this.fieldIsHidden('Artist') && (this.fields.Artist.Required && (this.fields.Artist.Value === null || this.fields.Artist.Value === ''))) {
                this.showSnackBarMessage('Please enter the artist');
