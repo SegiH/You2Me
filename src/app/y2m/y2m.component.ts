@@ -1,8 +1,6 @@
 /*
      TODO:
 
-     Can't D/L when using Angular proxy server because of error "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://mysite.com/media/A.mp3. (Reason: CORS header ‘Access-Control-Allow-Origin’ missing)." Don't want to enable this CORS header just for develoment"
-
      Before publishing:
           1. Make sure debugging is off!
           2. Make sure proxy.conf doesn't have my server address and make sure php doesn't have it either.
