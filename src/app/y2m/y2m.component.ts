@@ -45,7 +45,6 @@ export class Y2MComponent implements OnInit {
      currentFormat = '';
      currentStep = 0;
      debugging = false; // This should never be true when running production build
-     download$: Observable<Download>;
      downloadLink = '';
      downloadButtonVisible = false; // default false
      downloadStatus = ''; // displays youtube-dl output messages
@@ -145,10 +144,11 @@ export class Y2MComponent implements OnInit {
           if (this.moveToServer) {
                this.stepperStepNames.push('Moving the file to new location');
           }
-
-          // Enable debugging if enabled at command line
+ 
+          //save current debugging value
           const currDebugging=this.debugging;
 
+          // Enable debugging if Debugging was provided as URL parameter. Otherwise default to currDebugging
           this.debugging = (this.getURLParam("Debugging") != this.debugging && this.getURLParam("Debugging") == true ? this.getURLParam("Debugging") : currDebugging);
 
           // Debugging default field values
@@ -170,6 +170,7 @@ export class Y2MComponent implements OnInit {
                this.fields.Name.Value=this.fields.Name.Value.replace(this.fields.Artist.Value + " - ","");
      }
 
+     // apply filter for supported url search filters
      applyFilter(filterValue: string) {
           this.supportedURLsDataSource.filter = filterValue.trim().toLowerCase();
      }
@@ -178,7 +179,7 @@ export class Y2MComponent implements OnInit {
      createSupportedURLsFilter() {
           const filterFunction = function (data: any, filter: string): boolean {
                const customSearch = () => {
-                    if (data.toLowerCase().includes(filter.toLowerCase()))
+                    if (data.toLowerCase().includes(filter.toLowerCase())) // case insensitive
                          return true;
                }
 
@@ -188,7 +189,7 @@ export class Y2MComponent implements OnInit {
           return filterFunction;
      }
 
-     // Called by binding to Download button
+     // Download click button event
      downloadLinkClicked() {
           const fileNameWithoutPath=this.downloadLink.substr(this.downloadLink.lastIndexOf("/")+1);
 
@@ -482,8 +483,6 @@ export class Y2MComponent implements OnInit {
                          // First index will be filename
                          this.fileName = response[0];
 
-                         // Disabled for now. Having Python issues with Docker, Python fingerprinting is broken
-
                          // Second index will be Artist if matched through Python script that does audio fingerprinting
                          if (typeof response[1] != 'undefined') {
                               this.fields.Artist.Value = response[1];
@@ -513,7 +512,7 @@ export class Y2MComponent implements OnInit {
                               this.currentStep++;
 
                               this.processSteps();
-                         } else if (!this.isMP3Format() && !this.moveToServer) { // If the format is not MP3 and we aren't moving to the server so we are done
+                         } else if (!this.isMP3Format() && !this.moveToServer) { // If the format is not MP3 and we aren't moving to the server we are done
                               // The response returns the URL for the downloaded file
                               this.downloadLink = decodeURIComponent(response[0].replace(/\+/g, ' '));
 
