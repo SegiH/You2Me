@@ -15,8 +15,6 @@ import { MatTableDataSource } from '@angular/material/table';
 import { DataService } from '../core/data.service';
 import { interval } from "rxjs";
 import { DownloadService } from '../core/download.service';
-import { Download } from '../core/download';
-import { Observable } from 'rxjs';
 import { DOCUMENT } from '@angular/common';
 
 @Component({
@@ -26,7 +24,7 @@ import { DOCUMENT } from '@angular/common';
 })
 
 export class Y2MComponent implements OnInit {
-     allowMoveToServer = true;
+     readonly allowMoveToServer = true;
      readonly audioFormats: any = {
           'aac' : 'aac',
           'flac' : 'flac',
@@ -93,7 +91,7 @@ export class Y2MComponent implements OnInit {
      moveToServer = false; // default false
      moveToServerButtonVisible = false; // default false
      saveValues = false;
-     stepperStepNames = ['Started download', 'Finished download', 'Writing ID3 Tags'];
+     readonly stepperStepNames = ['Started download', 'Finished download', 'Writing ID3 Tags'];
      statusMessage = 'Fields marked with an * are required';
      supportedURLsDataSource: MatTableDataSource<any>;
      supportedURLsVisible = false;
