@@ -1,3 +1,9 @@
+@media (orientation: portrait) {
+     mat-option {
+          margin-left: 125px;
+     }
+}
+
 .buttonClass {
      display: flex;
      flex-direction: row;
