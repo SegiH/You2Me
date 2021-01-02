@@ -29,7 +29,7 @@
      </mat-vertical-stepper>  
      
      <!-- Download status messages -->
-     <div *ngIf="isSubmitted && currentStep == 0">{{downloadStatus}}</div>
+     <div *ngIf="isSubmitted && currentStep == 0 && downloadStatusVisible">{{downloadStatus}}</div>
      
      <!-- Save Values checkbox -->
      <mat-checkbox class="saveValues" *ngIf="isFinished" [(ngModel)]="saveValues">Save Values</mat-checkbox>
