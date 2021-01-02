@@ -46,6 +46,7 @@ export class Y2MComponent implements OnInit {
      downloadLink = '';
      downloadButtonVisible = false; // default false
      downloadStatus = ''; // displays youtube-dl output messages
+     downloadStatusVisible = true;
      downloadProgressSubscription;
      readonly fields: any = {
           URL: { // This field shouldn't ever be disabled
@@ -464,6 +465,8 @@ export class Y2MComponent implements OnInit {
                          if (!this.debugging) {
                               this.downloadProgressSubscription.unsubscribe();
 
+                              this.downloadStatusVisible = false;
+
                               // Call REST service to delete download progress temp db
                               this.dataService.deleteDownloadProgress().subscribe((response) => {
                               },
@@ -670,6 +673,9 @@ export class Y2MComponent implements OnInit {
           if (this.isMP3Format()) {
                this.fields.Artist.Required=false;
                this.fields.Name.Required=false;
+
+               // Remove this step which isn't needed when generating non-mp3
+               this.stepperStepNames.splice(this.stepperStepNames.indexOf('Writing ID3 Tags'), 1);
           }
 
           // Validate the required fields
