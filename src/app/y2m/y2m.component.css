@@ -22,6 +22,7 @@
 mat-card {
      border-style: solid;
      border-width: 1px !important;
+     max-width: 550px;
 }
 
 mat-form-field {
