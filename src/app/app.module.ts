@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NgModule } from '@angular/core';
+import { CoreModule } from './core/core.module';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http'
 import { MatButtonModule } from '@angular/material/button';
@@ -17,9 +17,10 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { NgModule } from '@angular/core';
+import { ReactiveFormsModule} from '@angular/forms';
+import { SAVER, getSaver } from './core/saver.provider';
 import { Y2MComponent } from './y2m/y2m.component';
-import { CoreModule } from './core/core.module';
-import { SAVER, getSaver } from './core/saver.provider'
 
 @NgModule({
      declarations: [
@@ -45,6 +46,7 @@ import { SAVER, getSaver } from './core/saver.provider'
           MatStepperModule,
           MatTableModule,
           MatToolbarModule,
+          ReactiveFormsModule
      ],
      providers: [{provide: SAVER, useFactory: getSaver}],
      bootstrap: [Y2MComponent]
