@@ -719,7 +719,7 @@ export class Y2MComponent implements OnInit {
                return;
           }
 
-          if (this.currentFormat === null) {
+          if (this.currentFormat === null || this.currentFormat === '') {
                this.showSnackBarMessage('Please select the format');
                return;
           }

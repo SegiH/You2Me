@@ -9,7 +9,7 @@
      </mat-form-field>
 
      <mat-form-field>
-          <mat-select placeholder='Format' name="format" [(ngModel)]="currentFormat" [disabled]="isSubmitted">
+          <mat-select placeholder='Format' name="format" [(ngModel)]="currentFormat" [required]=true [disabled]="isSubmitted">
                <mat-option *ngFor="let currFormat of this.formats | keyvalue" [value]="formats[currFormat.key]">
                     {{currFormat.key}}
                </mat-option>
