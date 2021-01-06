@@ -7,15 +7,26 @@
      margin-top: 45px;
 }
 
-/* MoveToServer button */
-#moveToServer {
-     background-color: red !important;
-     color: white;
+.saveValues {
+     margin-left: 15px;
+}
+
+.statusMessage {
+     font-weight: bold;
+     font-size: 23px;
+     padding-bottom: 15px;
+     padding-top: 15px;
 }
 
 /* Download button */
 #download {
      background-color: green !important;
+     color: white;
+}
+
+/* MoveToServer button */
+#moveToServer {
+     background-color: red !important;
      color: white;
 }
 
@@ -44,14 +55,3 @@ mat-table {
      top: 125px !important;
      white-space: wrap;
  }
-
-.saveValues {
-     margin-left: 15px;
-}
-
-.statusMessage {
-     font-weight: bold;
-     font-size: 23px;
-     padding-bottom: 15px;
-     padding-top: 15px;
-}
