@@ -89,7 +89,7 @@ export class Y2MComponent implements OnInit {
      formats: any = {'' : null};
      isFinished = false; // default false
      isSubmitted = false; // default false
-     moveToServer = false; // default false
+     moveToServer = true; // default false
      moveToServerButtonVisible = false; // default false
      saveValues = false;
      readonly stepperStepNames = ['Started download', 'Finished download', 'Writing ID3 Tags'];
@@ -114,7 +114,7 @@ export class Y2MComponent implements OnInit {
 
      ngOnInit() {
           // Init formats dropdown
-          //his.formats['']=null; // Needed so the user can unselect format
+          //this.formats['']=null; // Needed so the user can unselect format
 
           Object.keys(this.audioFormats).forEach(key => {
                this.formats['Audio: ' + key]=this.audioFormats[key]; 
@@ -138,7 +138,10 @@ export class Y2MComponent implements OnInit {
           if (this.getURLParam('MoveToServer') === 'true' && this.allowMoveToServer) {
                this.moveToServer = true;
                document.title = 'You2Me (Server)';
-          }    
+          } else {
+               this.moveToServer = false;
+               document.title = 'You2Me';
+          }
 
           if (this.moveToServer) {
                this.stepperStepNames.push('Moving the file to new location');
@@ -602,7 +605,7 @@ export class Y2MComponent implements OnInit {
      }
      
      // Remove extra URL parameters
-     
+
      scrubYouTubeURL() {
           const arr=this.fields.URL.Value.split('&');
 
