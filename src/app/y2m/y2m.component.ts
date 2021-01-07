@@ -25,7 +25,7 @@ import { DOCUMENT } from '@angular/common';
 
 export class Y2MComponent implements OnInit {
      readonly allowMoveToServer = true;
-     readonly audioFormats: any = {
+     readonly audioFormats: any = Object.freeze({
           'aac' : 'aac',
           'flac' : 'flac',
           'm4a' : 'm4a',
@@ -39,7 +39,7 @@ export class Y2MComponent implements OnInit {
           'opus' : 'opus',
           'vorbis' : 'vorbis',
           'wav' : 'wav',
-     };
+     });
      currentFormat = '';
      currentStep = 0;
      debugging = false; // This should never be true when running production build
@@ -84,9 +84,9 @@ export class Y2MComponent implements OnInit {
                Disabled: false
           }
      };
-     readonly fieldKeys = Object.keys(this.fields); // Used in HTML template
+     readonly fieldKeys = Object.freeze(Object.keys(this.fields)); // Used in HTML template
      fileName = '';
-     formats: any = {};
+     formats: any = {'' : null};
      isFinished = false; // default false
      isSubmitted = false; // default false
      moveToServer = false; // default false
@@ -97,7 +97,7 @@ export class Y2MComponent implements OnInit {
      supportedURLsDataSource: MatTableDataSource<any>;
      supportedURLsVisible = false;
      urlParams: {};
-     readonly videoFormats: any = {
+     readonly videoFormats: any = Object.freeze({
           'No conversion' : 'original',
           'Convert to avi' : 'avi',
           'Convert to flv': 'flv',
@@ -105,7 +105,7 @@ export class Y2MComponent implements OnInit {
           'Convert to mp4' : 'mp4',
           'Convert to ogg' : 'ogg',
           'Convert to webm' : 'webm'
-     }
+     });
 
      @ViewChild('supportedURLsPaginator') supportedURLsPaginator: MatPaginator;
      @ViewChild(MatSort) sort: MatSort;
@@ -114,7 +114,7 @@ export class Y2MComponent implements OnInit {
 
      ngOnInit() {
           // Init formats dropdown
-          this.formats['']=null; // Needed so the user can unselect format
+          //his.formats['']=null; // Needed so the user can unselect format
 
           Object.keys(this.audioFormats).forEach(key => {
                this.formats['Audio: ' + key]=this.audioFormats[key]; 
@@ -128,7 +128,7 @@ export class Y2MComponent implements OnInit {
           const format = this.getURLParam('Format');
           
           if (format != null) {
-               if(!Object.values(this.formats).includes(format))
+               if (!Object.values(this.formats).includes(format))
                     alert(`Valid formats are ${Object.values(this.formats).filter(format => format !== null)}`);
                else
                     this.currentFormat=format;
@@ -220,8 +220,8 @@ export class Y2MComponent implements OnInit {
      // Called by binding to [class.hidden] of mat-form-field. Returns true if any condition is met
      fieldIsHidden(key: string) {
           // Specified values are the fields to hide
-          const videoHideFields = ['Artist', 'Album', 'TrackNum', 'Genre', 'Year'];
-          const nonMP3HideFields = ['TrackNum', 'Genre', 'Year'];
+          const videoHideFields = Object.freeze(['Artist', 'Album', 'TrackNum', 'Genre', 'Year']);
+          const nonMP3HideFields = Object.freeze(['TrackNum', 'Genre', 'Year']);
 
           return (
                // If the fields property is set to disabled this is the de-facto determiner whether this field is enabled or disabled
@@ -600,6 +600,8 @@ export class Y2MComponent implements OnInit {
      rfc3986EncodeURIComponent(str) {  
           return encodeURIComponent(str).replace(/[!'()*]/g, escape);  
      }
+     
+     // Remove extra URL parameters
      
      scrubYouTubeURL() {
           const arr=this.fields.URL.Value.split('&');
