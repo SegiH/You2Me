@@ -114,8 +114,6 @@ export class Y2MComponent implements OnInit {
 
      ngOnInit() {
           // Init formats dropdown
-          //this.formats['']=null; // Needed so the user can unselect format
-
           Object.keys(this.audioFormats).forEach(key => {
                this.formats['Audio: ' + key]=this.audioFormats[key]; 
           });
@@ -123,6 +121,8 @@ export class Y2MComponent implements OnInit {
           Object.keys(this.videoFormats).forEach(key => {
                this.formats['Video: ' + key]=this.videoFormats[key]; 
           });
+          
+          Object.freeze(this.formats);
 
           // Get URL parameter Format if it was provided
           const format = this.getURLParam('Format');
