@@ -89,7 +89,7 @@ export class Y2MComponent implements OnInit {
      formats: any = {'' : null};
      isFinished = false; // default false
      isSubmitted = false; // default false
-     moveToServer = true; // default false
+     moveToServer = false; // default false
      moveToServerButtonVisible = false; // default false
      saveValues = false;
      readonly stepperStepNames = ['Started download', 'Finished download', 'Writing ID3 Tags'];
