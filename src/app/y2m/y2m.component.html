@@ -4,13 +4,13 @@
      </mat-toolbar>
 
      <!-- Fields -->
-     <mat-form-field *ngFor="let fieldName of fieldKeys" [class.hidden]="fieldIsHidden(fieldName)">
+     <mat-form-field *ngFor="let fieldName of fieldKeys;trackBy: trackByFn" [class.hidden]="fieldIsHidden(fieldName)">
         <input matInput [required]="this.fields[fieldName].Required" placeholder={{fieldName}} [(ngModel)]="this.fields[fieldName].Value">
      </mat-form-field>
 
      <mat-form-field>
           <mat-select placeholder='Format' name="format" [(ngModel)]="currentFormat" [required]=true [disabled]="isSubmitted">
-               <mat-option *ngFor="let currFormat of this.formats | keyvalue" [value]="formats[currFormat.key]">
+               <mat-option *ngFor="let currFormat of this.formats | keyvalue;trackBy: trackByFn" [value]="formats[currFormat.key]">
                     {{currFormat.key}}
                </mat-option>
           </mat-select>
@@ -23,7 +23,7 @@
      
      <!-- Stepper -->
      <mat-vertical-stepper [linear]="true" *ngIf="isSubmitted && !isFinished" [selectedIndex]="currentStep">
-        <mat-step *ngFor="let key of this.stepperStepNames" [stepControl]="currentStep">
+        <mat-step *ngFor="let key of this.stepperStepNames;trackBy: trackByFn" [stepControl]="currentStep">
               <ng-template matStepLabel>{{key}}</ng-template>
           </mat-step>        
      </mat-vertical-stepper>  

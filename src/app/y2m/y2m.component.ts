@@ -744,6 +744,11 @@ export class Y2MComponent implements OnInit {
           this.processSteps();
      }
 
+     // Used to prevent the entire DOM tree from being re-rendered every time that there is a change
+     trackByFn(index, item) {
+          return index; // or item.id
+     }
+
      // Update the status message
      updateStatus(newStatus: string) {
           this.statusMessage = newStatus;
