@@ -25,7 +25,7 @@ import { DOCUMENT } from '@angular/common';
 
 export class Y2MComponent implements OnInit {
      readonly allowMoveToServer = true;
-     readonly audioFormats: any = Object.freeze({
+     readonly audioFormats: Object = Object.freeze({
           'aac' : 'aac',
           'flac' : 'flac',
           'm4a' : 'm4a',
@@ -86,7 +86,7 @@ export class Y2MComponent implements OnInit {
      };
      readonly fieldKeys = Object.freeze(Object.keys(this.fields)); // Used in HTML template
      fileName = '';
-     formats: any = {'' : null};
+     formats: Object = {'' : null};
      isFinished = false; // default false
      isSubmitted = false; // default false
      moveToServer = false; // default false
@@ -97,7 +97,7 @@ export class Y2MComponent implements OnInit {
      supportedURLsDataSource: MatTableDataSource<any>;
      supportedURLsVisible = false;
      urlParams: {};
-     readonly videoFormats: any = Object.freeze({
+     readonly videoFormats: Object = Object.freeze({
           'No conversion' : 'original',
           'Convert to avi' : 'avi',
           'Convert to flv': 'flv',
@@ -179,7 +179,7 @@ export class Y2MComponent implements OnInit {
 
      // Custom Material UI table filter function
      createSupportedURLsFilter() {
-          const filterFunction = function (data: any, filter: string): boolean {
+          const filterFunction = function (data: string, filter: string): boolean {
                const customSearch = () => {
                     if (data.toLowerCase().includes(filter.toLowerCase())) // case insensitive
                          return true;
@@ -220,7 +220,7 @@ export class Y2MComponent implements OnInit {
           this.moveToServerButtonVisible = false;
      }
 
-     // Called by binding to [class.hidden] of mat-form-field. Returns true if any condition is met
+     // Called by binding to [class.hidden] of mat-form-field.
      fieldIsHidden(key: string) {
           // Specified values are the fields to hide
           const videoHideFields = Object.freeze(['Artist', 'Album', 'TrackNum', 'Genre', 'Year']);
@@ -280,7 +280,7 @@ export class Y2MComponent implements OnInit {
                .subscribe(()=>{
                     //Get progress status from the service every 100ms
                     this.dataService.getDownloadProgress()
-                    .subscribe((jsonResult:any)=>{
+                    .subscribe((jsonResult:Object)=>{
                          if(!jsonResult[1]) {
                               //console.log(jsonResult[0]);
                               this.downloadStatus=jsonResult[0];
