@@ -74,7 +74,7 @@
           }
           
           // Build command that will download the audio/video
-          $cmd="youtube-dl " . $url . " -o " . ($os != "Windows" ? "'" : "") . $sourcePath . $fileName . ".%(ext)s" . ($os != "Windows" ? "'" : "");
+          $cmd="youtube-dl " . $url . " -o " . ($os != "Windows" ? "\"" : "") . $sourcePath . $fileName . ".%(ext)s" . ($os != "Windows" ? "\"" : "");
         
           if ($isAudioFormat == true) {
                $cmd=$cmd . " -x";
