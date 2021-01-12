@@ -43,6 +43,7 @@ export class Y2MComponent implements OnInit {
      currentFormat = '';
      currentStep = 0;
      debugging = false; // This should never be true when running production build
+     debuggingCheckboxVisible = false;
      downloadLink = '';
      downloadButtonVisible = false; // default false
      downloadStatus = ''; // displays youtube-dl output messages
@@ -93,6 +94,7 @@ export class Y2MComponent implements OnInit {
      moveToServerButtonVisible = false; // default false
      saveValues = false;
      readonly stepperStepNames = ['Started download', 'Finished download', 'Writing ID3 Tags'];
+     statusCountClick = 0;
      statusMessage = 'Fields marked with an * are required';
      supportedURLsDataSource: MatTableDataSource<any>;
      supportedURLsVisible = false;
@@ -605,7 +607,6 @@ export class Y2MComponent implements OnInit {
      }
      
      // Remove extra URL parameters
-
      scrubYouTubeURL() {
           const arr=this.fields.URL.Value.split('&');
 
@@ -641,6 +642,21 @@ export class Y2MComponent implements OnInit {
           const config = new MatSnackBarConfig();
           config.duration = 3000;
           this.snackBar.open(message, 'OK', config);
+     }
+     
+     // If you double click twice on the status message before submitting, show the checkbox to toggle the Debugging checkbox
+     // so you can enable Debugging after loading the form but before submitting it
+     statusDoubleClick() {
+          //static count=0;
+          if (this.isSubmitted)
+               return;
+
+          this.statusCountClick++;
+
+          if (this.statusCountClick==2) {
+               this.debuggingCheckboxVisible=true;
+               this.statusCountClick=0;
+          }
      }
 
      // Called by binding of click event of submit button

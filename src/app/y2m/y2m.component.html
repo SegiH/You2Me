@@ -17,7 +17,7 @@
      </mat-form-field>
 
      <!-- Status -->
-     <div class='statusMessage'>
+     <div class='statusMessage' (dblclick)="statusDoubleClick()">
           {{this.statusMessage}}
      </div>
      
@@ -64,4 +64,7 @@
           <tr mat-header-row *matHeaderRowDef="['URL']"></tr>
           <tr mat-row *matRowDef="let row; columns: ['URL'];"></tr>
      </table>
+</mat-card>
+<mat-card *ngIf="debuggingCheckboxVisible">
+     <mat-checkbox [(ngModel)]="debugging">Debugging</mat-checkbox>
 </mat-card>
