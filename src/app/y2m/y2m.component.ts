@@ -259,6 +259,7 @@ export class Y2MComponent implements OnInit {
                this.moveToServerButtonVisible = false;
           
           this.isFinished =  true;
+          this.debuggingCheckboxVisible=false;
 
           // Stop the REST service that gets the download status
           if (!this.debugging) {
