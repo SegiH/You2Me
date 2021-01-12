@@ -462,7 +462,7 @@ export class Y2MComponent implements OnInit {
                          this.getDownloadProgress();
 
                     // Call data service to download the file
-                    this.dataService.fetchFile(URL, fileName,this.moveToServer, this.isAudioFormat(), this.isMP3Format(),this.currentFormat)
+                    this.dataService.fetchFile(URL, fileName,this.moveToServer, this.isAudioFormat(), this.isMP3Format(),this.currentFormat,this.debugging)
                     .subscribe((response) => {
                          // Stop the REST service that gets the download status
                          if (!this.debugging) {

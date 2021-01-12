@@ -30,10 +30,11 @@ export class DataService {
         })
     }
 
-    fetchFile(URL: string, fileName: string, movetoServer: boolean, isAudioFormat: boolean,  isMP3Format: boolean, currentFormat: string) {
+    fetchFile(URL: string, fileName: string, movetoServer: boolean, isAudioFormat: boolean,  isMP3Format: boolean, currentFormat: string, debugging:boolean) {
         const params = `?DownloadFile` +
                        `&URL=${URL}` +
                        `&Filename=${fileName}` +
+                       `&Debugging=${debugging}` +
                        '&MoveToServer=' + (movetoServer == true ? "true" : "false") +
                        (isAudioFormat === true
                             ? `&IsAudioFormat=true` + (isMP3Format === true ? `&Bitrate=${currentFormat}` : ``) + `&AudioFormat=${currentFormat}`
