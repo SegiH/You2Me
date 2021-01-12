@@ -119,7 +119,7 @@
                $buffer = trim(htmlspecialchars($buffer));
 
                if ($buffer != '') {
-                    $insert="INSERT INTO downloadProgress(message,shown) VALUES('" . $buffer . "',0)";
+                    $insert="INSERT INTO downloadProgress(message,shown) VALUES('" . str_replace("'","''",$buffer) . "',0)";
                     $stmt=$file_db->prepare($insert);
                     $stmt->execute();
                }
