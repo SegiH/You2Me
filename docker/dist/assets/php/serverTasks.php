@@ -74,7 +74,7 @@
           }
           
           // Build command that will download the audio/video
-          $cmd="youtube-dl " . $url . " -o " . ($os != "Windows" ? "'" : "") . $sourcePath . $fileName . ".%(ext)s" . ($os != "Windows" ? "'" : "");
+          $cmd="youtube-dl " . $url . " -o " . ($os != "Windows" ? "\"" : "") . $sourcePath . $fileName . ".%(ext)s" . ($os != "Windows" ? "\"" : "");
         
           if ($isAudioFormat == true) {
                $cmd=$cmd . " -x";
@@ -88,25 +88,27 @@
           } else if ($isVideoFormat && $videoFormat == "original") {
                $cmd=$cmd . " -f best";
           }
-           
-          // Download progress
-          // Delete DB if it exists already 
-          try {
-               if (file_exists($db_name))
+          
+          if (!debugging) {
+               // Download progress
+               // Delete DB if it exists already 
+               try {
+                    if (file_exists($db_name))
                     unlink($db_name);
-          } catch(Exception $e) {
+               } catch(Exception $e) {
+               }
+
+               // Create database 
+               $file_db = new PDO('sqlite:' . $db_name);
+
+               // Create the table
+               try {
+                    $file_db->exec("CREATE TABLE IF NOT EXISTS downloadProgress (id INTEGER PRIMARY KEY, message TEXT, shown BIT);");             
+               } catch(PDOException $e) {
+                    die("Unable to create the database");
+               }
           }
 
-          // Create database 
-          $file_db = new PDO('sqlite:' . $db_name);
-
-          // Create the table
-          try {
-               $file_db->exec("CREATE TABLE IF NOT EXISTS downloadProgress (id INTEGER PRIMARY KEY, message TEXT, shown BIT);");             
-          } catch(PDOException $e) {
-               die("Unable to create the database");
-          }
-       
           set_time_limit(0);
 
           $handle = popen($cmd,"r");
@@ -118,8 +120,8 @@
                $buffer= fgets($handle);
                $buffer = trim(htmlspecialchars($buffer));
 
-               if ($buffer != '') {
-                    $insert="INSERT INTO downloadProgress(message,shown) VALUES('" . $buffer . "',0)";
+               if ($buffer != '' && !debugging) {
+                    $insert="INSERT INTO downloadProgress(message,shown) VALUES('" . str_replace("'","''",$buffer) . "',0)";
                     $stmt=$file_db->prepare($insert);
                     $stmt->execute();
                }
