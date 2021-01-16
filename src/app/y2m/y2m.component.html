@@ -10,8 +10,8 @@
 
      <mat-form-field>
           <mat-select placeholder='Format' name="format" [(ngModel)]="currentFormat" [required]=true [disabled]="isSubmitted">
-               <mat-option *ngFor="let currFormat of this.formats | keyvalue;trackBy: trackByFn" [value]="formats[currFormat.key]">
-                    {{currFormat.key}}
+               <mat-option *ngFor="let currFormat of this.formatKeys;trackBy: trackByFn" [value]="currFormat">
+                    {{this.formats[currFormat].FormatDisplayName}}
                </mat-option>
           </mat-select>
      </mat-form-field>

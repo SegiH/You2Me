@@ -3,15 +3,9 @@ import { HttpClient, HttpEvent, HttpEventType, HttpResponse, HttpProgressEvent }
 import { throwError, Observable } from 'rxjs/';
 import { catchError} from 'rxjs/operators';
 
-export interface Download {
-    state: 'PENDING' | 'IN_PROGRESS' | 'DONE'
-    progress: number
-    content: Blob | null
-}
-
 @Injectable()
 export class DataService {
-    constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient) {}
 
     deleteDownloadFile(fileName: string) {
         const params = `?DeleteDownloadFile` +
@@ -71,6 +65,10 @@ export class DataService {
         return event.type === HttpEventType.DownloadProgress 
             || event.type === HttpEventType.UploadProgress
     }
+    
+    loadFormats() {
+        return this.processStep(`?GetFormats=true`,`https://you2me.hovav.org`);
+    }
 
     moveFile(localFile: string, isAudio: boolean, moveToServer: boolean, artist: string, album: string, currentFormat: string) {
         const params = `?MoveFile` +
@@ -84,8 +82,8 @@ export class DataService {
         return this.processStep(params);
     }
 
-    processStep(params: String) {
-        return this.http.get<any>('/php/serverTasks.php' + params)
+    processStep(params: String,domain: string ="") {
+        return this.http.get<any>(domain + '/php/serverTasks.php' + params)
             .pipe(
                 catchError(this.handleError)
             );

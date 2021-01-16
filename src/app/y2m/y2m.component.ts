@@ -25,21 +25,6 @@ import { DOCUMENT } from '@angular/common';
 
 export class Y2MComponent implements OnInit {
      readonly allowMoveToServer = true;
-     readonly audioFormats: Object = Object.freeze({
-          'aac' : 'aac',
-          'flac' : 'flac',
-          'm4a' : 'm4a',
-          'mp3 128k' : '128k',
-          'mp3 192k' : '192k',
-          'mp3 256k' : '256k',
-          'mp3 320k' : '320k',
-          'mp3 VBR 0 (Best)' : '0',
-          'mp3 VBR (5) (OK)' : '5',
-          'mp3 VBR (9) (Worst)' : '9',
-          'opus' : 'opus',
-          'vorbis' : 'vorbis',
-          'wav' : 'wav',
-     });
      currentFormat = '';
      currentStep = 0;
      debugging = false; // This should never be true when running production build
@@ -87,7 +72,8 @@ export class Y2MComponent implements OnInit {
      };
      readonly fieldKeys = Object.freeze(Object.keys(this.fields)); // Used in HTML template
      fileName = '';
-     formats: Object = {'' : null};
+     formats: Object = {};
+     formatKeys = [];
      isFinished = false; // default false
      isSubmitted = false; // default false
      moveToServer = false; // default false
@@ -99,42 +85,59 @@ export class Y2MComponent implements OnInit {
      supportedURLsDataSource: MatTableDataSource<any>;
      supportedURLsVisible = false;
      urlParams: {};
-     readonly videoFormats: Object = Object.freeze({
-          'No conversion' : 'original',
-          'Convert to avi' : 'avi',
-          'Convert to flv': 'flv',
-          'Convert to mkv' : 'mkv',
-          'Convert to mp4' : 'mp4',
-          'Convert to ogg' : 'ogg',
-          'Convert to webm' : 'webm'
-     });
 
      @ViewChild('supportedURLsPaginator') supportedURLsPaginator: MatPaginator;
      @ViewChild(MatSort) sort: MatSort;
 
-     constructor(public snackBar: MatSnackBar, public dataService: DataService,private downloads: DownloadService, @Inject(DOCUMENT) private document: Document) { }
+     constructor(public snackBar: MatSnackBar, public dataService: DataService,private downloads: DownloadService, @Inject(DOCUMENT) private document: Document) {
+          this.dataService.loadFormats().subscribe((response) => {
+               response.map(x => this.formats[x.FormatName] = { FormatDisplayName : x.FormatDisplayName, FormatTypeName: x.FormatTypeName, IsMP3Format: x.IsMP3Format } );
+               Object.freeze(this.formats);
+               
+               response.map(x => this.formatKeys.push(x.FormatName));
+               
+               const format = this.getURLParam('Format');
 
-     ngOnInit() {
-          // Init formats dropdown
-          Object.keys(this.audioFormats).forEach(key => {
-               this.formats['Audio: ' + key]=this.audioFormats[key]; 
-          });
-
-          Object.keys(this.videoFormats).forEach(key => {
-               this.formats['Video: ' + key]=this.videoFormats[key]; 
-          });
-          
-          Object.freeze(this.formats);
-
-          // Get URL parameter Format if it was provided
-          const format = this.getURLParam('Format');
-          
-          if (format != null) {
-               if (!Object.values(this.formats).includes(format))
+               if (format != null && this.formats[format] == null)
                     alert(`Valid formats are ${Object.values(this.formats).filter(format => format !== null)}`);
-               else
-                    this.currentFormat=format;
-          }
+          },
+          error => {
+               this.formats = Object.freeze({
+                    'aac' : 'aac',
+                    'flac' : 'flac',
+                    'm4a' : 'm4a',
+                    'mp3 128k' : '128k',
+                    'mp3 192k' : '192k',
+                    'mp3 256k' : '256k',
+                    'mp3 320k' : '320k',
+                    'mp3 VBR 0 (Best)' : '0',
+                    'mp3 VBR (5) (OK)' : '5',
+                    'mp3 VBR (9) (Worst)' : '9',
+                    'opus' : 'opus',
+                    'vorbis' : 'vorbis',
+                    'wav' : 'wav',
+                    'No conversion' : 'original',
+                    'Convert to avi' : 'avi',
+                    'Convert to flv': 'flv',
+                    'Convert to mkv' : 'mkv',
+                    'Convert to mp4' : 'mp4',
+                    'Convert to ogg' : 'ogg',
+                    'Convert to webm' : 'webm'
+               });
+
+               this.formatKeys=Object.keys(this.formats);
+
+               //alert(`An error occurred getting the formats`);
+     
+               //console.log(`An error occurred getting the formats from the data service with error ${error}`)
+          });               
+     }
+
+     ngOnInit() {    
+          const format = this.getURLParam('Format');
+
+          if (format != null)
+               this.currentFormat=format;
 
           // If URL parameter MoveToServer was provided and is allowed, add Moving the file to new location as a step
           if (this.getURLParam('MoveToServer') === 'true' && this.allowMoveToServer) {
@@ -365,8 +368,8 @@ export class Y2MComponent implements OnInit {
      isAudioFormat() {
           let isAudio=false;
 
-          Object.keys(this.audioFormats).forEach(key => {
-               if (this.audioFormats[key] == this.currentFormat) {
+          Object.keys(this.formats).forEach(key => {
+               if (key == this.currentFormat && this.formats[key].FormatTypeName === 'Audio') {
                     isAudio=true; 
                }
           });
@@ -378,8 +381,8 @@ export class Y2MComponent implements OnInit {
      isMP3Format() {
           let isMP3=false;
 
-          Object.keys(this.audioFormats).forEach(key => {
-               if (this.audioFormats[key] == this.currentFormat && key.includes('mp3')) {
+          Object.keys(this.formats).forEach(key => {
+               if (key == this.currentFormat && this.formats[key].FormatTypeName === 'Audio' && this.formats[key].IsMP3Format == 1) {
                     isMP3=true; 
                }
           });
