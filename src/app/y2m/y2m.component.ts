@@ -13,7 +13,7 @@ import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { DataService } from '../core/data.service';
-import { interval } from "rxjs";
+import { interval,throwError } from "rxjs";
 import { DownloadService } from '../core/download.service';
 import { DOCUMENT } from '@angular/common';
 
@@ -91,11 +91,15 @@ export class Y2MComponent implements OnInit {
 
      constructor(public snackBar: MatSnackBar, public dataService: DataService,private downloads: DownloadService, @Inject(DOCUMENT) private document: Document) {
           this.dataService.loadFormats().subscribe((response) => {
+               if (response == null)
+                    return Promise.reject('Null response when getting formats');
+
                response.map(x => this.formats[x.FormatName] = { FormatDisplayName : x.FormatDisplayName, FormatTypeName: x.FormatTypeName, IsMP3Format: x.IsMP3Format } );
                Object.freeze(this.formats);
                
                response.map(x => this.formatKeys.push(x.FormatName));
-               
+               Object.freeze(this.formatKeys);
+
                const format = this.getURLParam('Format');
 
                if (format != null && this.formats[format] == null)
@@ -103,33 +107,31 @@ export class Y2MComponent implements OnInit {
           },
           error => {
                this.formats = Object.freeze({
-                    'aac' : 'aac',
-                    'flac' : 'flac',
-                    'm4a' : 'm4a',
-                    'mp3 128k' : '128k',
-                    'mp3 192k' : '192k',
-                    'mp3 256k' : '256k',
-                    'mp3 320k' : '320k',
-                    'mp3 VBR 0 (Best)' : '0',
-                    'mp3 VBR (5) (OK)' : '5',
-                    'mp3 VBR (9) (Worst)' : '9',
-                    'opus' : 'opus',
-                    'vorbis' : 'vorbis',
-                    'wav' : 'wav',
-                    'No conversion' : 'original',
-                    'Convert to avi' : 'avi',
-                    'Convert to flv': 'flv',
-                    'Convert to mkv' : 'mkv',
-                    'Convert to mp4' : 'mp4',
-                    'Convert to ogg' : 'ogg',
-                    'Convert to webm' : 'webm'
+                    '0' : { FormatName: '0',FormatDisplayName: 'mp3 VBR 0 (Best)',IsMP3Format:"1",FormatTypeName:"Audio" },
+                    '5' : { FormatName: '5',FormatDisplayName: 'mp3 VBR (5) (OK)',IsMP3Format:"1",FormatTypeName:"Audio" },
+                    '9' : { FormatName: '9',FormatDisplayName: 'mp3 VBR (9) (Worst)',IsMP3Format:"1",FormatTypeName:"Audio" },
+                    'aac' : { FormatName: 'aac',FormatDisplayName: 'aac',IsMP3Format:"0",FormatTypeName:"Audio" },
+                    'flac' : { FormatName: 'flac',FormatDisplayName: 'flac',IsMP3Format:"0",FormatTypeName:"Audio" },
+                    'm4a' : { FormatName: 'm4a',FormatDisplayName: 'm4a',IsMP3Format:"0",FormatTypeName:"Audio" },
+                    '128k' : { FormatName: '128k',FormatDisplayName: 'mp3 128k',IsMP3Format:"1",FormatTypeName:"Audio" },
+                    '192k' : { FormatName: '192k',FormatDisplayName: 'mp3 192k',IsMP3Format:"1",FormatTypeName:"Audio" },
+                    '256k' : { FormatName: '256k',FormatDisplayName: 'mp3 256k',IsMP3Format:"1",FormatTypeName:"Audio" },
+                    '320k' : { FormatName: '320k',FormatDisplayName: 'mp3 320k',IsMP3Format:"1",FormatTypeName:"Audio" },
+                    
+                    'opus' : { FormatName: 'opus',FormatDisplayName: 'opus',IsMP3Format:"0",FormatTypeName:"Audio" },
+                    'vorbis' : { FormatName: 'vorbis',FormatDisplayName: 'vorbis',IsMP3Format:"0",FormatTypeName:"Audio" },
+                    'wav' : { FormatName: 'wav',FormatDisplayName: 'wav',IsMP3Format:"0",FormatTypeName:"Audio" },
+                    'original' : { FormatName: 'original',FormatDisplayName: 'No conversion',IsMP3Format:"0",FormatTypeName:"Video" },
+                    'avi' : { FormatName: 'avi',FormatDisplayName: 'Convert to avi',IsMP3Format:"0",FormatTypeName:"Video" },
+                    'flv' : { FormatName: 'flv',FormatDisplayName: 'Convert to flv',IsMP3Format:"0",FormatTypeName:"Video" },
+                    'mkv' : { FormatName: 'mkv',FormatDisplayName: 'Convert to mkv',IsMP3Format:"0",FormatTypeName:"Video" },
+                    'mp4' : { FormatName: 'mp4',FormatDisplayName: 'Convert to mp4',IsMP3Format:"0",FormatTypeName:"Video" },
+                    'ogg' : { FormatName: 'ogg',FormatDisplayName: 'Convert to ogg',IsMP3Format:"0",FormatTypeName:"Video" },
+                    'webm' : { FormatName: 'webm',FormatDisplayName: 'Convert to webm',IsMP3Format:"0",FormatTypeName:"Video" },
                });
 
-               this.formatKeys=Object.keys(this.formats);
-
-               //alert(`An error occurred getting the formats`);
-     
-               //console.log(`An error occurred getting the formats from the data service with error ${error}`)
+               Object.keys(this.formats).map(x => this.formatKeys.push(this.formats[x].FormatName));
+               Object.freeze(this.formatKeys);
           });               
      }
 
