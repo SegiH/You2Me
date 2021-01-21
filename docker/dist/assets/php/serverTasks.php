@@ -38,13 +38,14 @@
           global $sourcePath;
 
           $url=htmlspecialchars($_GET["URL"]);
-          $fileName=htmlspecialchars($_GET["Filename"]);
+	  $fileName=htmlspecialchars($_GET["Filename"]);
           $moveToServer=(isset($_GET["MoveToServer"]) && $_GET["MoveToServer"] == "true" ? true : false);
+          $debugging=(isset($_GET["Debugging"]) && $_GET["Debugging"] == "true" ? true : false);
           $isAudioFormat=(isset($_GET["IsAudioFormat"]) && $_GET["IsAudioFormat"] == "true" ? true : false);
           $isMP3Format=(isset($_GET["Bitrate"]) ? true : false);
           $bitrate=($isAudioFormat == true && isset($_GET["Bitrate"]) ? htmlspecialchars($_GET["Bitrate"]) : "320k");
           $audioFormat=(isset($_GET["AudioFormat"]) ?  htmlspecialchars($_GET["AudioFormat"]) : null);
- 
+
           // Default to MP3 format if $audioformat isn't specified
           if ($isAudioFormat == true && !isset($audioFormat))
                $audioformat="mp3";
@@ -75,7 +76,7 @@
           
           // Build command that will download the audio/video
           $cmd="youtube-dl " . $url . " -o " . ($os != "Windows" ? "\"" : "") . $sourcePath . $fileName . ".%(ext)s" . ($os != "Windows" ? "\"" : "");
-        
+
           if ($isAudioFormat == true) {
                $cmd=$cmd . " -x";
  
@@ -88,43 +89,43 @@
           } else if ($isVideoFormat && $videoFormat == "original") {
                $cmd=$cmd . " -f best";
           }
-          
-          if (!debugging) {
+
+	  if ($debugging == false) {
                // Download progress
                // Delete DB if it exists already 
                try {
                     if (file_exists($db_name))
-                    unlink($db_name);
+                         unlink($db_name);
                } catch(Exception $e) {
                }
 
                // Create database 
                $file_db = new PDO('sqlite:' . $db_name);
 
-               // Create the table
+               // Create the table. If it exists already, the 1st sql won't run so the 2nd command deletes everything from this table
                try {
-                    $file_db->exec("CREATE TABLE IF NOT EXISTS downloadProgress (id INTEGER PRIMARY KEY, message TEXT, shown BIT);");             
+                    $file_db->exec("CREATE TABLE IF NOT EXISTS downloadProgress (id INTEGER PRIMARY KEY, message TEXT, shown BIT);DELETE FROM DownloadProgress;");        
                } catch(PDOException $e) {
                     die("Unable to create the database");
-               }
-          }
-
+     	       }
+	  }
+       
           set_time_limit(0);
 
           $handle = popen($cmd,"r");
 
           if (ob_get_level() == 0)
                 ob_start();
-        
+	  
           while (!feof($handle)) {
                $buffer= fgets($handle);
                $buffer = trim(htmlspecialchars($buffer));
 
-               if ($buffer != '' && !debugging) {
+	       if ($buffer != '' && $debugging == false) {
                     $insert="INSERT INTO downloadProgress(message,shown) VALUES('" . str_replace("'","''",$buffer) . "',0)";
                     $stmt=$file_db->prepare($insert);
                     $stmt->execute();
-               }
+	       }
 
                ob_flush();
 
@@ -135,7 +136,7 @@
 
           pclose($handle);
 
-          ob_end_flush();
+	  ob_end_flush();
          
           if ($isAudioFormat) {
                if ($audioFormat != "vorbis") // Vorbis audio files have the extension ogg not vorbis
@@ -217,14 +218,42 @@
 
           return;
      } 
+     
+     function getFormats() {
+	  try {
+	       $conn = new PDO("sqlsrv:server=SQLServer;Database=You2Me", "You2Me","You2Me2021");
+               $conn->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
+          } catch(Exception $e) {
+               die( print_r( $e->getMessage() ) );
+          }
     
+          $formats = array();
+
+	  // Get all Formats 
+          $sql="SELECT Formats.*,FormatTypes.FormatTypeName FROM Formats JOIN FormatTypes ON FormatTypes.FormatTypeID=Formats.FormatTypeID ORDER BY FormatTypeName";
+
+          $stmt = $conn->prepare($sql);
+	       
+	  try { 
+	       $stmt->execute();
+	  } catch(Exception $e) {
+	       die("Something went wrong getting the formats with the error " . $e);
+	  }
+	       
+	  while ($row = $stmt->fetch()) {
+               $formats[] = $row;
+	  }
+	  
+	  echo json_encode($formats);
+     } 
+      
      function getDownloadProgress() {
           global $db_name;
 
           $file_db = new PDO('sqlite:' . $db_name);
           
           $result=$file_db->query('SELECT id,message FROM downloadProgress WHERE shown=0 LIMIT 1');
-          
+         
           foreach($result as $result) {
                $file_db->exec("UPDATE downloadProgress SET shown=1 WHERE id=" . $result['id']);
                   
@@ -235,13 +264,13 @@
                $file_db = null;
 
                die(json_encode(array($message,false))); 
-          }
+	  }
            
           $file_db = null;
 
-          die(json_encode(array(null,true))); 
+          // die(json_encode(array(null,true))); 
      }
-
+     
      function getSupportedURLs() {
           $url="http://ytdl-org.github.io/youtube-dl/supportedsites.html";
           
@@ -465,6 +494,9 @@
 
      if (isset($_GET["GetDownloadProgress"]))
           getDownloadProgress();
+
+     if (isset($_GET["GetFormats"]))
+          getFormats();
 
      if (isset($_GET["MoveFile"])) {
           if (!isset($_GET["Artist"]) || !isset($_GET["Filename"]) || !isset($_GET["MoveToServer"])) 

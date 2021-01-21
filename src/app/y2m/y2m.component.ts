@@ -1,7 +1,5 @@
 /*
      TODO:
-ng
-     update dependency issue
 
      Before publishing:
           1. Make sure debugging is off!
