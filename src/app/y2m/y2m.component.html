@@ -8,6 +8,7 @@
         <input matInput [required]="this.fields[fieldName].Required" placeholder={{fieldName}} [(ngModel)]="this.fields[fieldName].Value">
      </mat-form-field>
 
+     <!-- Format dropdown -->
      <mat-form-field>
           <mat-select placeholder='Format' name="format" [(ngModel)]="currentFormat" [required]=true [disabled]="isSubmitted">
                <mat-option *ngFor="let currFormat of this.formatKeys;trackBy: trackByFn" [value]="currFormat">

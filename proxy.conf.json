@@ -7,7 +7,7 @@
       "changeOrigin": true
     },
     "/media" : {
-      "target": "https://yoursite.com//media",
+      "target": "https://yoursite.com/media",
       "secure": false,
       "logLevel": "debug",
       "pathRewrite": {"^/media" : ""},
