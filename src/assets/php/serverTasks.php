@@ -46,8 +46,6 @@
           $bitrate=($isAudioFormat == true && isset($_GET["Bitrate"]) ? htmlspecialchars($_GET["Bitrate"]) : "320k");
           $audioFormat=(isset($_GET["AudioFormat"]) ?  htmlspecialchars($_GET["AudioFormat"]) : null);
 
-	  //echo ($debugging == true ? "true" : "false"); 
-	  //die($debugging);
           // Default to MP3 format if $audioformat isn't specified
           if ($isAudioFormat == true && !isset($audioFormat))
                $audioformat="mp3";
@@ -92,7 +90,7 @@
                $cmd=$cmd . " -f best";
           }
 
-          if (!debugging) {
+	  if ($debugging == false) {
                // Download progress
                // Delete DB if it exists already 
                try {
@@ -104,9 +102,9 @@
                // Create database 
                $file_db = new PDO('sqlite:' . $db_name);
 
-               // Create the table
+               // Create the table. If it exists already, the 1st sql won't run so the 2nd command deletes everything from this table
                try {
-                    $file_db->exec("CREATE TABLE IF NOT EXISTS downloadProgress (id INTEGER PRIMARY KEY, message TEXT, shown BIT);");             
+                    $file_db->exec("CREATE TABLE IF NOT EXISTS downloadProgress (id INTEGER PRIMARY KEY, message TEXT, shown BIT);DELETE FROM DownloadProgress;");        
                } catch(PDOException $e) {
                     die("Unable to create the database");
      	       }
@@ -123,7 +121,7 @@
                $buffer= fgets($handle);
                $buffer = trim(htmlspecialchars($buffer));
 
-               if ($buffer != '' && !debugging) {
+	       if ($buffer != '' && $debugging == false) {
                     $insert="INSERT INTO downloadProgress(message,shown) VALUES('" . str_replace("'","''",$buffer) . "',0)";
                     $stmt=$file_db->prepare($insert);
                     $stmt->execute();
@@ -255,7 +253,7 @@
           $file_db = new PDO('sqlite:' . $db_name);
           
           $result=$file_db->query('SELECT id,message FROM downloadProgress WHERE shown=0 LIMIT 1');
-          
+         
           foreach($result as $result) {
                $file_db->exec("UPDATE downloadProgress SET shown=1 WHERE id=" . $result['id']);
                   
@@ -266,11 +264,11 @@
                $file_db = null;
 
                die(json_encode(array($message,false))); 
-          }
+	  }
            
           $file_db = null;
 
-          die(json_encode(array(null,true))); 
+          // die(json_encode(array(null,true))); 
      }
      
      function getSupportedURLs() {

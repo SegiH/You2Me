@@ -1,5 +1,7 @@
 /*
      TODO:
+ng
+     update dependency issue
 
      Before publishing:
           1. Make sure debugging is off!
@@ -132,6 +134,11 @@ export class Y2MComponent implements OnInit {
 
                Object.keys(this.formats).map(x => this.formatKeys.push(this.formats[x].FormatName));
                Object.freeze(this.formatKeys);
+
+               const format = this.getURLParam('Format');
+
+               if (format != null && this.formats[format] == null)
+                    alert(`Valid formats are ${Object.values(this.formats).filter(format => format !== null)}`);
           });               
      }
 
