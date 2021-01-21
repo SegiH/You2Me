@@ -1,6 +1,8 @@
 /*
      TODO:
-
+     
+     add check of all url parameters
+     
      Before publishing:
           1. Make sure debugging is off!
           2. Make sure proxy.conf doesn't have my server address and make sure php doesn't have it either.
@@ -13,7 +15,7 @@ import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { DataService } from '../core/data.service';
-import { interval,throwError } from "rxjs";
+import { interval } from "rxjs";
 import { DownloadService } from '../core/download.service';
 import { DOCUMENT } from '@angular/common';
 
@@ -89,7 +91,9 @@ export class Y2MComponent implements OnInit {
      @ViewChild('supportedURLsPaginator') supportedURLsPaginator: MatPaginator;
      @ViewChild(MatSort) sort: MatSort;
 
-     constructor(public snackBar: MatSnackBar, public dataService: DataService,private downloads: DownloadService, @Inject(DOCUMENT) private document: Document) {
+     constructor(public snackBar: MatSnackBar, public dataService: DataService,private downloads: DownloadService, @Inject(DOCUMENT) private document: Document) {}
+
+     ngOnInit() {
           this.dataService.loadFormats().subscribe((response) => {
                if (response == null)
                     return Promise.reject('Null response when getting formats');
@@ -137,14 +141,14 @@ export class Y2MComponent implements OnInit {
 
                if (format != null && this.formats[format] == null)
                     alert(`Valid formats are ${Object.values(this.formats).filter(format => format !== null)}`);
-          });               
-     }
+               else
+                    this.currentFormat=format;
+          });
 
-     ngOnInit() {    
-          const format = this.getURLParam('Format');
+          //const format = this.getURLParam('Format');
 
-          if (format != null)
-               this.currentFormat=format;
+          //if (format != null)
+          //     this.currentFormat=format;
 
           // If URL parameter MoveToServer was provided and is allowed, add Moving the file to new location as a step
           if (this.getURLParam('MoveToServer') === 'true' && this.allowMoveToServer) {
