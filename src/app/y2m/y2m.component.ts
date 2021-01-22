@@ -108,6 +108,8 @@ export class Y2MComponent implements OnInit {
 
                if (format != null && this.formats[format] == null)
                     alert(`Valid formats are ${Object.values(this.formats).filter(format => format !== null)}`);
+               else
+                    this.currentFormat=format;
           },
           error => {
                this.formats = Object.freeze({
@@ -144,11 +146,6 @@ export class Y2MComponent implements OnInit {
                else
                     this.currentFormat=format;
           });
-
-          //const format = this.getURLParam('Format');
-
-          //if (format != null)
-          //     this.currentFormat=format;
 
           // If URL parameter MoveToServer was provided and is allowed, add Moving the file to new location as a step
           if (this.getURLParam('MoveToServer') === 'true' && this.allowMoveToServer) {
