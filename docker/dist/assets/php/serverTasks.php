@@ -14,7 +14,6 @@
      $sourcePath="/var/www/html/media/";
      $domain="https://" . $_SERVER["HTTP_HOST"] . "/media/";
 
-     //$os=php_uname("s");
      $os=(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? "Windows" : "Unix");
      $rowsLeft=false;
      $db_name="downloadProgress.sqlite3";
@@ -37,21 +36,22 @@
           global $os;
           global $sourcePath;
 
-          $url=htmlspecialchars($_GET["URL"]);
-	  $fileName=htmlspecialchars($_GET["Filename"]);
+          $url=$_GET["URL"];
+	  $fileName=$_GET["Filename"];
           $moveToServer=(isset($_GET["MoveToServer"]) && $_GET["MoveToServer"] == "true" ? true : false);
+          $allowMoveToServer=(isset($_GET["AllowMoveToServer"]) && $_GET["AllowMoveToServer"] == "true" ? true : false);
           $debugging=(isset($_GET["Debugging"]) && $_GET["Debugging"] == "true" ? true : false);
           $isAudioFormat=(isset($_GET["IsAudioFormat"]) && $_GET["IsAudioFormat"] == "true" ? true : false);
           $isMP3Format=(isset($_GET["Bitrate"]) ? true : false);
-          $bitrate=($isAudioFormat == true && isset($_GET["Bitrate"]) ? htmlspecialchars($_GET["Bitrate"]) : "320k");
-          $audioFormat=(isset($_GET["AudioFormat"]) ?  htmlspecialchars($_GET["AudioFormat"]) : null);
+          $bitrate=($isAudioFormat == true && isset($_GET["Bitrate"]) ? $_GET["Bitrate"] : "320k");
+          $audioFormat=(isset($_GET["AudioFormat"]) ?  $_GET["AudioFormat"] : null);
 
           // Default to MP3 format if $audioformat isn't specified
           if ($isAudioFormat == true && !isset($audioFormat))
                $audioformat="mp3";
  
           $isVideoFormat=(isset($_GET["IsVideoFormat"]) && $_GET["IsVideoFormat"] == true ? true : false);
-          $videoFormat=(isset($_GET["VideoFormat"]) && $_GET["VideoFormat"] != "Original" ?  htmlspecialchars($_GET["VideoFormat"]) : null);
+          $videoFormat=(isset($_GET["VideoFormat"]) && $_GET["VideoFormat"] != "Original" ?  $_GET["VideoFormat"] : null);
           
           if ($isVideoFormat == true && !isset($videoFormat))
                $videoFormat="mp4";
@@ -90,6 +90,8 @@
                $cmd=$cmd . " -f best";
           }
 
+	  // die($cmd);
+
 	  if ($debugging == false) {
                // Download progress
                // Delete DB if it exists already 
@@ -100,7 +102,8 @@
                }
 
                // Create database 
-               $file_db = new PDO('sqlite:' . $db_name);
+	       $file_db = new PDO('sqlite:' . $db_name);
+	       $file_db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
 
                // Create the table. If it exists already, the 1st sql won't run so the 2nd command deletes everything from this table
                try {
@@ -110,8 +113,6 @@
      	       }
 	  }
        
-          set_time_limit(0);
-
           $handle = popen($cmd,"r");
 
           if (ob_get_level() == 0)
@@ -119,20 +120,21 @@
 	  
           while (!feof($handle)) {
                $buffer= fgets($handle);
-               $buffer = trim(htmlspecialchars($buffer));
-
+               $buffer = trim($buffer);
+               
 	       if ($buffer != '' && $debugging == false) {
-                    $insert="INSERT INTO downloadProgress(message,shown) VALUES('" . str_replace("'","''",$buffer) . "',0)";
-                    $stmt=$file_db->prepare($insert);
+                    $insert="INSERT INTO downloadProgress(message,shown) VALUES(?,0)";
+		    $stmt=$file_db->prepare($insert);
+		    $stmt->bindValue(1,str_replace("'","''",$buffer),PDO::PARAM_STR);
                     $stmt->execute();
 	       }
 
-               ob_flush();
+               //ob_flush();
 
-               flush();
+               //flush();
 
-               sleep(1);  
-          }
+	       // sleep(1);
+	  }
 
           pclose($handle);
 
@@ -152,15 +154,17 @@
           }
        
           if (!file_exists($sourcePath . $fileName))
-               die(json_encode(array("Error: An error occurred downloading the file")));
+               die(json_encode(array("Error: An error occurred downloading the file",$cmd)));
 
           // If the format is audio and its mp3, try to tag it
           if (!chmod($sourcePath . $fileName,0777))
                die(json_encode(array("Error: Failed to set the file mode")));
- 
+
           // If move To Server is true, we have more steps to process 
           if ($isMP3Format == true || $moveToServer == true)
                die(json_encode(array($fileName)));
+          //else if ($isMP3Format == false && ($moveToServer == true || $allowMoveToServer == true)) // If the file is not MP3, we don't need to write ID3 tags. If MoveTo Server is false, we are done and there are no more steps to process to provide download link
+          //     die(json_encode(array(urlencode($fileName))));
           else if ($isMP3Format == false && $moveToServer == false) // If the file is not MP3, we don't need to write ID3 tags. If MoveTo Server is false, we are done and there are no more steps to process to provide download link
                die(json_encode(array($domain . urlencode($fileName))));
 
@@ -255,7 +259,12 @@
           $result=$file_db->query('SELECT id,message FROM downloadProgress WHERE shown=0 LIMIT 1');
          
           foreach($result as $result) {
-               $file_db->exec("UPDATE downloadProgress SET shown=1 WHERE id=" . $result['id']);
+               $update="UPDATE downloadProgress SET shown=1 WHERE id=?";
+	       $stmt=$file_db->prepare($update);
+	       $stmt->bindValue(1,$result['id']);
+               $stmt->execute();
+		    
+	       //$file_db->exec("UPDATE downloadProgress SET shown=1 WHERE id=" . $result['id']);
                   
                // Store message so we can close DB
                $message = $result['message'];
@@ -316,7 +325,9 @@
           global $sourcePath;
           global $videoDestinationPath;
 
-          $fileName=htmlspecialchars($_GET["Filename"]);
+          $fileName=$_GET["Filename"];
+  
+	  $fileName=str_replace($domain,"",$fileName);
 
           $moveToServer=(isset($_GET["MoveToServer"]) && $_GET["MoveToServer"] == "true" ? true : false);
  
@@ -324,6 +335,8 @@
                // Rename the video 
                if ($moveToServer == true) {
                     $res=rename($sourcePath . $fileName,$videoDestinationPath . $fileName);
+		    
+		    // die("Source path=" . $sourcePath . $fileName . " and dest. path=" . $videoDestinationPath . $fileName);
  
                     if ($res==true) {
                          echo json_encode(array("The video has been moved to the new location"));
@@ -337,11 +350,11 @@
                return;
           }
      
-          $artist=htmlspecialchars($_GET["Artist"]);
+          $artist=$_GET["Artist"];
 
           $artist=str_replace("'","",$artist);
 
-          $album=(isset($_GET["Album"]) && $_GET["Album"] != "null" ? htmlspecialchars($_GET["Album"]) : "Unknown");
+          $album=(isset($_GET["Album"]) && $_GET["Album"] != "null" ? $_GET["Album"] : "Unknown");
             
           $pathBuildSucceeded=false;
 
@@ -391,15 +404,15 @@
           global $domain;
           global $sourcePath;
     
-          $fileName = htmlspecialchars($_GET["Filename"]);
+          $fileName = $_GET["Filename"];
           $isLastStep=(isset($_GET["IsLastStep"]) && $_GET["IsLastStep"] == "true" ? true : false);
        
-          $artist=(isset($_GET["Artist"]) ? htmlspecialchars($_GET["Artist"]) : "");
-          $album=(isset($_GET["ALbum"]) ? htmlspecialchars($_GET["Album"]) : "");
-          $title=(isset($_GET["TrackName"]) ? htmlspecialchars($_GET["TrackName"]) : "");
-          $trackNum=(isset($_GET["TrackNum"]) ? htmlspecialchars($_GET["TrackNum"]) : "");
-          $genre=(isset($_GET["Genre"]) ? htmlspecialchars($_GET["Genre"]) : "");
-          $year=(isset($_GET["Year"]) ? htmlspecialchars($_GET["Year"]) : "");
+          $artist=(isset($_GET["Artist"]) ? $_GET["Artist"] : "");
+          $album=(isset($_GET["ALbum"]) ? $_GET["Album"] : "");
+          $title=(isset($_GET["TrackName"]) ? $_GET["TrackName"] : "");
+          $trackNum=(isset($_GET["TrackNum"]) ? $_GET["TrackNum"] : "");
+          $genre=(isset($_GET["Genre"]) ? $_GET["Genre"] : "");
+          $year=(isset($_GET["Year"]) ? $_GET["Year"] : "");
 
           $tagData=array();
 

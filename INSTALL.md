@@ -65,12 +65,12 @@ You2Me supports a bookmark which will automatically load You2Me in a new tab wit
 Client mode:
 
 ```
-javascript:window.open('https://mysite.com/You2Me/?URL='+window.location.toString()+'&Title='+document.title+'&Format=320k','_parent','');event.preventDefault();
+javascript:window.open('https://mysite.com/You2Me/?URL='+window.location.toString()+'&Name='+document.title+'&Format=320k','_parent','');event.preventDefault();
 ```
 Server mode:
 
 ```
-javascript:window.open('https://mysite.com/You2Me/?MoveToServer=true&URL='+window.location.toString()+'&Title='+document.title+'&Format=320k','_parent','');event.preventDefault();
+javascript:window.open('https://mysite.com/You2Me/?MoveToServer=true&URL='+window.location.toString()+'&Name='+document.title+'&Format=320k','_parent','');event.preventDefault();
 ```
 
 Don't forget to replace mysite.com/You2Me with the full URL of your instance of You2Me. Now visit a supported site like YouTube and click on the bookmark. A new You2Me tab/window will open with the URL already filled in. 
@@ -102,4 +102,4 @@ labels:
      - "traefik.http.middlewares.you2meMiddleware.headers.accesscontrolalloworiginlist=https://you2me.mysite.com,http://localhost:4200"
 `
 
-Please contact me if you have any questons, run into any problems or would like to suggest new features. 
+Please contact me if you have any questions, run into any problems or would like to suggest new features. 

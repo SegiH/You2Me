@@ -4,15 +4,15 @@
      </mat-toolbar>
 
      <!-- Fields -->
-     <mat-form-field *ngFor="let fieldName of fieldKeys;trackBy: trackByFn" [class.hidden]="fieldIsHidden(fieldName)">
-        <input matInput [required]="this.fields[fieldName].Required" placeholder={{fieldName}} [(ngModel)]="this.fields[fieldName].Value">
+     <mat-form-field *ngFor="let fieldName of this.dataService.getFieldKeys();trackBy: trackByFn" [class.hidden]="this.dataService.fieldIsHidden(fieldName)">
+        <input matInput [required]="this.dataService.getFieldProperty(fieldName,'Required')" placeholder={{fieldName}} [(ngModel)]="this.dataService.fields[fieldName].Value" [disabled]="isSubmitted">
      </mat-form-field>
 
      <!-- Format dropdown -->
      <mat-form-field>
-          <mat-select placeholder='Format' name="format" [(ngModel)]="currentFormat" [required]=true [disabled]="isSubmitted">
-               <mat-option *ngFor="let currFormat of this.formatKeys;trackBy: trackByFn" [value]="currFormat">
-                    {{this.formats[currFormat].FormatDisplayName}}
+          <mat-select placeholder='Format' name="format" [(ngModel)]="this.dataService.currentFormat" [required]=true [disabled]="isSubmitted">
+               <mat-option *ngFor="let currFormat of this.dataService.getFormatKeys();trackBy: trackByFn" [value]="currFormat">
+                    {{this.dataService.formats[currFormat].FormatDisplayName}}
                </mat-option>
           </mat-select>
      </mat-form-field>
@@ -24,9 +24,9 @@
      
      <!-- Stepper -->
      <mat-vertical-stepper [linear]="true" *ngIf="isSubmitted && !isFinished" [selectedIndex]="currentStep">
-        <mat-step *ngFor="let key of this.stepperStepNames;trackBy: trackByFn" [stepControl]="currentStep">
+        <mat-step *ngFor="let key of this.dataService.getSteps();trackBy: trackByFn" [stepControl]="currentStep">
               <ng-template matStepLabel>{{key}}</ng-template>
-          </mat-step>        
+          </mat-step>
      </mat-vertical-stepper>  
      
      <!-- Download status messages -->
