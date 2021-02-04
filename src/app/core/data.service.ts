@@ -48,7 +48,7 @@ export class DataService {
 
      formats: Object = {};
      formatKeys = [];
-     readonly stepperStepNames = ['Started download', 'Finished download', 'Writing ID3 Tags'];
+     readonly stepperStepNames = ['Started download', 'Finished download', 'Writing ID3 Tags','Your file is ready'];
      readonly URLParameters = ['URL','Artist','Album','Format','Genre','Name','TrackNum','MoveToServer','Year','Debugging'];
     
      constructor(public snackBar: MatSnackBar, private http: HttpClient) {
@@ -132,11 +132,6 @@ export class DataService {
 
      fetchFile(movetoServer: boolean, allowMoveToServer: boolean, debugging: boolean) {
           const fileName: string = (this.isAudioFormat() && !isNaN(parseInt(this.fields.TrackNum.Value)) ? this.fields.TrackNum.Value + " " : "" ) + (this.fields.Name.Value != "" ? this.fields.Name.Value : "Unknown");
-          
-          // Remove this step when you aren't generating an mp3
-          if (!this.isMP3Format())
-               this.stepperStepNames.splice(this.stepperStepNames.indexOf('Writing ID3 Tags'), 1);
-
           // extra URL parameters in a Youtube link causes issues for youtube-dl
           if (this.fields.URL.Value.includes('youtube.com')) {
                const arr = this.fields.URL.Value.split('&');
@@ -158,7 +153,10 @@ export class DataService {
      }
 
      // Called by binding to [class.hidden] of mat-form-field.
-     fieldIsHidden(key: string) {
+     fieldIsHidden(key: string,currentStep: number) {
+          if (key == 'URL' && currentStep != 0)
+               return true;
+
           // Specified values are the fields to hide
           const videoHideFields = Object.freeze(['Artist', 'Album', 'TrackNum', 'Genre', 'Year']);
           const nonMP3HideFields = Object.freeze(['TrackNum', 'Genre', 'Year']);
@@ -279,6 +277,10 @@ export class DataService {
                );
      }
 
+     removeWriteTagsStep() {
+          this.stepperStepNames.splice(this.stepperStepNames.indexOf('Writing ID3 Tags'), 1);
+     }
+
      // Escapes all special characters so they can safely be passed as URL parameters
      private rfc3986EncodeURIComponent(str) {  
           return encodeURIComponent(str).replace(/[!'()*]/g, escape);  
@@ -309,23 +311,23 @@ export class DataService {
                if (!this.fields.URL.Value.startsWith('http://') && !this.fields.URL.Value.startsWith('https://'))
                     return 'Please enter a valid URL beginning with http:// or https://';
             
-          if (!this.fieldIsHidden('Artist') && (this.fields.Artist.Required && (this.fields.Artist.Value === null || this.fields.Artist.Value === '')))
+          if (this.isAudioFormat() && (this.fields.Artist.Value === null || this.fields.Artist.Value === ''))
                return 'Please enter the artist';
         
-          if (!this.fieldIsHidden('Album') && this.fields.Album.Required && (this.fields.Album.Value === null || this.fields.Album.Value === ''))
+          if (this.isAudioFormat() && this.fields.Album.Required && (this.fields.Album.Value === null || this.fields.Album.Value === ''))
                return 'Please enter the album';
        
-          if (this.fields.Name.Required && (this.fields.Name.Value === null || this.fields.Name.Value === ''))
+          if (this.fields.Name.Value === null || this.fields.Name.Value === '')
                return 'Please enter the name';
             
-          if (this.fields.TrackNum.Required && (this.fields.TrackNum.Value === null || this.fields.TrackNum.Value === ''))
+          if (this.isAudioFormat() && this.fields.TrackNum.Required && (this.fields.TrackNum.Value === null || this.fields.TrackNum.Value === ''))
                return 'Please enter the track #';
 
-          if (this.fields.Year.Required && (this.fields.Year.Value === null || this.fields.Year.Value === ''))
+          if (this.isAudioFormat() && this.fields.Year.Required && (this.fields.Year.Value === null || this.fields.Year.Value === ''))
                return 'Please enter the year';
 
           // Default album to Unknown if not provided
-          if (!this.fieldIsHidden('Album') && this.fields.Album.Value === null)
+          if (this.fields.Album.Value === null)
                this.fields.Album.Value = 'Unknown';
 
           if (this.currentFormat === null || this.currentFormat === '')

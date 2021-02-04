@@ -1,5 +1,7 @@
 /*
      TODO:
+     add ability to add and initiate multiple d/ls. make sure php script doesnt glob the media folder
+
      Dailymotion long videos time out without an error message. 5 minutes works. 15 minutes fails
      
      Before publishing:
@@ -17,6 +19,7 @@ import { DataService } from '../core/data.service';
 import { interval } from "rxjs";
 import { DownloadService } from '../core/download.service';
 import { DOCUMENT } from '@angular/common';
+import { MatStepper } from '@angular/material/stepper';
 
 @Component({
      selector: 'app-y2m',
@@ -30,25 +33,25 @@ export class Y2MComponent implements OnInit {
      debugging = false; // This should never be true when running production build
      debuggingCheckboxVisible = false;
      downloadLink = '';
-     downloadButtonVisible = false; // default false
      downloadStatus = ''; // displays youtube-dl output messages
      downloadStatusVisible = true;
-     downloadProgressSubscription;     
+     downloadProgressSubscription;
+     isFinished = false;
      fileName = '';
      formatOverride = false;
-     isFinished = false; // default false
      isSubmitted = false; // default false
      moveToServer = false; // default false
-     moveToServerButtonVisible = false; // default false
+     nextButtonEnabled = true;
      saveValues = false;     
      statusCountClick = 0;
-     statusMessage = 'Fields marked with an * are required';
+     statusMessage = '';
      supportedURLsDataSource: MatTableDataSource<any>;
      supportedURLsVisible = false;
      urlParams: {};
 
      @ViewChild('supportedURLsPaginator') supportedURLsPaginator: MatPaginator;
      @ViewChild(MatSort) sort: MatSort;
+     @ViewChild(MatStepper) stepper: MatStepper;
 
      constructor(public snackBar: MatSnackBar, public dataService: DataService,private downloads: DownloadService, @Inject(DOCUMENT) private document: Document) {}
 
@@ -56,8 +59,9 @@ export class Y2MComponent implements OnInit {
           const format = this.getURLParam('Format');
           
           // Set the current format without validating it first because formats object may not be populated yet
-          if (format !== null)
+          if (format !== null) {
                this.dataService.setCurrentFormat(format);
+          }
 
           // If URL parameter MoveToServer was provided and is allowed, add Moving the file to new location as a step
           if (this.getURLParam('MoveToServer') === 'true' && this.allowMoveToServer) {
@@ -102,7 +106,6 @@ export class Y2MComponent implements OnInit {
 
           // Load URL parameters
           this.dataService.getFieldKeys().forEach(key => {              
-               console.log("Key="+key);
                if (this.getURLParam(key) !== null)
                     if ((key === 'TrackNum' || key === 'Year') && isNaN(parseInt(this.getURLParam(key))))
                          this.dataService.showSnackBarMessage('The URL parameter ' + key + ' has to be a number');
@@ -117,13 +120,11 @@ export class Y2MComponent implements OnInit {
           for (let i=0;i<split_params.length;i++) {
                if (split_params[i] !== '') {
                     const param=split_params[i].split("=")[0]; // URL is in the form Name=Value; Get Name part of the parameter
-                    
-                    console.log("Param="+param);
 
                     if (!this.dataService.getURLParameters().includes(param))
                          this.dataService.showSnackBarMessage('The URL parameter ' + param + ' is not a valid URL parameter');                    
                }
-          }
+          }          
      }
 
      // apply filter for supported url search filters
@@ -146,7 +147,9 @@ export class Y2MComponent implements OnInit {
      }
 
      // Download file step
-     downloadFile() {
+     downloadFile() {          
+          this.nextButtonEnabled = false;
+
           // Start timer that gets download progress
           if (!this.debugging)
                this.getDownloadProgress();
@@ -186,43 +189,34 @@ export class Y2MComponent implements OnInit {
                if (typeof response[2] !== 'undefined')
                     this.dataService.setFieldProperty('Name','Value',response[2]);
 
+               this.currentStep++;
+               this.stepper.selected.completed = true;
+               this.stepper.selected.editable = false;
+               this.stepper.next();
+
                // If the selected format is MP3 format and the Python script tried but fails to get the artist and album
                // Make artist and name fields required
                if (this.dataService.isMP3Format()) {
-                    if (this.dataService.getFieldProperty('Artist','Value') === "") {
-                         this.dataService.setFieldProperty('Artist','Required',true);
-                         this.dataService.showSnackBarMessage('Please enter the artist');
-                         this.currentStep = 1;
-                         this.formatOverride = true;
-                         this.isSubmitted = false;
+                    this.updateStatus('The file has been downloaded. Please enter any additional ID3 tags and click on next');
 
-                         if (this.dataService.getFieldProperty('Name','Value') !== "")
-                              return;
-                    }
-
-                    if (this.dataService.getFieldProperty('Name','Value') === "") {
-                         this.dataService.setFieldProperty('Name','Required',true);
-                         this.dataService.showSnackBarMessage('Please enter the name');
-                         this.currentStep = 1;
-                         this.formatOverride = true;
-                         this.isSubmitted = false;
-                         return;
-                    }
-
-                    this.updateStatus('The file has been downloaded. Writing the ID3 tags');
-
-                    this.currentStep++;
-
-                    this.processSteps();
-               } else if (!this.dataService.isMP3Format() && !this.moveToServer) { // If the format is not MP3 and we aren't moving to the server we are done
+                    this.nextButtonEnabled = true;
+               } else if (!this.dataService.isMP3Format()) { // If the format is not MP3 and we aren't moving to the server we are done
                     // The response returns the URL for the downloaded file
                     this.downloadLink = decodeURIComponent(response[0].replace(/\+/g, ' '));
 
                     this.updateStatus('The file is ready for you to download or move to your server');
 
-                    this.finished();
+                    this.currentStep++;
+                    this.stepper.selected.completed = true;
+                    this.stepper.selected.editable = false;
+                    this.stepper.next();
 
-                    return;
+                    this.currentStep++;
+                    this.stepper.selected.completed = true;
+                    this.stepper.selected.editable = false;
+                    this.stepper.next();
+
+                    this.finished();
                }
           },
           error => {
@@ -264,32 +258,13 @@ export class Y2MComponent implements OnInit {
           error => {
                console.log("An error " + error + " occurred deleting the file from the server 2");
           });
-
-          this.downloadButtonVisible = false;
-
-          // Hide moveToServer button to prevent subsequent clicks
-          this.moveToServerButtonVisible = false;
      }     
 
      // Handle event when all tasks have finished running
      finished(isError=false) {
-          this.isSubmitted = true;
-
-          // If MoveToServer is NOT enabled, show the download link
-          if (!this.moveToServer && !isError && this.currentStep <=2)
-               this.downloadButtonVisible = true;
-          else
-               this.downloadButtonVisible = false;
-
-          // If the user is allowed to move the file to the server but didn't provide MoveToServer parameter, show the MoveToServer button
-          // so the user has the option of moving the file to the server. This is here in case you forgot to pass MoveToServe=true URL parameter but meant to
-          if (!isError && this.allowMoveToServer && !this.moveToServerButtonVisible && this.currentStep <=2)
-               this.moveToServerButtonVisible = true;
-          else
-               this.moveToServerButtonVisible = false;
-          
-          this.isFinished =  true;
           this.debuggingCheckboxVisible = false;
+          this.nextButtonEnabled = false;
+          this.isFinished = true;
 
           // Stop the REST service that gets the download status
           if (!this.debugging) {
@@ -302,6 +277,10 @@ export class Y2MComponent implements OnInit {
                     this.handleError(Response, error);
                });
           }
+     }
+
+     getStepClass() {
+          return "step" + this.currentStep;
      }
 
      // Get progress of youtube-dl
@@ -416,6 +395,36 @@ export class Y2MComponent implements OnInit {
                this.moveFileToServer();
      }
 
+     // Called by binding of click event of next button
+     nextButtonClick() {
+          if (this.currentStep == 0 && !this.dataService.isAudioFormat() && this.dataService.getFieldProperty("Name","Value") == "")  {
+               this.dataService.showSnackBarMessage("Please enter the name")
+               return;
+          }
+
+          // Since I use Python fingerprinting, you don't have to fill in the artist and name if an MP3 format is selected. formatOverride is set to true 
+          // if python fingerprinting cannot identify the track in which case the artist and song name ARE required
+          if (this.dataService.isMP3Format() && !this.formatOverride) {
+               this.dataService.setFieldProperty('Artist','Required',false);
+               this.dataService.setFieldProperty('Name','Required',false);               
+          }         
+          
+          // Set initial status
+          if (this.currentStep === 0)
+               this.updateStatus('Starting the download');
+
+          if (!this.dataService.isMP3Format())
+               this.dataService.removeWriteTagsStep();
+
+          this.formatOverride = false;
+
+          // Show steps
+          this.isSubmitted = true;
+
+          // Start the process
+          this.processSteps();
+     }
+
      // Parse title URL param
      parseTitle(section: string) {
           // section can be artist name or song name
@@ -481,6 +490,29 @@ export class Y2MComponent implements OnInit {
           }
      }
 
+     restartButtonClick() {
+          // If the Save Values checkbox is not checked
+          if (!this.saveValues)                    
+               this.dataService.clearFieldValues(); // Clear all of the field values
+
+          // reset the stepper count
+          this.currentStep = 0;
+
+          // Set initial status message
+          this.statusMessage = 'Fields marked with an * are required';
+
+          // Reset submitted status
+          this.isSubmitted = false;
+
+          this.formatOverride = false;
+
+          this.nextButtonEnabled = true;
+
+          this.isFinished = false;
+               
+          return;
+     }
+
      showSupportedSitesToggle() {
           if (this.supportedURLsVisible && typeof this.supportedURLsDataSource === 'undefined') {
                this.dataService.getSupportedURLs().subscribe((response) => {
@@ -510,64 +542,9 @@ export class Y2MComponent implements OnInit {
           if (this.statusCountClick == 2) {
                this.debuggingCheckboxVisible = true;
                this.statusCountClick = 0;
+          } else {
+               this.debuggingCheckboxVisible = false;
           }
-     }
-
-     // Called by binding of click event of submit button
-     submitClick() {
-          // After the last step has completed, the submit button text changes to restart. When this button is clicked, 
-          // the form will reset itself and only save the values if the save values checkbox is checked
-          if (this.isFinished) {
-               // If the Save Values checkbox is not checked
-               if (!this.saveValues)                    
-                    this.dataService.clearFieldValues(); // Clear all of the field values
-
-               // reset the stepper count
-               this.currentStep = 0;
-
-               // Set initial status message
-               this.statusMessage = 'Fields marked with an * are required';
-
-               // Reset submitted status
-               this.isSubmitted = false;
-
-               this.isFinished = false;
-
-               this.formatOverride = false;
-
-               this.downloadButtonVisible = false;
-
-               this.moveToServerButtonVisible = false;
-
-               return;
-          }
-
-          // Since I use Python fingerprinting, you don't have to fill in the artist and name if an MP3 format is selected. formatOverride is set to true 
-          // if python fingerprinting cannot identify the track in which case the artist and song name ARE required
-          if (this.dataService.isMP3Format() && !this.formatOverride) {
-               this.dataService.setFieldProperty('Artist','Required',false);
-               this.dataService.setFieldProperty('Name','Required',false);               
-          }
-
-          // Validate the required fields
-          const validateResult = this.dataService.validateFields();
-
-          if (validateResult !== null) {
-               this.dataService.showSnackBarMessage(validateResult);
-               return;
-          }
-          
-          // Set initial status
-          if (this.currentStep === 0)
-               this.updateStatus('Starting the download');
-
-          this.formatOverride = false;
-
-          // Show steps
-          this.isSubmitted = true;
-
-          // Start the process
-          this.processSteps();
      }
 
      // Used to prevent the entire DOM tree from being re-rendered every time that there is a change
@@ -582,6 +559,21 @@ export class Y2MComponent implements OnInit {
 
      // Write ID3 tags step
      writeID3Tags() {
+          // Validate the required fields
+          const validateResult = this.dataService.validateFields();
+
+          if (validateResult !== null) {
+               this.dataService.showSnackBarMessage(validateResult);
+               return;
+          }
+
+          this.currentStep++;
+          this.stepper.selected.completed = true;
+          this.stepper.selected.editable = false;
+          this.stepper.next();
+
+          this.nextButtonEnabled = false;
+
           // Call data service to write ID3 tags
           this.dataService.writeID3Tags(this.fileName)
           .subscribe((response) => {
@@ -591,21 +583,31 @@ export class Y2MComponent implements OnInit {
                     return;
                }
 
-               this.updateStatus('The ID3 tags have been written. Renaming the file');
-
+               this.updateStatus('The ID3 tags have been written.');
+               
                // Update the status and continue on to the next step
                this.currentStep++;
+               this.stepper.selected.completed = true;
+               this.stepper.selected.editable = false;
+               this.stepper.next();
+
+               this.nextButtonEnabled = true;
 
                // If MoveToServer is NOT enabled, this is the last step
                if (!this.moveToServer) {
                     // The response returns the URL for the downloaded file
                     this.downloadLink = decodeURIComponent(response[0].replace(/\+/g, ' '));
 
+                    this.updateStatus('Your file is ready to download or move to your server.');
+
+                    this.currentStep++;
+                    this.stepper.selected.completed = true;
+                    this.stepper.selected.editable = false;
+                    this.stepper.next();
+
                     this.finished();
 
                     return;
-               } else { // Move To Server is enabled so process next step
-                    this.processSteps();
                }
           },
           error => {

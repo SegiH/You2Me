@@ -24,28 +24,66 @@
      color: white;
 }
 
+#format {
+     margin-left: 50px;
+     margin-top: 25px;
+}
+
 /* MoveToServer button */
 #moveToServer {
      background-color: red !important;
      color: white;
 }
 
+#NameField {
+     margin-right: 50px;
+     margin-top: 25px;
+     position: relative;
+     width: 200px;
+}
+
+#restart {
+     margin-left: 25px;
+}
+
+mat-form-field#URLField {
+     margin-top: 25px;
+}
+
+
 mat-card {
      border-style: solid;
      border-width: 1px !important;
-     max-width: 550px;
+     max-width: 1200px;
+}
+
+mat-card.smaller {
+     border-style: solid;
+     border-width: 1px !important;
+     max-width: 400px;
 }
 
 mat-form-field {
-     width: 100%;
+     width: 400px;
 }
 
 mat-form-field.hidden {
      display: none;
 }
 
-mat-paginator {
-     /*position: absolute;*/
+mat-grid-list.step0 {
+     height: 100px !important;
+}
+
+mat-grid-list.step1 {
+     min-height: 450px !important;
+}
+
+mat-grid-list.laststep {
+     height: 150px !important;
+}
+
+mat-paginator {     
      margin-bottom: 25px;
 }
 
@@ -54,4 +92,14 @@ mat-table {
      /*min-width: 415px;*/
      top: 125px !important;
      white-space: wrap;
- }
+}
+
+mat-toolbar {
+     background-color: #219CD1 !important;
+}
+
+mat-toolbar span {
+      color: white !important;
+      margin-left: auto;
+      margin-right: auto;
+}

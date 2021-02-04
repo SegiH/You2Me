@@ -1,52 +1,83 @@
 <mat-card>
-     <mat-toolbar color="primary">
-          <span>You2Me {{(this.moveToServer ? " (Server)" : "") + (this.debugging ? " (Debugging enabled)" : "")}}</span>
+     <mat-toolbar>
+          <span>You2Me {{(moveToServer ? " (Server)" : "") + (debugging ? " (Debugging enabled)" : "")}}</span>
      </mat-toolbar>
+     
+     <br />
 
-     <!-- Fields -->
-     <mat-form-field *ngFor="let fieldName of this.dataService.getFieldKeys();trackBy: trackByFn" [class.hidden]="this.dataService.fieldIsHidden(fieldName)">
-        <input matInput [required]="this.dataService.getFieldProperty(fieldName,'Required')" placeholder={{fieldName}} [(ngModel)]="this.dataService.fields[fieldName].Value" [disabled]="isSubmitted">
-     </mat-form-field>
+     <mat-grid-list cols="3" rowHeight="fit" *ngIf="currentStep <= 1" [class]="getStepClass()">
+          <mat-grid-tile>
+               <!-- URL field -->
+               <mat-form-field id="URLField" *ngIf="currentStep == 0">
+                    <input matInput placeholder='URL' [(ngModel)]="dataService.fields['URL'].Value" [disabled]="isSubmitted">
+               </mat-form-field>
+          </mat-grid-tile>
+          <mat-grid-tile>
+               <!-- Format dropdown -->
+               <mat-form-field id="format" *ngIf="currentStep === 0">  
+                    <mat-select placeholder='Format' name="format" [(ngModel)]="dataService.currentFormat" [required]=true [disabled]="isSubmitted">
+                         <mat-option *ngFor="let currFormat of dataService.getFormatKeys();trackBy: trackByFn" [value]="currFormat">
+                              {{dataService.formats[currFormat].FormatDisplayName}}
+                         </mat-option>
+                    </mat-select>
+               </mat-form-field>
 
-     <!-- Format dropdown -->
-     <mat-form-field>
-          <mat-select placeholder='Format' name="format" [(ngModel)]="this.dataService.currentFormat" [required]=true [disabled]="isSubmitted">
-               <mat-option *ngFor="let currFormat of this.dataService.getFormatKeys();trackBy: trackByFn" [value]="currFormat">
-                    {{this.dataService.formats[currFormat].FormatDisplayName}}
-               </mat-option>
-          </mat-select>
-     </mat-form-field>
+               <!-- Fields -->
+               <mat-card class="smaller" *ngIf="currentStep == 1">
+                    <mat-form-field *ngFor="let fieldName of dataService.getFieldKeys();trackBy: trackByFn" [class.hidden]="dataService.fieldIsHidden(fieldName,currentStep)">
+                         <input matInput [required]="dataService.getFieldProperty(fieldName,'Required')" placeholder={{fieldName}} [(ngModel)]="dataService.fields[fieldName].Value">                    
+                    </mat-form-field>
+               </mat-card>
+          </mat-grid-tile>
+
+          <mat-grid-tile>
+               <!-- Name field -->
+               <mat-form-field id="NameField" *ngIf="currentStep == 0 && this.dataService.getCurrentFormat() != '' && !this.dataService.isAudioFormat()">
+                    <input matInput placeholder='Name' [(ngModel)]="dataService.fields['Name'].Value" [disabled]="isSubmitted">
+               </mat-form-field>
+
+               <!-- Next button -->
+               <button id="nextButton" *ngIf="!isFinished" matInput mat-raised-button color="primary" (click)="nextButtonClick()" [disabled]="!nextButtonEnabled">Next</button>
+          </mat-grid-tile>
+     </mat-grid-list>
+    
+     <mat-grid-list cols="3" rowHeight="fit" class="laststep" *ngIf="isFinished">
+          <mat-grid-tile>
+               <!-- Download Button -->
+               <button id="download" matInput mat-raised-button (click)="downloadLinkClicked()">Download</button>
+          </mat-grid-tile>
+     
+          <mat-grid-tile>
+               <!-- Move To Server Button-->
+               <button id="moveToServer" *ngIf="allowMoveToServer" matInput mat-raised-button (click)="moveToServerClick()">Move To Server</button>
+          </mat-grid-tile>
+
+          <mat-grid-tile>
+               <!-- Save Values checkbox -->
+               <mat-checkbox class="saveValues" [(ngModel)]="saveValues">Save Values</mat-checkbox>
+
+               <!-- Restart Button -->
+               <button id="restart" color="primary" matInput mat-raised-button (click)="restartButtonClick()" id="restart">Restart</button>
+          </mat-grid-tile>
+     </mat-grid-list>
 
      <!-- Status -->
      <div class='statusMessage' (dblclick)="statusDoubleClick()">
-          {{this.statusMessage}}
+          {{statusMessage}}
      </div>
      
      <!-- Stepper -->
-     <mat-vertical-stepper [linear]="true" *ngIf="isSubmitted && !isFinished" [selectedIndex]="currentStep">
-        <mat-step *ngFor="let key of this.dataService.getSteps();trackBy: trackByFn" [stepControl]="currentStep">
-              <ng-template matStepLabel>{{key}}</ng-template>
+     <mat-horizontal-stepper *ngIf="isSubmitted && !isFinished" [linear]="true" [selectedIndex]="currentStep" #stepper>
+        <mat-step *ngFor="let key of dataService.getSteps();trackBy: trackByFn" [stepControl]="currentStep" completed="false" editable="false">   
+               <ng-template matStepLabel>{{key}}</ng-template>
           </mat-step>
-     </mat-vertical-stepper>  
+     </mat-horizontal-stepper>
      
      <!-- Download status messages -->
-     <div *ngIf="isSubmitted && currentStep == 0 && downloadStatusVisible">{{downloadStatus}}</div>
-     
-     <!-- Save Values checkbox -->
-     <mat-checkbox class="saveValues" *ngIf="isFinished" [(ngModel)]="saveValues">Save Values</mat-checkbox>
-
-     <span class='buttonClass'>
-          <!-- Submit/Restart Button -->
-          <button *ngIf="!isSubmitted || isFinished" matInput mat-raised-button color="primary" (click)="submitClick()">{{(!this.isSubmitted ? "Start" : "Restart")}}</button>
-
-          <!-- Download Button -->
-          <button id="download" *ngIf="downloadButtonVisible" matInput mat-raised-button (click)="downloadLinkClicked()">Download</button>
-
-          <!-- Move To Server Button-->
-          <button id="moveToServer" *ngIf="allowMoveToServer && moveToServerButtonVisible && isSubmitted" matInput mat-raised-button (click)="moveToServerClick()">Move To Server</button>
-     </span>
+     <div *ngIf="isSubmitted && currentStep == 0 && downloadStatusVisible">{{downloadStatus}}</div>     
 </mat-card>
 
+<!-- Supported URLs -->
 <mat-card>
      <mat-checkbox  [(ngModel)]="supportedURLsVisible" (change)="showSupportedSitesToggle()">Show supported sites</mat-checkbox>
 
@@ -66,6 +97,8 @@
           <tr mat-row *matRowDef="let row; columns: ['URL'];"></tr>
      </table>
 </mat-card>
+
+<!-- Debugging checkbox URLs -->
 <mat-card *ngIf="debuggingCheckboxVisible">
      <mat-checkbox [(ngModel)]="debugging">Debugging</mat-checkbox>
 </mat-card>
