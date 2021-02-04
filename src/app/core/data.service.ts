@@ -1,3 +1,4 @@
+// Each instance: URL, currentformatfields
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { throwError, Observable } from 'rxjs/';
