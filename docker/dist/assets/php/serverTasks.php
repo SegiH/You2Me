@@ -211,6 +211,33 @@
 	  return;
      }
 
+     function getAPIKey() {
+	  try {
+	       $conn = new PDO("sqlsrv:server=SQLServer;Database=You2Me", "You2Me","You2Me2021");
+               $conn->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
+          } catch(Exception $e) {
+               die( print_r( $e->getMessage() ) );
+          }
+    
+          $apiKey="";
+
+	  // Get all Formats 
+          $sql="SELECT KeyValue FROM Settings WHERE KeyName='YTAPIKey'";
+
+          $stmt = $conn->prepare($sql);
+	       
+	  try { 
+	       $stmt->execute();
+	  } catch(Exception $e) {
+	       die("Something went wrong getting the formats with the error " . $e);
+	  }
+	       
+	  while ($row = $stmt->fetch()) {
+               $apiKey = $row[0];
+	  }
+	  
+	  echo json_encode($apiKey);
+     } 
      function getThumbnail($url) {
           $cmd="youtube-dl " . $url . " --write-thumbnail --skip-download";
 
@@ -264,7 +291,7 @@
 	  }
 	  
 	  echo json_encode($formats);
- } 
+     } 
       
      function getDownloadProgress($URL) {
           global $db_name;
@@ -517,6 +544,9 @@
 
      if (isset($_GET["GetDownloadProgress"]))
           getDownloadProgress($_GET["URL"]);
+
+     if (isset($_GET["GetAPIKey"]))
+          getAPIKey();
 
      if (isset($_GET["GetFormats"]))
           getFormats();

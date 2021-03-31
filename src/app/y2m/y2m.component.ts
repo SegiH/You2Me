@@ -1,6 +1,5 @@
 /*
-     TODO:
-     
+     TODO:     
      download status message is currently hidden - Find place to put it   
      Think about possibly adding progress bar. percent doesnt get added "evenly" to the DB  
      
@@ -111,7 +110,7 @@ export class Y2MComponent implements OnInit {
                const tag = document.createElement('script');
                tag.src = 'https://www.youtube.com/iframe_api';
                document.body.appendChild(tag);
-               this.apiLoaded = true;
+               this.apiLoaded = true;               
           }
 
           // DELETE ME LATER

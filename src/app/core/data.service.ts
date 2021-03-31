@@ -9,7 +9,7 @@ let stepperIndex = 0;
 @Injectable()
 export class DataService {
      links: any = [];
-     readonly API_TOKEN="AIzaSyBgRG7JpIBenFe2pW9BqxRb4R-oGqYIYWM";
+     private API_TOKEN="";
      readonly API_URL='https://www.googleapis.com/youtube/v3/search';
      readonly fields: any  = {
           'Artist': {
@@ -95,6 +95,12 @@ export class DataService {
                     this.showSnackBarMessage(`The format provided is not valid`);
                     this.currentFormat='';
                }*/
+          });
+
+          this.getAPIKey().subscribe((response) => {
+               this.API_TOKEN=response;
+          },
+          error => {
           });
      }
      
@@ -216,6 +222,10 @@ export class DataService {
                // If the format is an audio format but is not MP3, hide these fields
                (this.isAudioFormat(formatName) && !this.isMP3Format(formatName) && nonMP3HideFields.includes(fieldName))
           );
+     }
+
+     getAPIKey() {
+          return this.processStep(`?GetAPIKey=true`);
      }
 
      getDownloadProgress(currLink: object) {
