@@ -52,11 +52,11 @@ The docker folder contains 2 files named Dockerfile and you2me.docker-compose.ym
 ### URL Parameters
 You can supply default values for all of the fields by providing URL parameters.
 
-The URL parameters are as follows: URL, Artist, Album, Format, Genre, Name, TrackNum, Genre, Year, MoveToServer and Format. 
+The URL parameters are as follows: URL, NAme and Format. 
 
 To add a URL parameter use "?" for the first URL parameter and "&" for every parameter after that in the format parametername=value. 
 
-To specify Beck as the artist and Odelay as the album as a URL parameter use. http://www.example.com/You2Me?Artist=Beck&Album=Odelay For audio or video formats, supply one of the values above such as Format=original for video without reencoding or Format=320k for 320kbps mp3 audio.
+To specify Beck as the artist and Odelay as the album as a URL parameter use. http://www.example.com/You2Me?Name=Uptown%20Funk%&format=320k For audio or video formats, supply one of the values above such as Format=original for video without reencoding or Format=320k for 320kbps mp3 audio.
 
 ### You2Me Bookmark
 

@@ -1,18 +1,17 @@
-// Each instance: URL, currentformatfields
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { throwError, Observable } from 'rxjs/';
 import { catchError} from 'rxjs/operators';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
+
+let stepperIndex = 0;
+
 @Injectable()
 export class DataService {
-     currentFormat = '';
-     fields: any  = {
-          'URL':  { 
-               'Required':true,
-               'Value': "",
-               'Disabled': false
-          },
+     links: any = [];
+     readonly API_TOKEN="AIzaSyBgRG7JpIBenFe2pW9BqxRb4R-oGqYIYWM";
+     readonly API_URL='https://www.googleapis.com/youtube/v3/search';
+     readonly fields: any  = {
           'Artist': {
                'Required':true,
                'Value': "",
@@ -44,12 +43,12 @@ export class DataService {
                'Disabled': false
           }
      };
-
-     fieldKeys = Object.freeze(Object.keys(this.fields));
+     readonly fieldKeys = Object.freeze(Object.keys(this.fields));
 
      formats: Object = {};
      formatKeys = [];
      readonly stepperStepNames = ['Started download', 'Finished download', 'Writing ID3 Tags','Your file is ready'];
+     
      readonly URLParameters = ['URL','Artist','Album','Format','Genre','Name','TrackNum','MoveToServer','Year','Debugging'];
     
      constructor(public snackBar: MatSnackBar, private http: HttpClient) {
@@ -61,14 +60,9 @@ export class DataService {
                Object.freeze(this.formats);
             
                response.map(x => this.formatKeys.push(x.FormatName));
-               Object.freeze(this.formatKeys);            
-
-               if (this.currentFormat !== '' && typeof this.formats[this.currentFormat] === 'undefined') {
-                    this.showSnackBarMessage(`The format provided is not valid`);
-                    this.currentFormat='';
-               }
+               Object.freeze(this.formatKeys);
           },
-         error => {
+          error => {
                const formats= [
                     {"FormatID":"1","0":"1","FormatDisplayName":"aac","1":"aac","FormatName":"aac","2":"aac","FormatTypeID":"1","3":"1","IsMP3Format":"0","4":"0","FormatTypeName":"Audio","5":"Audio"},
                     {"FormatID":"2","0":"2","FormatDisplayName":"flac","1":"flac","FormatName":"flac","2":"flac","FormatTypeID":"1","3":"1","IsMP3Format":"0","4":"0","FormatTypeName":"Audio","5":"Audio"},
@@ -97,20 +91,70 @@ export class DataService {
                Object.keys(formats).map(x => this.formatKeys.push(formats[x].FormatName));
                Object.freeze(this.formatKeys);
 
-               if (this.currentFormat !== '' && typeof this.formats[this.currentFormat] === 'undefined') {
+               /*if (this.currentFormat !== '' && typeof this.formats[this.currentFormat] === 'undefined') {
                     this.showSnackBarMessage(`The format provided is not valid`);
                     this.currentFormat='';
-               }
+               }*/
           });
      }
      
-     addStep(newStep) {
-          this.stepperStepNames.push(newStep);
+     addLink(newURL: string,newFormat: string,movetoServer: boolean = false) {
+          this.links.push({
+                           URL: newURL,
+                           DownloadLink: '',
+                           DownloadProgressSubscription: null,
+                           DownloadStatusMessage: '',
+                           DownloadStatusVisible: true,
+                           CurrentStep: 0,
+                           Fields: this.fields,
+                           FieldKeys: this.fieldKeys,
+                           Filename: "",
+                           Format: newFormat,                           
+                           IsFinished: false,
+                           IsSubmitted: false,
+                           SaveValues: false,
+                           StatusMessage: "",
+                           StepperIndex: stepperIndex,
+                           ExpansionPanelOpen: false,
+                           ThumbnailSmallDimension: 50,
+                           ThumbnailLargeDimension: 200,
+                         });
+
+          this.getThumbnail(newURL,stepperIndex).subscribe((response) => {
+               this.links[parseInt(response[1])]["ThumbnailProcessingComplete"]=true;
+
+               if (response !== null)
+                    this.links[parseInt(response[1])]["Thumbnail"]=response[0];                    
+          },
+          error => {
+          });
+
+          if (!movetoServer)
+               this.links[stepperIndex].StepperStepNames=this.stepperStepNames;
+          else {
+               const newStepperStepNames=this.stepperStepNames;
+               newStepperStepNames.splice(this.stepperStepNames.length,0,'Moving the file to new location')
+
+               this.links[stepperIndex].StepperStepNames=newStepperStepNames;
+          }
+
+          stepperIndex++;
      }
-     
-     clearFieldValues() {
-          this.fieldKeys.forEach(key => {
-               this.fields[key].Value = "";
+
+     anySubmittedLinks() {
+          let retVal = false;
+
+          Object.keys(this.links).forEach(key => {
+               if (this.links[key]['IsSubmitted'] === true)
+                   retVal=true;
+          });
+          
+          return retVal;
+     }
+
+     clearFieldValues(currLink: object) {
+          currLink['FieldKeys'].forEach(key => {
+               currLink['Field'][key].Value = "";
           });
      }
 
@@ -121,98 +165,81 @@ export class DataService {
           return this.processStep(params);
      }
 
-     deleteDownloadProgress() {
-          return this.processStep(`?DeleteDownloadProgress=true`);
+     deleteLink(URL: string) {
+          Object.keys(this.links).forEach(key => {
+               if (this.links[key]['URL'] === URL)
+                   this.links.splice(key, 1)
+          });
      }
 
-     downloadFile(url: string): Observable<Blob> {
-          return this.http.get(url, {
-               responseType: 'blob'
-          })
-     }
+     fetchFile(currLink: object, allowMoveToServer: boolean, debugging: boolean) {
+          const fileName: string = (this.isAudioFormat("") && !isNaN(parseInt(this.fields.TrackNum.Value)) ? this.fields.TrackNum.Value + " " : "" ) + (this.fields.Name.Value != "" ? this.fields.Name.Value : "Unknown");
+          
+          let linkKey="";
 
-     fetchFile(movetoServer: boolean, allowMoveToServer: boolean, debugging: boolean) {
-          const fileName: string = (this.isAudioFormat() && !isNaN(parseInt(this.fields.TrackNum.Value)) ? this.fields.TrackNum.Value + " " : "" ) + (this.fields.Name.Value != "" ? this.fields.Name.Value : "Unknown");
           // extra URL parameters in a Youtube link causes issues for youtube-dl
-          if (this.fields.URL.Value.includes('youtube.com')) {
-               const arr = this.fields.URL.Value.split('&');
+          Object.keys(this.links).forEach(key => {
+               if (this.links[key]['URL'] === URL) {
+                    linkKey=key;
+                    return;
+               }               
+          });
 
-               this.fields.URL.Value = arr[0];
+          if (currLink['URL'].includes('youtube.com')) {
+               const arr = currLink['URL'].split('&');
+
+               currLink['URL']= arr[0];
           }
 
           const params = `?DownloadFile` +
-                         `&URL=${this.fields.URL.Value}` +
+                         `&URL=${currLink['URL']}` +
                          `&Filename=${this.rfc3986EncodeURIComponent(fileName)}` +
                          `&Debugging=${debugging}` +
-                         '&MoveToServer=' + (movetoServer ? "true" : "false") +
+                         '&MoveToServer=' + (allowMoveToServer ? "true" : "false") +
                          '&AllowMoveToServer=' + (allowMoveToServer ? "true" : "false") +
-                         (this.isAudioFormat()
-                              ? `&IsAudioFormat=true` + (this.isMP3Format() ? `&Bitrate=${this.currentFormat}` : ``) + `&AudioFormat=${this.currentFormat}`
-                              : `&IsVideoFormat=true&VideoFormat=${this.currentFormat}`);
+                         (this.isAudioFormat(currLink['Format'])
+                              ? `&IsAudioFormat=true` + (this.isMP3Format(currLink['Format']) ? `&Bitrate=${currLink['Format']}` : ``) + `&AudioFormat=${currLink['Format']}`
+                              : `&IsVideoFormat=true&VideoFormat=${currLink['Format']}`);
 
           return this.processStep(params);
      }
 
-     // Called by binding to [class.hidden] of mat-form-field.
-     fieldIsHidden(key: string,currentStep: number) {
-          if (key == 'URL' && currentStep != 0)
-               return true;
-
+     fieldIsHidden(formatName: string, fieldName: string) {
           // Specified values are the fields to hide
           const videoHideFields = Object.freeze(['Artist', 'Album', 'TrackNum', 'Genre', 'Year']);
           const nonMP3HideFields = Object.freeze(['TrackNum', 'Genre', 'Year']);
-        
-          const thisField = this.getField(key);
 
           return (
-               // If the fields property is set to disabled this is the de-facto determiner whether this field is enabled or disabled
-               thisField !== null && thisField.Disabled)
-               || (
-                    // If the format is a video format, hide these fields
-                    (!this.isAudioFormat() && videoHideFields.includes(key))
-                    ||
-                    // If the format is an audio format but is not MP3, hide these fields
-                    (this.isAudioFormat() && (!this.isMP3Format() && nonMP3HideFields.includes(key))
-               )
+               // If the format is a video format, hide these fields
+               (!this.isAudioFormat(formatName) && videoHideFields.includes(fieldName))
+               ||
+               // If the format is an audio format but is not MP3, hide these fields
+               (this.isAudioFormat(formatName) && !this.isMP3Format(formatName) && nonMP3HideFields.includes(fieldName))
           );
      }
 
-     getCurrentFormat() {
-          return this.currentFormat;
-     }
-
-     getDownloadProgress() {
-          return this.processStep(`?GetDownloadProgress=true`);
-     }
-
-     getField(fieldName: string) {
-          if (typeof this.fields[fieldName] === 'undefined')
-               return null;
-          else
-               return this.fields[fieldName];
-     }
-
-     getFieldKeys() {
-          return this.fieldKeys;
-     }
-
-     getFieldProperty(fieldName: string,propertyName: string) {
-          if (typeof this.fields[fieldName] === 'undefined')
-               return null;
-          else
-               return this.fields[fieldName][propertyName];
+     getDownloadProgress(currLink: object) {
+          return this.processStep(`?GetDownloadProgress=true&URL=${currLink['URL']}`);
      }
 
      getFormatKeys() {
           return this.formatKeys;
      }
 
-     getSteps() {
-          return this.stepperStepNames;
+     getLinks() {
+          return this.links;
+     }
+
+     getLinkKey(currLink: object) {
+          return currLink['StepperIndex'];
      }
 
      getSupportedURLs() {
           return this.processStep(`?GetSupportedURLs`);
+     }
+
+     getThumbnail(URL:string,stepperIndex: number) {
+          return this.processStep(`?GetThumbnail&URL=${URL}&StepperIndex=${stepperIndex}`);
      }
 
      getURLParameters() {
@@ -231,55 +258,49 @@ export class DataService {
           return throwError(error || 'Node.js server error');
      }
 
-     // Is currently selected format an audio format
-     isAudioFormat() {
+     isAudioFormat(format: string) {
           let isAudio = false;
 
           Object.keys(this.formats).forEach(key => {
-               if (key === this.currentFormat && this.formats[key].FormatTypeName === 'Audio')
+               if (key === format && this.formats[key].FormatTypeName === 'Audio')
                     isAudio = true;              
           });
 
           return isAudio;
      }
 
-     // Is currently selected format an mp3 format
-     isMP3Format() {
+     isMP3Format(format: string) {
           let isMP3 = false;
 
           Object.keys(this.formats).forEach(key => {
-               if (key === this.currentFormat && this.formats[key].FormatTypeName === 'Audio' && this.formats[key].IsMP3Format)
+               if (key === format && this.formats[key].FormatTypeName === 'Audio' && this.formats[key].IsMP3Format)
                     isMP3=true; 
           });
 
           return isMP3;
      }
-    
+
      loadFormats() {
           return this.processStep(`?GetFormats=true`);
      }
 
-     moveFile(localFile: string, isAudio: boolean) {
+     moveFile(currLink: object) {
           const params = `?MoveFile` +
                          `&MoveToServer=true`  +
-                         `&Filename=${localFile}` +
-                         `&Artist=${this.rfc3986EncodeURIComponent(this.fields.Artist.Value)}` +
-                         (isAudio
-                         ? `&IsAudioFormat=true` + (typeof this.fields.Album.Value !== 'undefined' ? `&Album=${this.rfc3986EncodeURIComponent(this.fields.Album.Value)}` : '')
+                         `&Filename=${currLink['Filename']}` +
+                         `&Artist=${this.rfc3986EncodeURIComponent(currLink['Fields']['Artist'].Value)}` +
+                         (this.isAudioFormat(currLink['format'])
+                         ? `&IsAudioFormat=true` + (typeof currLink['Fields']['Album'].Value !== 'undefined' ? `&Album=${this.rfc3986EncodeURIComponent(currLink['Fields']['Album'].Value)}` : '')
                          : `&IsVideoFormat=true`);
 
           return this.processStep(params);
-     }
+     } 
 
-     processStep(params: String) {
+     processStep(params: String): Observable<any> {
           return this.http.get<any>('/php/serverTasks.php' + params)
                .pipe(
                     catchError(this.handleError)
                );
-     }
-
-     removeWriteTagsStep() {
-          this.stepperStepNames.splice(this.stepperStepNames.indexOf('Writing ID3 Tags'), 1);
      }
 
      // Escapes all special characters so they can safely be passed as URL parameters
@@ -287,15 +308,25 @@ export class DataService {
           return encodeURIComponent(str).replace(/[!'()*]/g, escape);  
      }
 
-     setCurrentFormat(newformat: string) {
-          this.currentFormat = newformat;
+     searchVideos(query: string): Observable <any> {
+          const url = `${this.API_URL}?q=${query}&key=${this.API_TOKEN}&part=snippet&type=video&maxResults=10`;
+          return this.http.get(url)
+            .pipe(
+               catchError(this.handleError)
+              //map((response: any) => response.items)
+            );
+        }
+
+     setDownloadStatusMessage(currLink: object, newStatusMessage: string) {
+          currLink['DownloadStatusMessage']=newStatusMessage;
      }
 
-     setFieldProperty(fieldName: string,propertyName: string, newValue: any) {
-          if (typeof this.fields[fieldName] === 'undefined')
-               return null;
-          else
-               this.fields[fieldName][propertyName] = newValue;
+     setDownloadSubscription(currLink: object, downloadSubscription: any) {
+          Object.keys(this.links).forEach(key => {
+               if (this.links[key]['URL'] === currLink['URL']) {
+                    this.links[key]['DownloadProgressSubscription']=downloadSubscription;
+               }
+          });
      }
 
      showSnackBarMessage(message: string) {
@@ -304,51 +335,31 @@ export class DataService {
           this.snackBar.open(message, 'OK', config);
      }
 
-     validateFields() {
-          if (this.fields.URL.Value ===  null || this.fields.URL.Value === '')
-               return 'Please enter the URL';
-       
-          if (this.fields.URL.Value !== null && this.fields.URL.Value !== '')
-               if (!this.fields.URL.Value.startsWith('http://') && !this.fields.URL.Value.startsWith('https://'))
-                    return 'Please enter a valid URL beginning with http:// or https://';
-            
-          if (this.isAudioFormat() && (this.fields.Artist.Value === null || this.fields.Artist.Value === ''))
-               return 'Please enter the artist';
-        
-          if (this.isAudioFormat() && this.fields.Album.Required && (this.fields.Album.Value === null || this.fields.Album.Value === ''))
-               return 'Please enter the album';
-       
-          if (this.fields.Name.Value === null || this.fields.Name.Value === '')
-               return 'Please enter the name';
-            
-          if (this.isAudioFormat() && this.fields.TrackNum.Required && (this.fields.TrackNum.Value === null || this.fields.TrackNum.Value === ''))
-               return 'Please enter the track #';
+     URLExists(URL: string) {
+          let URLExists=false;
 
-          if (this.isAudioFormat() && this.fields.Year.Required && (this.fields.Year.Value === null || this.fields.Year.Value === ''))
-               return 'Please enter the year';
+          Object.keys(this.links).forEach(key => {
+               console.log("URL=*"+URL+"* and current item=*"+this.links[key]['URL'] + "*")
+               if (this.links[key]['URL'] === URL) {
+                    URLExists=true;
+               }
+          });
 
-          // Default album to Unknown if not provided
-          if (this.fields.Album.Value === null)
-               this.fields.Album.Value = 'Unknown';
-
-          if (this.currentFormat === null || this.currentFormat === '')
-               return 'Please select the format';
-
-          return null;
+          return URLExists;
      }
 
-     writeID3Tags(localFile: string) {
-          if (this.fields.TrackNum.Value !== null && !isNaN(parseInt(this.fields.TrackNum.Value)) && parseInt(this.fields.TrackNum.Value) < 10)
-          this.fields.TrackNum.Value = "0" + this.fields.TrackNum.Value;
+     writeID3Tags(currLink: object) {
+          if (currLink['Fields']['TrackNum'].Value !== null && !isNaN(parseInt(currLink['Fields']['TrackNum'].Value)) && parseInt(currLink['Fields']['TrackNum'].Value) < 10)
+               currLink['Fields']['TrackNum'].Value = "0" + currLink['Fields']['TrackNum'].Value;
 
           const params = `?WriteID3Tags` +
-                         `&Filename=${localFile}` +
-                         (this.fields.Artist.Value !== null ? `&Artist=${this.fields.Artist.Value}` : ``) +
-                         (this.fields.Album.Value !== null ? `&Album=${this.fields.Album.Value}` : ``) +
-                         (this.fields.Name.Value !== null ? `&TrackName=${this.fields.Name.Value}` : '') +
-                         (this.fields.TrackNum.Value !== null ? `&TrackNum=${this.fields.TrackNum.Value}` : '') +
-                         (this.fields.Genre.Value !== null ? `&Genre=${this.fields.Genre.Value}` : ``) +
-                         (this.fields.Year.Value !== null ? `&Year=${this.fields.Year.Value}` : ``);
+                         `&Filename=${currLink['Filename']}` +
+                         (currLink['Fields']['Artist'].Value !== null ? `&Artist=${currLink['Fields']['Artist'].Value}` : ``) +
+                         (currLink['Fields']['Album'].Value !== null ? `&Album=${currLink['Fields']['Album'].Value}` : ``) +
+                         (currLink['Fields']['Name'].Value !== null ? `&TrackName=${currLink['Fields']['Name'].Value}` : '') +
+                         (currLink['Fields']['TrackNum'].Value !== null ? `&TrackNum=${currLink['Fields']['TrackNum'].Value}` : '') +
+                         (currLink['Fields']['Genre'].Value !== null ? `&Genre=${currLink['Fields']['Genre'].Value}` : ``) +
+                         (currLink['Fields']['Year'].Value !== null ? `&Year=${currLink['Fields']['Year'].Value}` : ``);
 
           return this.processStep(params);
      }

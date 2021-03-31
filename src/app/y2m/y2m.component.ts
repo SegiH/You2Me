@@ -1,6 +1,16 @@
 /*
      TODO:
-     add ability to add and initiate multiple d/ls. make sure php script doesnt glob the media folder
+     
+     download status message is currently hidden - Find place to put it   
+     Think about possibly adding progress bar. percent doesnt get added "evenly" to the DB  
+     
+     this.progressInterval = setInterval(() => {
+      this.progressValue += 1;
+
+      if (this.progressValue == 100)
+           clearInterval(this.progressInterval);
+    }, 1000);
+
 
      Dailymotion long videos time out without an error message. 5 minutes works. 15 minutes fails
      
@@ -9,17 +19,22 @@
           2. Make sure proxy.conf doesn't have my server address and make sure php doesn't have it either.
 
      URL for testing: https://www.youtube.com/watch?v=Wch3gJG2GJ4
+     https://blog.logrocket.com/build-a-youtube-video-search-app-with-angular-and-rxjs/
 */
-import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogModel, ConfirmDialogComponent } from '../confirmdialog/confirmdialog.component'
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { DataService } from '../core/data.service';
-import { interval } from "rxjs";
 import { DownloadService } from '../core/download.service';
 import { DOCUMENT } from '@angular/common';
 import { MatStepper } from '@angular/material/stepper';
+import { MatSort } from '@angular/material/sort';
+import { interval } from "rxjs";
+import { MatAccordion } from '@angular/material/expansion';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
      selector: 'app-y2m',
@@ -28,108 +43,154 @@ import { MatStepper } from '@angular/material/stepper';
 })
 
 export class Y2MComponent implements OnInit {
+     addFieldsVisible = false;
      readonly allowMoveToServer = true;
-     currentStep = 0;
+     apiLoaded = false;
+     confirmDialogVisible = false;
      debugging = false; // This should never be true when running production build
      debuggingCheckboxVisible = false;
-     downloadLink = '';
-     downloadStatus = ''; // displays youtube-dl output messages
-     downloadStatusVisible = true;
-     downloadProgressSubscription;
-     isFinished = false;
-     fileName = '';
-     formatOverride = false;
-     isSubmitted = false; // default false
-     moveToServer = false; // default false
-     nextButtonEnabled = true;
-     saveValues = false;     
+     moveToServer = false; // global movetoServer preference specified by URL param. Default is false  
+     newFormat: string = "";
+     newURL: string = ""; // Sample urls for testing: https://www.youtube.com/watch?v=Wch3gJG2GJ4"; //https://www.youtube.com/watch?v=f4xqnh2UPeQ";
+     searchResults: {};
+     searchTerm: string = "";
+     searchYTCardVisible=false;
      statusCountClick = 0;
-     statusMessage = '';
      supportedURLsDataSource: MatTableDataSource<any>;
      supportedURLsVisible = false;
      urlParams: {};
 
      @ViewChild('supportedURLsPaginator') supportedURLsPaginator: MatPaginator;
+     @ViewChildren(MatStepper) steppers: QueryList<any>;
+     @ViewChildren(MatAccordion) searchResultsExpansionPanels: QueryList<any>;
      @ViewChild(MatSort) sort: MatSort;
-     @ViewChild(MatStepper) stepper: MatStepper;
 
-     constructor(public snackBar: MatSnackBar, public dataService: DataService,private downloads: DownloadService, @Inject(DOCUMENT) private document: Document) {}
+     constructor(public dialog: MatDialog, public snackBar: MatSnackBar, public dataService: DataService, private downloads: DownloadService, @Inject(DOCUMENT) private document: Document,private sanitizer: DomSanitizer) { }
 
      ngOnInit() {
-          const format = this.getURLParam('Format');
-          
-          // Set the current format without validating it first because formats object may not be populated yet
-          if (format !== null) {
-               this.dataService.setCurrentFormat(format);
-          }
-
           // If URL parameter MoveToServer was provided and is allowed, add Moving the file to new location as a step
           if (this.getURLParam('MoveToServer') === 'true' && this.allowMoveToServer) {
                this.moveToServer = true;
-               document.title = 'You2Me (Server)';
           } else {
                this.moveToServer = false;
                document.title = 'You2Me';
           }
 
-          if (this.moveToServer)
-               this.dataService.addStep('Moving the file to new location');
- 
           // Save current debugging value
-          const currDebugging=this.debugging;
+          const currDebugging = this.debugging;
 
           // Enable debugging if Debugging was provided as URL parameter. Otherwise default to currDebugging
           this.debugging = (this.getURLParam("Debugging") != this.debugging && this.getURLParam("Debugging") ? this.getURLParam("Debugging") : currDebugging);
 
-          // Debugging default field values
-          if (this.debugging) {
-               /*this.fields.URL.Value="https://www.youtube.com/watch?v=Wch3gJG2GJ4";
-               this.fields.Artist.Value="Monkeeys";
-               this.fields.Album.Value="Greatest Hits";
-               this.fields.Name.Value="Goin Down";
-               this.fields.TrackNum.Value="13";
-               this.fields.Genre.Value="60s";
-               this.fields.Year.Value="1994";
-               this.currentAudioFormat='320k';
-               this.currentVideoFormat=null;
-               this.saveValues=true;*/
-          }
-          
-          // Remove Artist name from title if it exists. You can't do this in getURLParam because it ends up getting called recursively
-          const artist=this.dataService.getFieldProperty('Artist','Value');
-          
-          if (artist !== null) {
-               // Remove "artistname - " from name
-               const newName=this.dataService.getFieldProperty('Name','Value').replace(artist + " - ","");
-               this.dataService.setFieldProperty('Name','Value',newName);
-          }
-
-          // Load URL parameters
-          this.dataService.getFieldKeys().forEach(key => {              
-               if (this.getURLParam(key) !== null)
-                    if ((key === 'TrackNum' || key === 'Year') && isNaN(parseInt(this.getURLParam(key))))
-                         this.dataService.showSnackBarMessage('The URL parameter ' + key + ' has to be a number');
-                    else
-                         this.dataService.setFieldProperty(key,"Value",this.getURLParam(key));
-          });
-          
           // Make sure that there aren't any invalid URL parameters
           const queryString = "&" + window.location.search.slice(1); // first URL parameter always begins with a ?. This replaces it with & so we can call split() on it using & as the delimiter
-          const split_params=queryString.split("&"); 
-          
-          for (let i=0;i<split_params.length;i++) {
+          const split_params = queryString.split("&");
+
+          for (let i = 0; i < split_params.length; i++) {
                if (split_params[i] !== '') {
-                    const param=split_params[i].split("=")[0]; // URL is in the form Name=Value; Get Name part of the parameter
+                    const param = split_params[i].split("=")[0]; // URL is in the form Name=Value; Get Name part of the parameter
 
                     if (!this.dataService.getURLParameters().includes(param))
-                         this.dataService.showSnackBarMessage('The URL parameter ' + param + ' is not a valid URL parameter');                    
+                         this.dataService.showSnackBarMessage('The URL parameter ' + param + ' is not a valid URL parameter');
                }
-          }          
+          }
+
+          const URL=this.getURLParam('URL');
+          const name=this.getURLParam('Name');
+          const format=this.getURLParam('Format');
+          
+          if (URL !== null && name != null && format != null) {
+               this.dataService.addLink(URL, format, false);
+
+               this.dataService.links[0]['Fields']['Name'].Value=name;
+          }
+
+          // Load Youtube player API code
+          if (!this.apiLoaded) {
+               // This code loads the IFrame Player API code asynchronously, according to the instructions at https://developers.google.com/youtube/iframe_api_reference#Getting_Started
+               const tag = document.createElement('script');
+               tag.src = 'https://www.youtube.com/iframe_api';
+               document.body.appendChild(tag);
+               this.apiLoaded = true;
+          }
+
+          // DELETE ME LATER
+          //this.addButtonClick();
+          //this.addButtonClick();
+
+          //this.dataService.links[0]["CurrentStep"] = 2;
+          //this.dataService.links[0]['IsFinished'] = true;
+          //this.dataService.links[0]['IsSubmitted'] = true;
+          //this.dataService.links[0]['StatusMessage'] = 'Your file is ready to download or move to your server.';
+          //this.dataService.links[0]['Fields']['Artist'].Value='a';
+          //this.dataService.links[0]['Fields']['Name'].Value='a';
+     }
+
+     // Event when the user clicks on Add button
+     addButtonClick() {
+          if (!this.addFieldsVisible) {
+               this.addFieldsVisible = true;
+               return;
+          }
+
+          this.newURL = this.newURL.trim();
+
+          if (this.newURL == "") {
+               this.dataService.showSnackBarMessage("Please enter the URL");
+               return;
+          }
+
+          if (!this.newURL.startsWith("http://") && !this.newURL.startsWith("https://")) {
+               this.dataService.showSnackBarMessage("The URL must begin with http or https");
+               return;
+          }
+
+          if (this.dataService.URLExists(this.newURL)) {
+               this.dataService.showSnackBarMessage("You cannot add the same URL more than once");
+               return;
+          }
+
+          if (this.newFormat == "") {
+               this.dataService.showSnackBarMessage("Please select the format");
+               return;
+          }
+
+          this.dataService.addLink(this.newURL, this.newFormat, this.moveToServer); // If moveToServer is true, an extra step is added
+
+          this.newURL = "";
+          this.newFormat = "";
+
+          this.addFieldsVisible = false;
+     }
+
+     addSearchResult(currSearchResult) {
+          debugger;
+          this.dataService.addLink(currSearchResult.id.videoId, "320k", false);
      }
 
      // apply filter for supported url search filters
      applyFilter(filterValue: string) {
           this.supportedURLsDataSource.filter = filterValue.trim().toLowerCase();
+     }
+
+     // Event when the user clicks on the cancel button to canel adding a link
+     cancelAddClick() {
+          this.addFieldsVisible = false;
+     }
+
+     // Confirm dialog
+     confirmDialog(currLink: object, message: string): void {
+          const dialogData = new ConfirmDialogModel(`${currLink['URL']}`, message);
+
+          const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+               maxWidth: "400px",
+               data: dialogData
+          });
+
+          dialogRef.afterClosed().subscribe(dialogResult => {
+               if (dialogResult)
+                    this.dataService.deleteLink(currLink['URL']);
+          });
      }
 
      // Custom Material UI table filter function
@@ -146,107 +207,124 @@ export class Y2MComponent implements OnInit {
           return filterFunction;
      }
 
-     // Download file step
-     downloadFile() {          
-          this.nextButtonEnabled = false;
+     deleteButtonClick(currLink: object) {
+          this.confirmDialog(currLink, "Are you sure you want to delete this link ?");
+     }
 
+     deleteSearchResultsButtonClick() {
+          this.searchYTCardVisible=false;
+     }
+
+     // Download file step
+     downloadFile(currLink: object) {
           // Start timer that gets download progress
           if (!this.debugging)
-               this.getDownloadProgress();
+               this.getDownloadProgress(currLink);
 
           // Call data service to download the file
-          this.dataService.fetchFile(this.moveToServer, this.allowMoveToServer, this.debugging)
-          .subscribe((response) => {
-               // Stop the REST service that gets the download status
-               if (!this.debugging) {
-                    this.downloadProgressSubscription.unsubscribe();
+          this.dataService.fetchFile(currLink, this.allowMoveToServer, this.debugging)
+               .subscribe((response) => {
+                    // Stop the REST service that gets the download status
+                    if (!this.debugging)
+                         currLink['DownloadProgressSubscription'].unsubscribe();
 
-                    this.downloadStatusVisible = false;
+                    // Trap server side errors
+                    if (response[0].includes('Error:')) {
+                         this.handleError(currLink, response, response);
+                         console.log(response[1]);
+                         return;
+                    }
 
-                    // Call REST service to delete download progress temp db
-                    this.dataService.deleteDownloadProgress().subscribe((response) => {
-                    },
-                    error => {
-                         this.handleError(Response, error);
-                    });
-               }
+                    // First index will be filename
+                    currLink['Filename'] = response[0];
 
-               // Trap server side errors
-               if (response[0].includes('Error:')) {
-                    this.handleError(response, response);
-                    console.log(response[1]);
-                    return;
-               }
+                    if (this.dataService.isAudioFormat(currLink['Format'])) {
+                         // Second index will be Artist if matched through Python script that does audio fingerprinting
+                         if (typeof response[1] !== 'undefined' && response[1] !== "")
+                              currLink['Fields']['Artist'].Value = response[1];
 
-               // First index will be filename
-               this.fileName = response[0];
+                         // Third index will be Title if matched through Python script that does audio fingerprinting
+                         if (typeof response[2] !== 'undefined' && response[2] !== "")
+                              currLink['Fields']['Name'].Value = response[2];
 
-               // Second index will be Artist if matched through Python script that does audio fingerprinting
-               if (typeof response[1] !== 'undefined')
-                    this.dataService.setFieldProperty('Artist','Value',response[1]);
+                         if (typeof response[3] !== 'undefined' && response[3] !== "")
+                              currLink['ThumbnailImage'] = response[3];
 
-               // Third index will be Title if matched through Python script that does audio fingerprinting
-               if (typeof response[2] !== 'undefined')
-                    this.dataService.setFieldProperty('Name','Value',response[2]);
+                         if (currLink['Fields']['Artist'].Value == '') {
+                              this.dataService.showSnackBarMessage("Please enter the artist name");
+                              currLink['CurrentStep'] = 2;
+                              currLink['IsSubmitted'] = false;
+                              return;
+                         }
+                    } else {
+                         if (typeof response[1] !== 'undefined' && response[1] !== "")
+                              currLink['ThumbnailImage'] = response[1];
+                    }
 
-               this.currentStep++;
-               this.stepper.selected.completed = true;
-               this.stepper.selected.editable = false;
-               this.stepper.next();
+                    if (currLink['Fields']['Name'].Value == '') {
+                         this.dataService.showSnackBarMessage("Please enter the name");
+                         currLink['CurrentStep'] = 2;
+                         currLink['IsSubmitted'] = false;
+                         return;
+                    }
 
-               // If the selected format is MP3 format and the Python script tried but fails to get the artist and album
-               // Make artist and name fields required
-               if (this.dataService.isMP3Format()) {
-                    this.updateStatus('The file has been downloaded. Please enter any additional ID3 tags and click on next');
+                    currLink['CurrentStep']++;
 
-                    this.nextButtonEnabled = true;
-               } else if (!this.dataService.isMP3Format()) { // If the format is not MP3 and we aren't moving to the server we are done
-                    // The response returns the URL for the downloaded file
-                    this.downloadLink = decodeURIComponent(response[0].replace(/\+/g, ' '));
+                    this.steppers.forEach(
+                         stepper => {
+                              if (stepper._document.getElementsByClassName("Stepper" + currLink['StepperIndex']).length != 0)
+                                   this.incrementStepper(currLink);
+                         }
+                    );
 
-                    this.updateStatus('The file is ready for you to download or move to your server');
+                    if (this.dataService.isMP3Format(currLink['Format'])) {
+                         currLink['StatusMessage'] = 'The file has been downloaded';
+                         this.writeID3Tags(currLink);
+                    } else {
+                         // The response returns the URL for the downloaded file
+                         currLink['DownloadLink'] = decodeURIComponent(response[0].replace(/\+/g, ' '));
 
-                    this.currentStep++;
-                    this.stepper.selected.completed = true;
-                    this.stepper.selected.editable = false;
-                    this.stepper.next();
+                         currLink['StatusMessage'] = 'Your file is ready for you to download or move to your server';
 
-                    this.currentStep++;
-                    this.stepper.selected.completed = true;
-                    this.stepper.selected.editable = false;
-                    this.stepper.next();
+                         this.steppers.forEach(
+                              stepper => {
+                                   if (stepper._document.getElementsByClassName("Stepper" + currLink['StepperIndex']).length != 0) {
+                                        // Do this twice to skip to the last step
+                                        this.incrementStepper(currLink);
+                                        this.incrementStepper(currLink);
+                                        console.log("Skipping to last step");
+                                   }
+                              }
+                         );
 
-                    this.finished();
-               }
-          },
-          error => {
-               // Stop the REST service that gets the download status
-               if (!this.debugging) {
-                    this.downloadProgressSubscription.unsubscribe();
+                         if (this.moveToServer) {
+                              this.moveFileToServer(currLink);
+                         } else
+                              this.finished(currLink);
+                    }
+               },
+               error => {
+                    // Stop the REST service that gets the download status
+                    if (!this.debugging)
+                         currLink['DownloadProgressSubscription'].unsubscribe();
 
-                    // Call REST service to delete download progress temp db
-                    this.dataService.deleteDownloadProgress().subscribe((response) => {
-                    },
-                    error => {
-                         this.handleError(Response, error);
-                    });
-               }
-          
-               this.handleError(Response, error);
-          });
+                    this.handleError(currLink, Response, error);
+               });
      }
 
      // Download click button event
-     downloadLinkClicked() {
-          const fileNameWithoutPath=this.downloadLink.substr(this.downloadLink.lastIndexOf("/")+1);
+     downloadButtonClicked(currLink: object) {
+          const fileNameWithoutPath = currLink['DownloadLink'].substr(currLink['DownloadLink'].lastIndexOf("/") + 1);
+
+          currLink['DownloadButtonClicked'] = true;
 
           // Subscribe to DL service and wait for the done response 
-          this.downloads.download(this.downloadLink, fileNameWithoutPath).subscribe((response) => {
+          this.downloads.download(currLink['DownloadLink'], fileNameWithoutPath).subscribe((response) => {
                //console.log("Response: " + response.state);
                if (response.state === "DONE") {
                     if (!this.debugging) {
                          // Send request to delete the file
-                         this.dataService.deleteDownloadFile(this.downloadLink).subscribe((response) => { 
+                         this.dataService.deleteDownloadFile(currLink['DownloadLink']).subscribe((response) => {
                               //console.log(response)
                          },
                          error => {
@@ -258,49 +336,49 @@ export class Y2MComponent implements OnInit {
           error => {
                console.log("An error " + error + " occurred deleting the file from the server 2");
           });
-     }     
-
-     // Handle event when all tasks have finished running
-     finished(isError=false) {
-          this.debuggingCheckboxVisible = false;
-          this.nextButtonEnabled = false;
-          this.isFinished = true;
-
-          // Stop the REST service that gets the download status
-          if (!this.debugging) {
-               this.downloadProgressSubscription.unsubscribe();
-
-               // Delete download progress temp db
-               this.dataService.deleteDownloadProgress().subscribe((response) => {
-               },
-               error => {
-                    this.handleError(Response, error);
-               });
-          }
      }
 
-     getStepClass() {
-          return "step" + this.currentStep;
+     // Handle event when all tasks have finished running
+     finished(currLink: object, isError = false) {
+          this.debuggingCheckboxVisible = false;
+
+          while (currLink["CurrentStep"] < currLink["StepperStepNames"].length - 1) {
+               this.incrementStepper(currLink);
+               currLink["CurrentStep"]++;
+          }
+
+          currLink['IsFinished'] = true;
+
+          // Stop the REST service that gets the download status
+          if (!this.debugging)
+               currLink['DownloadProgressSubscription'].unsubscribe();
      }
 
      // Get progress of youtube-dl
-     getDownloadProgress() {
+     getDownloadProgress(currLink: object) {
           if (this.debugging)
                return;
 
-          this.downloadProgressSubscription = interval(50)
-               .subscribe(()=>{
-                    this.dataService.getDownloadProgress()
-                    .subscribe((jsonResult:Object)=>{
-                         if(jsonResult !== null && !jsonResult[1])
-                              this.downloadStatus=jsonResult[0];
-                    },
-                    error => {
-                         //show errors
-                         console.log(error)
-                    }
-               );
-          });
+          this.dataService.setDownloadSubscription(currLink
+               , interval(50)
+                    .subscribe(() => {
+                         this.dataService.getDownloadProgress(currLink)
+                              .subscribe((jsonResult: Object) => {
+                                   if (jsonResult !== null && !jsonResult[1]) {
+                                        this.dataService.setDownloadStatusMessage(currLink, jsonResult[0]);
+                                   }
+                              },
+                                   error => {
+                                        //show errors
+                                        console.log(error)
+                                   }
+                              );
+                    }));
+     }
+
+     // Returns class name based on currLink
+     getStepperClass(currLink: object) {
+          return "Stepper" + this.dataService.getLinkKey(currLink);
      }
 
      // Get URL parameter
@@ -312,13 +390,13 @@ export class Y2MComponent implements OnInit {
           // If urlParams is still undefined, there are no url params
           if (typeof this.urlParams === 'undefined')
                return (name === "Debugging" ? false : null);
-          
+
           // Make URL params upper case when checking so they aren't case sensitive
-          name=name.toUpperCase();
+          name = name.toUpperCase();
 
           switch (name) {
                case 'URL':
-                    return (typeof  this.urlParams[name] !== 'undefined' && this.urlParams[name] !== '' ? decodeURI(this.urlParams[name]) : null);
+                    return (typeof this.urlParams[name] !== 'undefined' && this.urlParams[name] !== '' ? decodeURI(this.urlParams[name]) : null);
                case 'ARTIST':
                     return (typeof this.urlParams[name] !== 'undefined' && decodeURI(this.urlParams[name]) || null);
                case 'ALBUM':
@@ -330,7 +408,7 @@ export class Y2MComponent implements OnInit {
                case 'NAME':
                     if (typeof this.urlParams[name] === 'undefined')
                          return null;
-                    
+
                     let title = this.urlParams[name];
 
                     title = title.replace('Title=', '');
@@ -340,7 +418,7 @@ export class Y2MComponent implements OnInit {
 
                     return decodeURI(title);
                case 'TRACKNUM':
-                    return (typeof this.urlParams[name] !== 'undefined' && decodeURI(this.urlParams[name])  || null);
+                    return (typeof this.urlParams[name] !== 'undefined' && decodeURI(this.urlParams[name]) || null);
                case 'MOVETOSERVER':
                     return (typeof this.urlParams[name] !== 'undefined' ? this.urlParams[name] : null);
                case 'YEAR':
@@ -352,101 +430,109 @@ export class Y2MComponent implements OnInit {
           }
      }
 
-     // Handle errors returned by observable
-     handleError(response, error) {
-          // write error status
-          this.updateStatus(`A fatal error occurred`  + (response[0] !== null ? `: ${response[0]}` : ``));
+     // Event when the user clicks on the Go button to start the download
+     goButtonClick(currLink: object) {
+          if (currLink['CurrentStep'] == 0) {
+               // Validate fields
+               const name = currLink['Fields']['Name'].Value;
+               const artist = currLink['Fields']['Artist'].Value;
+               const album = currLink['Fields']['Album'].Value;
 
-          console.log(`An error occurred at step ${this.currentStep} with the error ${error[0]}`);
-
-          if (!this.debugging)
-               this.downloadProgressSubscription.unsubscribe();
-
-          this.finished(true);
-     }
-
-     // Move To Server Task
-     moveFileToServer() {
-          if (this.moveToServer || this.allowMoveToServer) {
-               this.dataService.moveFile(this.fileName, this.dataService.isAudioFormat())
-               .subscribe((response) => {
-                    // Trap server side errors
-                    if (response[0].includes('Error:')) {
-                         this.handleError(response, response);
+               if (this.dataService.isAudioFormat(currLink['Format']) && !this.dataService.isMP3Format(currLink['Format'])) {
+                    if (artist === "") {
+                         this.dataService.showSnackBarMessage("Please enter the artist");
                          return;
                     }
 
-                    this.updateStatus('The file has been moved to the server');
+                    if (name === "") {
+                         this.dataService.showSnackBarMessage("Please enter the name");
+                         return;
+                    }
 
-                    this.currentStep++;
+                    if (album === "")
+                         currLink['Fields']['Album'].Value = 'Unknown';
+               } else if (!this.dataService.isAudioFormat(currLink['Format']) && name === "") {
+                    this.dataService.showSnackBarMessage("Please enter the name");
+                    return;
+               }
 
-                    this.finished();
-               },
-               error => {
-                    this.handleError(Response, error);
-               });
+               currLink['IsSubmitted'] = true;
+
+               currLink['StatusMessage'] = "Starting the download";
+
+               this.downloadFile(currLink);
+          } else if (currLink['CurrentStep'] == 2) {
+               if (currLink['Fields']['Artist'].Value === "") {
+                    this.dataService.showSnackBarMessage("Please enter the artist");
+                    return;
+               }
+
+               if (currLink['Fields']['Name'].Value === "") {
+                    this.dataService.showSnackBarMessage("Please enter the name");
+                    return;
+               }
+
+               currLink['IsSubmitted'] = true;
+
+               currLink['StatusMessage'] = "Writing the ID3 tags";
+
+               this.writeID3Tags(currLink)
           }
      }
 
-     // Event if the user clicks on the Move To Server button
-     moveToServerClick() {
-          // If we are able to move to server 
-          if (this.allowMoveToServer)
-               this.moveFileToServer();
+     // Handle errors returned by observable
+     handleError(currLink: object, response, error) {
+          // write error status
+          currLink['StatusMessage'] = `A fatal error occurred` + (response[0] !== null ? `: ${response[0]}` : ``);
+
+          console.log(`An error occurred at step ${currLink['CurrentStep']} with the error ${error[0]}`);
+
+          if (!this.debugging)
+               currLink['DownloadProgressSubscription'].unsubscribe();
+
+          this.finished(currLink, true);
      }
 
-     // Called by binding of click event of next button
-     nextButtonClick() {
-          if (this.currentStep == 0 && !this.dataService.isAudioFormat() && this.dataService.getFieldProperty("Name","Value") == "")  {
-               this.dataService.showSnackBarMessage("Please enter the name")
+     // Increments stepper
+     incrementStepper(currLink: object) {
+          this.steppers.forEach(
+               stepper => {
+                    if (stepper._document.getElementsByClassName("Stepper" + currLink['StepperIndex']).length != 0) {
+                         // Do this twice to skip to the last step
+                         stepper.selected.completed = true;
+                         stepper.selected.editable = false;
+                         stepper.next();
+                    }
+               }
+          );
+     }
+
+     // Move To Server Task
+     moveFileToServer(currLink: object) {
+          if (!this.allowMoveToServer)
                return;
+
+          currLink['MoveToServerButtonClicked'] = true;
+
+          if (this.moveToServer || this.allowMoveToServer) {
+               this.dataService.moveFile(currLink)
+                    .subscribe((response) => {
+                         // Trap server side errors
+                         if (response[0].includes('Error:')) {
+                              this.handleError(currLink, response, response);
+                              return;
+                         }
+
+                         currLink['StatusMessage'] = 'The file has been moved to the server';
+
+                         currLink['CurrentStep']++;
+
+                         this.finished(currLink);
+                    },
+                         error => {
+                              this.handleError(null, Response, error);
+                         });
           }
-
-          // Since I use Python fingerprinting, you don't have to fill in the artist and name if an MP3 format is selected. formatOverride is set to true 
-          // if python fingerprinting cannot identify the track in which case the artist and song name ARE required
-          if (this.dataService.isMP3Format() && !this.formatOverride) {
-               this.dataService.setFieldProperty('Artist','Required',false);
-               this.dataService.setFieldProperty('Name','Required',false);               
-          }         
-          
-          // Set initial status
-          if (this.currentStep === 0)
-               this.updateStatus('Starting the download');
-
-          if (!this.dataService.isMP3Format())
-               this.dataService.removeWriteTagsStep();
-
-          this.formatOverride = false;
-
-          // Show steps
-          this.isSubmitted = true;
-
-          // Start the process
-          this.processSteps();
-     }
-
-     // Parse title URL param
-     parseTitle(section: string) {
-          // section can be artist name or song name
-          let titleParam = this.getURLParam('Title');
-
-          if (!titleParam)
-               return null;
-
-          // Remove these strings from the URL
-          titleParam = titleParam.toString().replace(' - [HQ] - YouTube', '');
-          titleParam = titleParam.replace(' - YouTube', '');
-
-          // If no dash is in the title, assume that the title is the song name
-          if (titleParam.includes('-') && section.toUpperCase() === 'TITLE')
-               return titleParam;
-
-          const res = titleParam.split('-');
-
-          if (section === 'Artist' && res[0])
-               return decodeURI(res[0].trim());
-          else if (section === 'Title' && res[1])
-               return decodeURI(res[1].trim());
      }
 
      // Parse and store all URL parameters in a key/pair value
@@ -460,81 +546,63 @@ export class Y2MComponent implements OnInit {
 
           // Create object which contains split key value pairs so "URL=https://www.youtube.com/watch?v=Wch3gJG2GJ4" turns into ['URL','https://www.youtube.com/watch?v=Wch3gJG2GJ4']
           const map1 = res.map(x => x.split('='));
-          
+
           this.urlParams = {};
 
           // Add key/pair to object so it can be accessed by doing params[keyname] to get the value
           //map1.map(x => params[x[0]] = x[1] + (x[2] !== null ? '=' + x[2] : ''));
 
-          map1.map(x => 
+          map1.map(x =>
                this.urlParams[decodeURI(x[0]).toUpperCase()] = decodeURI(x[1]) + (
-                     typeof x[2] !== 'undefined' ? '=' + decodeURI(x[2]) : '')
-                  );
+                    typeof x[2] !== 'undefined' ? '=' + decodeURI(x[2]) : '')
+          );
      }
 
-     processSteps() {
-          // Call data service based on the current step
-          switch (this.currentStep) {
-               case 0: // Download the file                    
-                    this.downloadFile();
-
-                    break;
-               case 1: // Write ID3 tags
-                    this.writeID3Tags()
-
-                    break;
-               case 2: // Call the data service to move the file to the media server
-                    this.moveFileToServer();
-
-                    break;
+     searchYTClick() {
+          if (this.searchTerm == "") {
+               this.dataService.showSnackBarMessage("Please enter the search term");
+               return;
           }
+
+          // Call data service to download the file
+          this.dataService.searchVideos(this.searchTerm)
+          .subscribe((response) => {
+               this.searchResults=response.items;
+          },
+          error => {
+               this.dataService.showSnackBarMessage("An error occurred searching YouTube");            
+          });
      }
 
-     restartButtonClick() {
-          // If the Save Values checkbox is not checked
-          if (!this.saveValues)                    
-               this.dataService.clearFieldValues(); // Clear all of the field values
-
-          // reset the stepper count
-          this.currentStep = 0;
-
-          // Set initial status message
-          this.statusMessage = 'Fields marked with an * are required';
-
-          // Reset submitted status
-          this.isSubmitted = false;
-
-          this.formatOverride = false;
-
-          this.nextButtonEnabled = true;
-
-          this.isFinished = false;
-               
-          return;
+     // Event when the user clicks on the Search YT button - Shows Search YT panel
+     showSearchYTClick() {
+          this.searchYTCardVisible=true;      
      }
 
+     // Event when user toggles show supported URLs checkbox
      showSupportedSitesToggle() {
           if (this.supportedURLsVisible && typeof this.supportedURLsDataSource === 'undefined') {
                this.dataService.getSupportedURLs().subscribe((response) => {
-                    this.supportedURLsDataSource=new MatTableDataSource(response);
-     
-                     // Assign custom filter function
-                     this.supportedURLsDataSource.filterPredicate = this.createSupportedURLsFilter();
-     
+                    this.supportedURLsDataSource = new MatTableDataSource(response);
+
+                    // Assign custom filter function
+                    this.supportedURLsDataSource.filterPredicate = this.createSupportedURLsFilter();
+
                     this.supportedURLsDataSource.paginator = this.supportedURLsPaginator;
-     
+
                     this.supportedURLsDataSource.sort = this.sort;
-               },     
+               },
                error => {
-                    this.handleError(Response, error);
-               });    
+                    this.handleError(null, Response, error);
+               });
           }
      }
-     
-     // If you double click twice on the status message before submitting, it will show the checkbox to toggle the Debugging checkbox
+
+     // If you buttons dont click twice on the toolbar before submitting, it will show the checkbox to toggle the Debugging checkbox
      // so you can enable Debugging after loading the form but before submitting it
-     statusDoubleClick() {
-          if (this.isSubmitted)
+     toolbarDoubleClick() {
+          // If any links have been submitted ignore
+          if (this.dataService.anySubmittedLinks())
                return;
 
           this.statusCountClick++;
@@ -542,9 +610,8 @@ export class Y2MComponent implements OnInit {
           if (this.statusCountClick == 2) {
                this.debuggingCheckboxVisible = true;
                this.statusCountClick = 0;
-          } else {
+          } else
                this.debuggingCheckboxVisible = false;
-          }
      }
 
      // Used to prevent the entire DOM tree from being re-rendered every time that there is a change
@@ -552,66 +619,44 @@ export class Y2MComponent implements OnInit {
           return index; // or item.id
      }
 
-     // Update the status message
-     updateStatus(newStatus: string) {
-          this.statusMessage = newStatus;
-     }
-
      // Write ID3 tags step
-     writeID3Tags() {
-          // Validate the required fields
-          const validateResult = this.dataService.validateFields();
-
-          if (validateResult !== null) {
-               this.dataService.showSnackBarMessage(validateResult);
-               return;
-          }
-
-          this.currentStep++;
-          this.stepper.selected.completed = true;
-          this.stepper.selected.editable = false;
-          this.stepper.next();
-
-          this.nextButtonEnabled = false;
+     writeID3Tags(currLink: object) {
+          this.incrementStepper(currLink);
 
           // Call data service to write ID3 tags
-          this.dataService.writeID3Tags(this.fileName)
-          .subscribe((response) => {
-               // Trap server side errors
-               if (response[0].includes('Error:')) {
-                    this.handleError(response, response);
-                    return;
-               }
+          this.dataService.writeID3Tags(currLink)
+               .subscribe((response) => {
+                    // Trap server side errors
+                    if (response[0].includes('Error:')) {
+                         this.handleError(currLink, response, response);
+                         return;
+                    }
 
-               this.updateStatus('The ID3 tags have been written.');
-               
-               // Update the status and continue on to the next step
-               this.currentStep++;
-               this.stepper.selected.completed = true;
-               this.stepper.selected.editable = false;
-               this.stepper.next();
+                    currLink['StatusMessage'] = 'The ID3 tags have been written.';
 
-               this.nextButtonEnabled = true;
-
-               // If MoveToServer is NOT enabled, this is the last step
-               if (!this.moveToServer) {
                     // The response returns the URL for the downloaded file
-                    this.downloadLink = decodeURIComponent(response[0].replace(/\+/g, ' '));
+                    currLink['DownloadLink'] = decodeURIComponent(response[0].replace(/\+/g, ' '));
 
-                    this.updateStatus('Your file is ready to download or move to your server.');
+                    currLink['StatusMessage'] = 'Your file is ready to download or move to your server.';
 
-                    this.currentStep++;
-                    this.stepper.selected.completed = true;
-                    this.stepper.selected.editable = false;
-                    this.stepper.next();
+                    currLink['CurrentStep']++;
 
-                    this.finished();
+                    this.steppers.forEach(
+                         stepper => {                          
+                              if (stepper._document.getElementsByClassName("Stepper" + currLink['StepperIndex']).length != 0) {                                   
+                                   stepper._selectedIndex++;
+                                   stepper.next();
+                                   this.incrementStepper(currLink);
+                              }
+                         }
+                    )
+
+                    this.finished(currLink);
 
                     return;
-               }
-          },
-          error => {
-               this.handleError(Response, error);
-          });
+               },
+               error => {
+                    this.handleError(currLink, Response, error);
+               });
      }
 }

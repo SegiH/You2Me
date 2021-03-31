@@ -73,7 +73,7 @@
                if (is_file($file))
                     unlink($file);
           }
-          
+         
           // Build command that will download the audio/video
           $cmd="youtube-dl " . $url . " -o " . ($os != "Windows" ? "\"" : "") . $sourcePath . $fileName . ".%(ext)s" . ($os != "Windows" ? "\"" : "");
 
@@ -90,11 +90,8 @@
                $cmd=$cmd . " -f best";
           }
 
-	  // die($cmd);
-
 	  if ($debugging == false) {
                // Download progress
-               // Delete DB if it exists already 
                try {
                     if (file_exists($db_name))
                          unlink($db_name);
@@ -107,12 +104,13 @@
 
                // Create the table. If it exists already, the 1st sql won't run so the 2nd command deletes everything from this table
                try {
-                    $file_db->exec("CREATE TABLE IF NOT EXISTS downloadProgress (id INTEGER PRIMARY KEY, message TEXT, shown BIT);DELETE FROM DownloadProgress;");        
+		       $file_db->exec("CREATE TABLE IF NOT EXISTS downloadProgress (id INTEGER PRIMARY KEY,URL TEXT, message TEXT);DELETE FROM DownloadProgress;");
+		       chmod($file_db,755);
                } catch(PDOException $e) {
                     die("Unable to create the database");
      	       }
 	  }
-       
+      
           $handle = popen($cmd,"r");
 
           if (ob_get_level() == 0)
@@ -123,17 +121,12 @@
                $buffer = trim($buffer);
                
 	       if ($buffer != '' && $debugging == false) {
-                    $insert="INSERT INTO downloadProgress(message,shown) VALUES(?,0)";
+                    $insert="INSERT INTO downloadProgress(URL,message) VALUES(?,?)";
 		    $stmt=$file_db->prepare($insert);
-		    $stmt->bindValue(1,str_replace("'","''",$buffer),PDO::PARAM_STR);
-                    $stmt->execute();
+		    $stmt->bindValue(1,$url,PDO::PARAM_STR);
+		    $stmt->bindValue(2,str_replace("'","''",$buffer),PDO::PARAM_STR);
+		    $stmt->execute();
 	       }
-
-               //ob_flush();
-
-               //flush();
-
-	       // sleep(1);
 	  }
 
           pclose($handle);
@@ -152,7 +145,7 @@
 
                $fileName=str_replace($sourcePath,"",$videoFileName[0]);
           }
-       
+
           if (!file_exists($sourcePath . $fileName))
                die(json_encode(array("Error: An error occurred downloading the file",$cmd)));
 
@@ -160,16 +153,13 @@
           if (!chmod($sourcePath . $fileName,0777))
                die(json_encode(array("Error: Failed to set the file mode")));
 
-          // If move To Server is true, we have more steps to process 
-          if ($isMP3Format == true || $moveToServer == true)
-               die(json_encode(array($fileName)));
-          //else if ($isMP3Format == false && ($moveToServer == true || $allowMoveToServer == true)) // If the file is not MP3, we don't need to write ID3 tags. If MoveTo Server is false, we are done and there are no more steps to process to provide download link
-          //     die(json_encode(array(urlencode($fileName))));
-          else if ($isMP3Format == false && $moveToServer == false) // If the file is not MP3, we don't need to write ID3 tags. If MoveTo Server is false, we are done and there are no more steps to process to provide download link
-               die(json_encode(array($domain . urlencode($fileName))));
+	  //var_dump($moveToServer==false);
+	  //die(""):
+	  // continue here debug why retult is returning "","" fornon-mp3 format
 
-          if ($isMP3Format == false)
-               die(json_encode(array($fileName)));
+          // If move To Server is not true or the format is not an audio format, we have no more steps to process 
+          if ($isMP3Format == false || $moveToServer == false) // If the file is not MP3, we don't need to write ID3 tags. If MoveTo Server is false, we are done and there are no more steps to process to provide download link
+               die(json_encode(array($domain . urlencode($fileName))));
 
           // Start of Python fingerprinting
           $cmd="python3 ../python/aidmatch.py \"" . $sourcePath . $fileName . "\" 2>&1";
@@ -183,22 +173,20 @@
 
           // Since we only care about the first result, we only save the first key value pair
           foreach ($retArr2 as $key => $value) {
-               // echo "Key: " . $key . " Value: " . $value . "<BR><BR>";
-
                // A traceback may happen if no match was made
                if ($value=="fingerprint could not be calculated" || strpos($value,"Traceback") !== false)
                     break;
             
-               $tagged=true;
- 
                $tags=$value;
 
                $tags=explode(',',$tags);
 
-               $artist=str_replace('"','',$tags[0]);
+	       if ($tags[0] != "\"\"" && $tags[1] != "\"\"") {
+		    $artist=str_replace('"','',$tags[0]);
+                    $title=str_replace('"','',$tags[1]);
+                    $tagged=true;
+               }
 
-               $title=str_replace('"','',$tags[1]);
-               
                break;
           }
 
@@ -220,8 +208,35 @@
                echo json_encode(array(urlencode($fileName),$artist,$title));
           }
 
-          return;
-     } 
+	  return;
+     }
+
+     function getThumbnail($url) {
+          $cmd="youtube-dl " . $url . " --write-thumbnail --skip-download";
+
+	  $handle = popen($cmd,"r");
+
+          if (ob_get_level() == 0)
+                ob_start();
+	  
+          while (!feof($handle)) {
+               $buffer= fgets($handle);
+               $buffer = trim($buffer);
+               
+	       if (strpos($buffer,"Writing thumbnail") != false) {
+		       $bufferArr=explode(": ",$buffer);
+	               die(json_encode(array($bufferArr[2])));
+	       }
+
+	       
+
+	       //echo $buffer . "<BR>";     
+	  }
+
+          pclose($handle);
+
+	  ob_end_flush();
+     }
      
      function getFormats() {
 	  try {
@@ -249,35 +264,30 @@
 	  }
 	  
 	  echo json_encode($formats);
-     } 
+ } 
       
-     function getDownloadProgress() {
+     function getDownloadProgress($URL) {
           global $db_name;
 
           $file_db = new PDO('sqlite:' . $db_name);
           
-          $result=$file_db->query('SELECT id,message FROM downloadProgress WHERE shown=0 LIMIT 1');
-         
+	  if ($file_db == null)
+	       return;
+
+          $sql="SELECT id,message FROM downloadProgress WHERE URL='" . $URL . "' LIMIT 1";
+
+          $result=$file_db->query($sql);
+        
           foreach($result as $result) {
-               $update="UPDATE downloadProgress SET shown=1 WHERE id=?";
-	       $stmt=$file_db->prepare($update);
-	       $stmt->bindValue(1,$result['id']);
-               $stmt->execute();
-		    
-	       //$file_db->exec("UPDATE downloadProgress SET shown=1 WHERE id=" . $result['id']);
+	       $file_db->exec("DELETE FROM downloadProgress WHERE id=" . $result['id'] . " LIMIT 1");
                   
                // Store message so we can close DB
                $message = $result['message'];
                   
-               // CLose DB
-               $file_db = null;
-
                die(json_encode(array($message,false))); 
 	  }
            
-          $file_db = null;
-
-          // die(json_encode(array(null,true))); 
+          die(json_encode(array(null,true))); 
      }
      
      function getSupportedURLs() {
@@ -336,7 +346,7 @@
                if ($moveToServer == true) {
                     $res=rename($sourcePath . $fileName,$videoDestinationPath . $fileName);
 		    
-		    // die("Source path=" . $sourcePath . $fileName . " and dest. path=" . $videoDestinationPath . $fileName);
+		    //die("Source path=" . $sourcePath . $fileName . " and dest. path=" . $videoDestinationPath . $fileName);
  
                     if ($res==true) {
                          echo json_encode(array("The video has been moved to the new location"));
@@ -506,10 +516,13 @@
      }
 
      if (isset($_GET["GetDownloadProgress"]))
-          getDownloadProgress();
+          getDownloadProgress($_GET["URL"]);
 
      if (isset($_GET["GetFormats"]))
           getFormats();
+
+     if (isset($_GET["GetThumbnail"]))
+          getThumbnail($_GET["URL"]);
 
      if (isset($_GET["MoveFile"])) {
           if (!isset($_GET["Artist"]) || !isset($_GET["Filename"]) || !isset($_GET["MoveToServer"])) 

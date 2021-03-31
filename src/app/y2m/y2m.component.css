@@ -1,60 +1,116 @@
-.buttonClass {
+:root {
+     --bg-color: #DADBDC;
+}
+
+.addButton button {
+     margin-left: 325px;
+}
+
+.addLinkDeleteIcon {
+     margin-left: 99.5%;
+     position: relative;
+     top: -40px
+}
+
+.download {
+     background-color: green !important;
+     color: white;
+     position: absolute;
+     margin-left: 550px !important;
+     top: 40px !important;
+}
+
+.formatDiv {
      display: flex;
-     flex-direction: row;
-     width: 100%;
-     flex-wrap: nowrap;
-     justify-content: space-around;
-     margin-top: 45px;
+     min-width: 240px;
+     margin-left: 62px;
+     margin-right: 25px;
+}
+
+.goButton {
+     top: 5px;
+     z-index: 999;
+}
+
+.linkDeleteIcon {
+     margin-left: 98%;
+     position: relative;
+     top: -40px
+}
+
+.moveToServer {
+     background-color: red !important;
+     color: white;
+     position: absolute;
+     margin-left: 875px !important;
+     top: 40px !important;
+}
+
+.restart {
+     margin-left: 25px;
 }
 
 .saveValues {
      margin-left: 15px;
 }
 
-.statusMessage {
-     font-weight: bold;
-     font-size: 23px;
-     padding-bottom: 15px;
-     padding-top: 15px;
+.searchResults {
+     min-height: 400px !important;
 }
 
-/* Download button */
-#download {
-     background-color: green !important;
-     color: white;
-}
-
-#format {
-     margin-left: 50px;
-     margin-top: 25px;
-}
-
-/* MoveToServer button */
-#moveToServer {
-     background-color: red !important;
-     color: white;
-}
-
-#NameField {
-     margin-right: 50px;
-     margin-top: 25px;
+.searchResultsDeleteIcon {
+     margin-left: 98%;
      position: relative;
-     width: 200px;
 }
 
-#restart {
-     margin-left: 25px;
+.searchYT {
+     margin-left: 50px;
+ }
+
+.URLdiv {
+    position:relative;
+    margin-left: 50px;
 }
 
-mat-form-field#URLField {
-     margin-top: 25px;
+.addToYou2Me {
+     margin-left: 40%;
+     margin-top: 32%;     
+     position: absolute;
 }
 
+#links {
+     background-color: #DADBDC;
+}
+
+#searchButton {
+     margin-left: 50px;
+}
+
+#searchYTPanel {
+     background-color: #DADBDC;
+     min-height: 200px !important;
+     overflow: auto;
+     width: 1200px !important;
+}
+
+img.large {
+    margin-top: 150px !important;
+}
+
+div.formatHeader {
+     margin-right: 25px;
+}
 
 mat-card {
      border-style: solid;
      border-width: 1px !important;
      max-width: 1200px;
+}
+
+mat-card#searchYTPanel {
+     min-height: 150px !important;
+     width: 800px;
+     z-index: 999;
 }
 
 mat-card.smaller {
@@ -63,33 +119,111 @@ mat-card.smaller {
      max-width: 400px;
 }
 
+mat-expansion-panel {
+     margin-top: 15px !important;
+}
+
+mat-expansion-panel.large {
+     height: 550px !important;
+}
+
+mat-panel-title.searchResults {
+     display: grid;
+     max-height: 200px !important;
+     position: absolute;
+     vertical-align: text-top; 
+}
+
+mat-panel-title.searchResults span {
+     display: inline-block;
+     margin-bottom: 5px !important;
+}
+
 mat-form-field {
      width: 400px;
+}
+
+mat-form-field#URLField {
+     margin-top: 25px;
 }
 
 mat-form-field.hidden {
      display: none;
 }
 
-mat-grid-list.step0 {
+mat-grid-tile.addFormatTile {
+     left: 420px !important;
+}
+
+mat-grid-list#addURLGrid {
      height: 100px !important;
 }
 
-mat-grid-list.step1 {
-     min-height: 450px !important;
+mat-grid-tile.addURLTile {
+     width: 380px !important;
+}
+
+mat-grid-tile.audioFieldsTile {
+     position: relative;
+     height: 220px !important;     
+     left: 215px !important;
+     max-width: 434px !important;
+     margin-top: 150px !important;
+     width: 435px !important;
+}
+
+mat-grid-tile.audioFieldsVisible {
+     top: -320px !important;
+}
+
+mat-grid-tile.formatTile {
+     height: 150px !important;
+     position: relative;
+     left: 150px !important;
+     top: -125px !important;
+     margin-bottom: 50px;
+     width: 400px !important;
 }
 
 mat-grid-list.laststep {
      height: 150px !important;
+     position: absolute;
+}
+
+mat-grid-tile.mp3FieldsVisible {
+     top: -350px !important;
+     height: 450px !important;     
+}
+
+mat-grid-tile.nameFieldTile {
+     height: 150px !important;
+     position: relative;
+     left: 215px !important;
+     width: 434px !important;
+     top: -240px !important;
+     vertical-align: top;
+}
+
+mat-grid-tile .statusMessage {     
+     left: 0px !important;
+     position: absolute;
+     top: -15px !important;
+     width: 1230px !important;
+     z-index: 999 !important;
+}
+
+mat-horizontal-stepper {
+     position: absolute !important;
+     left: -20px !important;
+     top: 28px !important;
+     vertical-align: top !important;
 }
 
 mat-paginator {     
      margin-bottom: 25px;
 }
 
-/* 1st Column of table */
 mat-table {
-     /*min-width: 415px;*/
      top: 125px !important;
      white-space: wrap;
 }

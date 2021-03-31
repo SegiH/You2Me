@@ -1,80 +1,138 @@
-<mat-card>
-     <mat-toolbar>
-          <span>You2Me {{(moveToServer ? " (Server)" : "") + (debugging ? " (Debugging enabled)" : "")}}</span>
-     </mat-toolbar>
+<mat-card id="links">
+     <h1 (dblclick)="toolbarDoubleClick()">You2Me Links {{(debugging ? " (Debugging)" : "")}} {{(moveToServer ? " (Server)" : "")}}</h1>
      
-     <br />
+     <button *ngIf="!addFieldsVisible && !searchYTCardVisible" matInput mat-raised-button color="primary" (click)="addButtonClick()">Add Link</button>
 
-     <mat-grid-list cols="3" rowHeight="fit" *ngIf="currentStep <= 1" [class]="getStepClass()">
-          <mat-grid-tile>
-               <!-- URL field -->
-               <mat-form-field id="URLField" *ngIf="currentStep == 0">
-                    <input matInput placeholder='URL' [(ngModel)]="dataService.fields['URL'].Value" [disabled]="isSubmitted">
-               </mat-form-field>
-          </mat-grid-tile>
-          <mat-grid-tile>
-               <!-- Format dropdown -->
-               <mat-form-field id="format" *ngIf="currentStep === 0">  
-                    <mat-select placeholder='Format' name="format" [(ngModel)]="dataService.currentFormat" [required]=true [disabled]="isSubmitted">
-                         <mat-option *ngFor="let currFormat of dataService.getFormatKeys();trackBy: trackByFn" [value]="currFormat">
-                              {{dataService.formats[currFormat].FormatDisplayName}}
-                         </mat-option>
-                    </mat-select>
-               </mat-form-field>
+     <button *ngIf="!addFieldsVisible && !searchYTCardVisible" matInput mat-raised-button class="searchYT" color="accent" (click)="showSearchYTClick()">Search YT</button>
 
-               <!-- Fields -->
-               <mat-card class="smaller" *ngIf="currentStep == 1">
-                    <mat-form-field *ngFor="let fieldName of dataService.getFieldKeys();trackBy: trackByFn" [class.hidden]="dataService.fieldIsHidden(fieldName,currentStep)">
-                         <input matInput [required]="dataService.getFieldProperty(fieldName,'Required')" placeholder={{fieldName}} [(ngModel)]="dataService.fields[fieldName].Value">                    
+     <mat-grid-list *ngIf="addFieldsVisible && !searchYTCardVisible" cols="3" rowHeight="fit" id="addURLGrid">
+          <mat-card>
+               <div class="addLinkDeleteIcon"><mat-icon aria-hidden="false" aria-label="Delete" (click)="cancelAddClick()">close</mat-icon></div>
+
+               <mat-grid-tile class="addURLTile">
+                    <mat-form-field>
+                         <input matInput placeholder='URL' [(ngModel)]="newURL" [required]=true>
                     </mat-form-field>
-               </mat-card>
-          </mat-grid-tile>
+               </mat-grid-tile>
 
-          <mat-grid-tile>
-               <!-- Name field -->
-               <mat-form-field id="NameField" *ngIf="currentStep == 0 && this.dataService.getCurrentFormat() != '' && !this.dataService.isAudioFormat()">
-                    <input matInput placeholder='Name' [(ngModel)]="dataService.fields['Name'].Value" [disabled]="isSubmitted">
-               </mat-form-field>
+               <mat-grid-tile class="addFormatTile">
+                    <mat-form-field>
+                         <mat-select placeholder='Format' name="format" [(ngModel)]="newFormat" [required]=true>
+                              <mat-option *ngFor="let currFormat of dataService.getFormatKeys();trackBy: trackByFn" [value]="currFormat">
+                                   {{dataService.formats[currFormat].FormatDisplayName}}
+                              </mat-option>
+                         </mat-select>
+                    </mat-form-field>     
+               </mat-grid-tile>
 
-               <!-- Next button -->
-               <button id="nextButton" *ngIf="!isFinished" matInput mat-raised-button color="primary" (click)="nextButtonClick()" [disabled]="!nextButtonEnabled">Next</button>
-          </mat-grid-tile>
-     </mat-grid-list>
-    
-     <mat-grid-list cols="3" rowHeight="fit" class="laststep" *ngIf="isFinished">
-          <mat-grid-tile>
-               <!-- Download Button -->
-               <button id="download" matInput mat-raised-button (click)="downloadLinkClicked()">Download</button>
-          </mat-grid-tile>
-     
-          <mat-grid-tile>
-               <!-- Move To Server Button-->
-               <button id="moveToServer" *ngIf="allowMoveToServer" matInput mat-raised-button (click)="moveToServerClick()">Move To Server</button>
-          </mat-grid-tile>
-
-          <mat-grid-tile>
-               <!-- Save Values checkbox -->
-               <mat-checkbox class="saveValues" [(ngModel)]="saveValues">Save Values</mat-checkbox>
-
-               <!-- Restart Button -->
-               <button id="restart" color="primary" matInput mat-raised-button (click)="restartButtonClick()" id="restart">Restart</button>
-          </mat-grid-tile>
+               <mat-grid-tile class="addButton">
+                    <button matInput mat-raised-button color="primary" (click)="addButtonClick()">Add</button>
+               </mat-grid-tile>
+          </mat-card>
      </mat-grid-list>
 
-     <!-- Status -->
-     <div class='statusMessage' (dblclick)="statusDoubleClick()">
-          {{statusMessage}}
+     <mat-accordion>
+          <div *ngFor="let currLink of dataService.getLinks();trackBy: trackByFn" class="linkItem">
+               <mat-expansion-panel hideToggle [ngClass]="{'large': currLink.ExpansionPanelOpen==true}" (opened)="currLink.ExpansionPanelOpen=true" (closed)="currLink.ExpansionPanelOpen=false" [disabled]="!currLink.ThumbnailProcessingComplete">
+                    <mat-expansion-panel-header>
+                         <mat-panel-title>
+                              <div *ngIf="!currLink.ThumbnailProcessingComplete">Loading....</div>
+                              <img *ngIf="currLink.ThumbnailProcessingComplete" [src]="currLink.Thumbnail" [ngClass]="{'large': currLink.ExpansionPanelOpen==true}" [style.width.px]="(currLink.ExpansionPanelOpen==false ? currLink.ThumbnailSmallDimension : currLink.ThumbnailLargeDimension)" [style.height.px]="(currLink.ExpansionPanelOpen==false ? currLink.ThumbnailSmallDimension : currLink.ThumbnailLargeDimension)">
+
+                              <div *ngIf="currLink.ThumbnailProcessingComplete" class="URLdiv">{{currLink.URL}}</div>
+                         </mat-panel-title>
+                    </mat-expansion-panel-header>
+
+                    <mat-grid-list cols="5" rowHeight="fit">
+                         <mat-grid-tile class="formatTile" colspan="1" rowHeight="fit">
+                              <div class="formatDiv" [disabled]="!currLink.IsSubmitted">
+                                   <div class="formatHeader">Format:</div>
+                              
+                                   <mat-select placeholder='Format' name="format" [(ngModel)]="currLink.Format" [required]=true [disabled]="currLink.CurrentStep != 0 || currLink.IsSubmitted">
+                                        <mat-option *ngFor="let currFormat of dataService.getFormatKeys();trackBy: trackByFn" [value]="currFormat">
+                                             {{dataService.formats[currFormat].FormatDisplayName}}
+                                        </mat-option>
+                                   </mat-select>
+                              </div>
+
+                              <button matInput mat-raised-button [disabled]="currLink.IsSubmitted" color="primary" class="goButton" (click)="goButtonClick(currLink)">Go</button>
+                         </mat-grid-tile>
+
+                         <mat-grid-tile class="nameFieldTile" colspan="1" rowHeight="fit" *ngIf="!dataService.isAudioFormat(currLink.Format)" [disabled]="!currLink.IsSubmitted && (currLink.CurrentStep == 0 || currLink.CurrentStep == 2)">
+                              <mat-card>
+                                   <mat-form-field>
+                                        <input matInput placeholder='Name' [(ngModel)]="currLink.Fields['Name'].Value" [disabled]="currLink.IsSubmitted">
+                                   </mat-form-field>
+                              </mat-card>
+                         </mat-grid-tile>
+
+                         <mat-grid-tile class="audioFieldsTile" colspan="1" rowHeight="fit" [ngClass]="dataService.isMP3Format(currLink.Format) ? 'mp3FieldsVisible' : 'audioFieldsVisible'" *ngIf="dataService.isAudioFormat(currLink.Format)">
+                              <mat-card class="smaller">                         
+                                   <mat-form-field *ngFor="let fieldName of currLink.FieldKeys;trackBy: trackByFn" [class.hidden]="dataService.fieldIsHidden(currLink.Format,fieldName)">
+                                        <input matInput placeholder={{fieldName}} [(ngModel)]="currLink.Fields[fieldName].Value" [disabled]="currLink.IsSubmitted">
+                                   </mat-form-field>
+                              </mat-card>
+                         </mat-grid-tile>
+
+                         <mat-grid-tile colspan="5">
+                              <mat-horizontal-stepper *ngIf="currLink.IsSubmitted" class="stepper" [linear]="true" [selectedIndex]="currLink.CurrentStep" [class]="getStepperClass(currLink)" #stepper>
+                                   <mat-step *ngFor="let key of currLink.StepperStepNames;trackBy: trackByFn" [stepControl]="currLink.CurrentStep" completed="false" editable="false">   
+                                        <ng-template matStepLabel>{{key}}</ng-template>
+                                   </mat-step>
+                              </mat-horizontal-stepper>  
+
+                              <div *ngIf="currLink.IsSubmitted" class="statusMessage">
+                                   <h1>Status: {{currLink.StatusMessage}}</h1>
+                              </div>
+
+                              <button class="download" *ngIf="currLink.IsFinished && !currLink.DownloadButtonClicked && !currLink.MoveToServerButtonClicked && !movetoServer" matInput mat-raised-button (click)="downloadButtonClicked(currLink)">Download</button>
+                         
+                              <button class="moveToServer" *ngIf="currLink.IsFinished && allowMoveToServer && !currLink.DownloadButtonClicked && !currLink.MoveToServerButtonClicked" matInput mat-raised-button (click)="moveFileToServer(currLink)">Move To Server</button>
+                         
+                              <!-- *ngIf="currLink.CurrentStep == 0" -->
+                              <!--<div class="downloadStatusMessage">{{currLink.DownloadStatusMessage}}</div>-->
+                         </mat-grid-tile>
+                    </mat-grid-list>
+               </mat-expansion-panel>
+
+               <div class="linkDeleteIcon"><mat-icon aria-hidden="false" aria-label="Delete" (click)="deleteButtonClick(currLink)">close</mat-icon></div>
+          </div>
+     </mat-accordion>
+</mat-card>
+
+<mat-card id="searchYTPanel" *ngIf="searchYTCardVisible && !addFieldsVisible">
+     <div class="searchResultsDeleteIcon"><mat-icon aria-hidden="false" aria-label="Delete" (click)="deleteSearchResultsButtonClick()">close</mat-icon></div>
+
+     <h1>YouTube Search</h1>
+
+     <h3>Search:</h3>
+
+     <mat-form-field>
+          <input matInput placeholder='Search' [(ngModel)]="searchTerm" [required]=true>
+     </mat-form-field>
+
+     <button id="searchButton" matInput mat-raised-button color="primary" (click)="searchYTClick()">Search</button>
+
+     <div *ngFor="let currSearchResult of searchResults;trackBy: trackByFn" class="searchResultsDiv">
+          <mat-expansion-panel hideToggle class="searchResults" [expanded]="true" [disabled]="true">
+               <mat-expansion-panel-header>
+                    <mat-panel-title class="searchResults">
+                         <span>URL: <a target="_blank" [href]="currSearchResult.id.videoId">{{currSearchResult.snippet.title}}</a></span>
+                    </mat-panel-title>
+               </mat-expansion-panel-header>
+               
+               <mat-grid-list cols="1" rowHeight="fit">
+                    <span>Description: <h4>{{currSearchResult.snippet.description}}</h4></span>
+
+                    <youtube-player #player [videoId]="currSearchResult.id.videoId"></youtube-player>
+
+                    <!--<iframe class="e2e-iframe-trusted-src" [style.width.px]="currSearchResult.snippet.thumbnails.medium.width" [style.height.px]="currSearchResult.snippet.thumbnails.medium.height" [src]="currSearchResult.safeURL" frameborder="0" allowfullscreen></iframe>-->
+                    <!-- <img [src]="currSearchResult.snippet.thumbnails.default.url" [style.width.px]="currSearchResult.snippet.thumbnails.medium.width" [style.height.px]="currSearchResult.snippet.thumbnails.medium.height"> -->
+
+                    <button class="addToYou2Me" matInput mat-raised-button color="primary" (click)="addSearchResult(currSearchResult)">Add</button>
+               </mat-grid-list>
+          </mat-expansion-panel>
      </div>
-     
-     <!-- Stepper -->
-     <mat-horizontal-stepper *ngIf="isSubmitted && !isFinished" [linear]="true" [selectedIndex]="currentStep" #stepper>
-        <mat-step *ngFor="let key of dataService.getSteps();trackBy: trackByFn" [stepControl]="currentStep" completed="false" editable="false">   
-               <ng-template matStepLabel>{{key}}</ng-template>
-          </mat-step>
-     </mat-horizontal-stepper>
-     
-     <!-- Download status messages -->
-     <div *ngIf="isSubmitted && currentStep == 0 && downloadStatusVisible">{{downloadStatus}}</div>     
 </mat-card>
 
 <!-- Supported URLs -->

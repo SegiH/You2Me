@@ -21,6 +21,7 @@
     "@angular/platform-browser": "^11.1.0",
     "@angular/platform-browser-dynamic": "^11.1.0",
     "@angular/router": "^11.1.0",
+    "@angular/youtube-player": "^11.2.6",
     "audit": "0.0.6",
     "core-js": "^3.6.4",
     "events": "^3.1.0",
@@ -33,7 +34,7 @@
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^0.1101.0",
-    "@angular/cli": "^11.1.0",
+    "@angular/cli": "^11.2.6",
     "@angular/compiler-cli": "^11.1.0",
     "@angular/language-service": "^11.1.0",
     "@types/jasmine": "~3.6.0",

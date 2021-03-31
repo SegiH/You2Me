@@ -1,13 +1,13 @@
 {
     "/php/*" : {
-      "target": "https://yoursite.com/php",
+      "target": "https://you2me.hovav.org/php",
       "secure": false,
       "logLevel": "debug",
       "pathRewrite": {"^/php" : ""},
       "changeOrigin": true
     },
     "/media" : {
-      "target": "https://yoursite.com/media",
+      "target": "https://you2me.hovav.org/media",
       "secure": false,
       "logLevel": "debug",
       "pathRewrite": {"^/media" : ""},

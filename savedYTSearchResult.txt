@@ -1,0 +1,343 @@
+// Saved search response from YT that can be used for testing so we don't query YT too often
+this.searchResults=[
+    {
+      "kind": "youtube#searchResult",
+      "etag": "OIrMcu8-FQ_-iFKOiyw3FHEVHGo",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "WC5FdFlUcl0"
+      },
+      "snippet": {
+        "publishedAt": "2009-06-16T23:09:57Z",
+        "channelId": "UCHc7ICbMq7vwaToJQeEtnrA",
+        "title": "Audioslave - Be Yourself (Album Version, Closed Captioned)",
+        "description": "REMASTERED IN HD! Music video by Audioslave performing Be Yourself. (C) 2005 Interscope Records and Sony BMG Entertainment #Audioslave #BeYourself ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/WC5FdFlUcl0/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/WC5FdFlUcl0/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/WC5FdFlUcl0/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "AudioslaveVEVO",
+        "liveBroadcastContent": "none",
+        "publishTime": "2009-06-16T23:09:57Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "1QV9Eg2nGyqymenf1XyTNJYlayQ",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "XC6URZ-cCB0"
+      },
+      "snippet": {
+        "publishedAt": "2012-01-21T00:57:15Z",
+        "channelId": "UCCJKr4kDdD6Y6GoHgS8IDQg",
+        "title": "Audioslave - Be Yourself lyrics",
+        "description": "Be Yourself by Audioslave Album: Out of Exile Thanks for the request, Delores. This is a great song with such inspirational lyrics! I don't own this song or the ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/XC6URZ-cCB0/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/XC6URZ-cCB0/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/XC6URZ-cCB0/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "kkcherryco66",
+        "liveBroadcastContent": "none",
+        "publishTime": "2012-01-21T00:57:15Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "ooeKbsVnZ5UKky388V17U5ecj70",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "hsrB-Sx_QZA"
+      },
+      "snippet": {
+        "publishedAt": "2019-01-08T04:33:17Z",
+        "channelId": "UCfkwsnF2tdgpBhc0bvVH9Kg",
+        "title": "DaniLeigh - Be Yourself (Official Dance Video)",
+        "description": "DaniLions! My debut album “The Plan” is out now! - https://danileigh.lnk.to/ThePlan DaniLeigh - Be Yourself (Official Dance Video) Directed & Filmed by ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/hsrB-Sx_QZA/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/hsrB-Sx_QZA/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/hsrB-Sx_QZA/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "iamDaniLeigh",
+        "liveBroadcastContent": "none",
+        "publishTime": "2019-01-08T04:33:17Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "EFp-NNInwIYI-2bisb0vIxjocsg",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "tr1D8PXrE6g"
+      },
+      "snippet": {
+        "publishedAt": "2019-08-13T22:25:38Z",
+        "channelId": "UCstw-41J8syXgdJ8xWvaizA",
+        "title": "Trippie Redd - Be Yourself (Official Audio)",
+        "description": "Official Audio for “Be Yourself” by Trippie Redd Order merch here: https://trippieredd.lnk.to/shop Follow Trippie Redd Instagram: https://instagram.com/trippieredd ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/tr1D8PXrE6g/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/tr1D8PXrE6g/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/tr1D8PXrE6g/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Trippie Redd",
+        "liveBroadcastContent": "none",
+        "publishTime": "2019-08-13T22:25:38Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "kjfprZkIOs-3dMgVQ8KJNlwvek0",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "r20ILRJej_I"
+      },
+      "snippet": {
+        "publishedAt": "2019-09-25T20:46:46Z",
+        "channelId": "UC0nOQ1R3Z-vRO7K6g-W7Jkg",
+        "title": "BE YOURSELF - Motivational Videos Compilation",
+        "description": "Speakers: Tim Wallace, Tyrone Stokes, Freddy Fri, Raymond Shinault Official Website: http://www.iamfearlesssoul.com Let's Be Friends On Facebook!",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/r20ILRJej_I/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/r20ILRJej_I/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/r20ILRJej_I/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Fearless Soul",
+        "liveBroadcastContent": "none",
+        "publishTime": "2019-09-25T20:46:46Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "8fgBm0UggEZKhuAWqgUVDlPbvXc",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "Ptvwrfftziw"
+      },
+      "snippet": {
+        "publishedAt": "2016-08-04T15:28:21Z",
+        "channelId": "UCsT0YIqwnpJCM-mx7-gSA4Q",
+        "title": "What Does It Mean To Be Yourself? | Carly Sotas | TEDxYouth@Granville",
+        "description": "In a society driven by image and success, learning how to be yourself is one of the most difficult things you'll ever do. Sharing personal challenges and insights ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/Ptvwrfftziw/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/Ptvwrfftziw/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/Ptvwrfftziw/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "TEDx Talks",
+        "liveBroadcastContent": "none",
+        "publishTime": "2016-08-04T15:28:21Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "zwH0hzZkSZMF5hdjjvf7yzzotSk",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "zDnhhCW15_I"
+      },
+      "snippet": {
+        "publishedAt": "2019-09-12T16:00:12Z",
+        "channelId": "UCEtPQSQ2BkBct_n8DIeacFQ",
+        "title": "Trippie Redd - &quot;Be Yourself&quot; Live Session | Vevo Ctrl",
+        "description": "Trippie Redd - Be Yourself (Vevo Ctrl) Trippie Redd's '!' album dropped a month ago, and we were knocked out when the MC behind \"Love Scars\" and \"Taking a ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/zDnhhCW15_I/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/zDnhhCW15_I/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/zDnhhCW15_I/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "TrippieReddVEVO",
+        "liveBroadcastContent": "none",
+        "publishTime": "2019-09-12T16:00:12Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "5fwSwAceAKCaRGNtpOJrjaiEspI",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "81oWQPdlzfo"
+      },
+      "snippet": {
+        "publishedAt": "2014-08-20T19:53:04Z",
+        "channelId": "UC-r13SLLdZtZNmuC2bMnlmw",
+        "title": "Littlest Pet Shop - &#39;Be Yourself&#39; Official Music Video",
+        "description": "Blythe is a young teen who has adapted well to her new life in the big city with her dad. She's got a great sense of humor, loves a new adventure and is always ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/81oWQPdlzfo/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/81oWQPdlzfo/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/81oWQPdlzfo/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Hasbro",
+        "liveBroadcastContent": "none",
+        "publishTime": "2014-08-20T19:53:04Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "F_b3SH_eFuY219Ls4S-onissGDI",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "vEnW8rLMJlc"
+      },
+      "snippet": {
+        "publishedAt": "2020-10-16T04:00:23Z",
+        "channelId": "UClVY6MdQxTZUaMDL-dLQDcw",
+        "title": "Ty Dolla $ign - By Yourself (feat. Jhené Aiko &amp; Mustard) [Lyric Video]",
+        "description": "Lyrics: You ain't ever afraid to be by yourself You ain't ever afraid to be by yourself Say you ain't afraid to be by yourself Say you ain't afraid to be by yourself You ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/vEnW8rLMJlc/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/vEnW8rLMJlc/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/vEnW8rLMJlc/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Ty Dolla $ign",
+        "liveBroadcastContent": "none",
+        "publishTime": "2020-10-16T04:00:23Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "_ZyaDBfDGYlh_Wmf91ndwI0nhOc",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "zTCgwxLOt0U"
+      },
+      "snippet": {
+        "publishedAt": "2017-07-07T00:21:02Z",
+        "channelId": "UCETYiBLjt2v-pcKSgf8pe6g",
+        "title": "Be Yourself",
+        "description": "Provided to YouTube by Stem Disintermedia Inc. Be Yourself · Frank Ocean Blonde ℗ 2017 Boys Don't Cry Released on: 2016-08-20 Auto-generated by ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/zTCgwxLOt0U/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/zTCgwxLOt0U/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/zTCgwxLOt0U/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Frank Ocean - Topic",
+        "liveBroadcastContent": "none",
+        "publishTime": "2017-07-07T00:21:02Z"
+      }
+    }
+];

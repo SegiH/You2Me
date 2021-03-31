@@ -77,6 +77,12 @@ def aidmatch(filename):
         row=row+1
 
         # print('"%s"' % (title))
+        if (artist is None):
+             artist=""
+
+        if (title is None):
+             title=""
+
         print('"%s","%s"' % (artist,title))
         # sys.exit(1)
     
