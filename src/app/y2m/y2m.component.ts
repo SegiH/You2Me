@@ -1,5 +1,9 @@
 /*
      TODO:     
+
+     confirm dialog is messed up
+     need to be able to delete a finished link. delete icon disappears
+     
      download status message is currently hidden - Find place to put it   
      Think about possibly adding progress bar. percent doesnt get added "evenly" to the DB  
      
@@ -163,7 +167,6 @@ export class Y2MComponent implements OnInit {
      }
 
      addSearchResult(currSearchResult) {
-          debugger;
           this.dataService.addLink(currSearchResult.id.videoId, "320k", false);
      }
 

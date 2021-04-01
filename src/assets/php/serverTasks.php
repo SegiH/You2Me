@@ -239,7 +239,7 @@
 	  echo json_encode($apiKey);
      } 
      function getThumbnail($url) {
-          $cmd="youtube-dl " . $url . " --write-thumbnail --skip-download";
+          $cmd="youtube-dl " . $url . " --get-thumbnail --skip-download";
 
 	  $handle = popen($cmd,"r");
 
@@ -248,16 +248,13 @@
 	  
           while (!feof($handle)) {
                $buffer= fgets($handle);
-               $buffer = trim($buffer);
+	       die(json_encode(array($buffer,$_GET["StepperIndex"])));
+               // $buffer = trim($buffer);
                
-	       if (strpos($buffer,"Writing thumbnail") != false) {
+	       /*if (strpos($buffer,"Writing thumbnail") != false) {
 		       $bufferArr=explode(": ",$buffer);
 	               die(json_encode(array($bufferArr[2])));
-	       }
-
-	       
-
-	       //echo $buffer . "<BR>";     
+	       }*/
 	  }
 
           pclose($handle);
