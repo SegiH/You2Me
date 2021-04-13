@@ -126,7 +126,7 @@ export class DataService {
                            ThumbnailLargeDimension: 200,
                          });
 
-          this.getThumbnail(newURL,stepperIndex).subscribe((response) => {
+          this.getThumbnail(newURL,stepperIndex).subscribe((response) => {               
                this.links[parseInt(response[1])]["ThumbnailProcessingComplete"]=true;
 
                if (response !== null)
@@ -325,7 +325,7 @@ export class DataService {
                catchError(this.handleError)
               //map((response: any) => response.items)
             );
-        }
+     }
 
      setDownloadStatusMessage(currLink: object, newStatusMessage: string) {
           currLink['DownloadStatusMessage']=newStatusMessage;

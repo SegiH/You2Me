@@ -1,7 +1,7 @@
 <mat-card id="links">
      <h1 (dblclick)="toolbarDoubleClick()">You2Me Links {{(debugging ? " (Debugging)" : "")}} {{(moveToServer ? " (Server)" : "")}}</h1>
      
-     <button *ngIf="!addFieldsVisible && !searchYTCardVisible" matInput mat-raised-button color="primary" (click)="addButtonClick()">Add Link</button>
+     <button *ngIf="!addFieldsVisible && !searchYTCardVisible" matInput mat-raised-button color="primary" (click)="addLinkButtonClicked()">Add Link</button>
 
      <button *ngIf="!addFieldsVisible && !searchYTCardVisible" matInput mat-raised-button class="searchYT" color="accent" (click)="showSearchYTClick()">Search YT</button>
 
@@ -26,7 +26,7 @@
                </mat-grid-tile>
 
                <mat-grid-tile class="addButton">
-                    <button matInput mat-raised-button color="primary" (click)="addButtonClick()">Add</button>
+                    <button matInput mat-raised-button color="primary" (click)="addLinkClick()">Add</button>
                </mat-grid-tile>
           </mat-card>
      </mat-grid-list>
@@ -95,7 +95,7 @@
                     </mat-grid-list>
                </mat-expansion-panel>
 
-               <div class="linkDeleteIcon"><mat-icon aria-hidden="false" aria-label="Delete" (click)="deleteButtonClick(currLink)">close</mat-icon></div>
+               <div class="linkDeleteIcon"><mat-icon aria-hidden="false" aria-label="Delete" (click)="deleteLinkClick(currLink)">close</mat-icon></div>
           </div>
      </mat-accordion>
 </mat-card>
@@ -108,30 +108,29 @@
      <h3>Search:</h3>
 
      <mat-form-field>
-          <input matInput placeholder='Search' [(ngModel)]="searchTerm" [required]=true>
+          <input matInput placeholder='Search' [(ngModel)]="searchTerm" (keyup)="handleYouTubeSearchKeyUp($event)" [required]=true>
      </mat-form-field>
 
      <button id="searchButton" matInput mat-raised-button color="primary" (click)="searchYTClick()">Search</button>
 
-     <div *ngFor="let currSearchResult of searchResults;trackBy: trackByFn" class="searchResultsDiv">
-          <mat-expansion-panel hideToggle class="searchResults" [expanded]="true" [disabled]="true">
-               <mat-expansion-panel-header>
-                    <mat-panel-title class="searchResults">
-                         <span>URL: <a target="_blank" [href]="currSearchResult.id.videoId">{{currSearchResult.snippet.title}}</a></span>
-                    </mat-panel-title>
-               </mat-expansion-panel-header>
+     <div *ngIf="searchResults != null">              
+         <div *ngFor="let currSearchResult of this.searchResults" class="searchResultsDiv">          
+              <mat-expansion-panel hideToggle class="searchResults" [expanded]="true" [disabled]="true">
+                   <mat-expansion-panel-header>
+                        <mat-panel-title class="searchResults">
+                             <span>URL: <a target="_blank" [href]="currSearchResult.id.videoId">{{currSearchResult.snippet.title}}</a></span>
+                         </mat-panel-title>
+                    </mat-expansion-panel-header>
                
-               <mat-grid-list cols="1" rowHeight="fit">
-                    <span>Description: <h4>{{currSearchResult.snippet.description}}</h4></span>
+                    <mat-grid-list cols="1" rowHeight="fit">
+                         <span>Description: <h4>{{currSearchResult.snippet.description}}</h4></span>
 
-                    <youtube-player #player [videoId]="currSearchResult.id.videoId"></youtube-player>
+                         <youtube-player #player [videoId]="currSearchResult.id.videoId"></youtube-player>
 
-                    <!--<iframe class="e2e-iframe-trusted-src" [style.width.px]="currSearchResult.snippet.thumbnails.medium.width" [style.height.px]="currSearchResult.snippet.thumbnails.medium.height" [src]="currSearchResult.safeURL" frameborder="0" allowfullscreen></iframe>-->
-                    <!-- <img [src]="currSearchResult.snippet.thumbnails.default.url" [style.width.px]="currSearchResult.snippet.thumbnails.medium.width" [style.height.px]="currSearchResult.snippet.thumbnails.medium.height"> -->
-
-                    <button class="addToYou2Me" matInput mat-raised-button color="primary" (click)="addSearchResult(currSearchResult)">Add</button>
-               </mat-grid-list>
-          </mat-expansion-panel>
+                         <button class="addToYou2Me" matInput mat-raised-button color="primary" (click)="addSearchResult(currSearchResult)">Add</button>
+                    </mat-grid-list>
+               </mat-expansion-panel>
+          </div>
      </div>
 </mat-card>
 
@@ -140,7 +139,7 @@
      <mat-checkbox  [(ngModel)]="supportedURLsVisible" (change)="showSupportedSitesToggle()">Show supported sites</mat-checkbox>
 
      <mat-form-field *ngIf="supportedURLsVisible">
-          <input matInput (keyup)="applyFilter($event.target.value)" placeholder="Filter">
+          <input matInput (keyup)="applySupportedURLsFilter($event.target.value)" placeholder="Filter">
      </mat-form-field>
 
      <mat-paginator *ngIf="supportedURLsVisible" #supportedURLsPaginator [pageSizeOptions]="[100,10,25,50,500,1000]"></mat-paginator>
