@@ -6,12 +6,21 @@ The app can be set up so that the media file can either be downloaded or the fil
 
 When you are generating an mp3 files, Python fingerprinting is used to automatically identify the artist and the song name which means that if you enter a URL for a popular song and select an MP3 format without entering any other information, this application will fill in the artist name and song name for you automatically.
 
+The app supports searching Youtube directly and supports downloading multiple files at once.
 
 ### Screenshots
 
-![Completed Form](https://raw.githubusercontent.com/SegiH/You2Me/master/screenshots/CompletedForm.png)
+![Screenshot1](https://raw.githubusercontent.com/SegiH/You2Me/master/screenshots/Screenshot1.png)
 
-![Final Result](https://raw.githubusercontent.com/SegiH/You2Me/master/screenshots/FinalStage.png)
+![Screenshot2](https://raw.githubusercontent.com/SegiH/You2Me/master/screenshots/Screenshot2.png)
+
+![Screenshot3](https://raw.githubusercontent.com/SegiH/You2Me/master/screenshots/Screenshot3.png)
+
+![Screenshot4](https://raw.githubusercontent.com/SegiH/You2Me/master/screenshots/Screenshot4.png)
+
+![Screenshot5](https://raw.githubusercontent.com/SegiH/You2Me/master/screenshots/Screenshot5.png)
+
+![Screenshot6](https://raw.githubusercontent.com/SegiH/You2Me/master/screenshots/Screenshot6.png)
 
 ### Formats
 This web app supports saving the file in multiple formats.
