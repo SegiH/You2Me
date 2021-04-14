@@ -1,0 +1,16 @@
+{
+    "/php/*" : {
+      "target": "https://yoursite.com/php",
+      "secure": false,
+      "logLevel": "debug",
+      "pathRewrite": {"^/php" : ""},
+      "changeOrigin": true
+    },
+    "/media" : {
+      "target": "https://yoursite.com/media",
+      "secure": false,
+      "logLevel": "debug",
+      "pathRewrite": {"^/media" : ""},
+      "changeOrigin": true
+    }
+  }
