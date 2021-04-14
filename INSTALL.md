@@ -23,6 +23,7 @@ If you already use Docker:
    1. Install npm 6+ which includes Node.js and npm.
    1. Go to the main You2Me folder in terminal or command prompt
    1. Edit package.json and find the line that begins with "build". Edit --base-href to match the relative path that the application will be hosted at. If your site is hosted at http://www.mysite.com/You2Me/, your build line should look like this: "build": "ng build --base-href /You2Me/ --prod", Don't forget to add / at the beginning and end of the path.
+   1. Rename `proxy.example.conf.json` to `proxy.conf.json`
    1. Run `npm install` - This will install all of the missing dependencies.
    1. Run `npm run build` - This will build You2Me and create the dist folder.  
    1. If you are on Linux, the dist folder should automatically be moved to the docker folder. If you are on Windows, ignore the error (because the command only works on Linux) and manually move the dist folder into the docker folder. 
