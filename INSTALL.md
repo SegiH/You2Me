@@ -11,16 +11,21 @@ This application can be set up to run in one of 2 different ways:
 You2Me can be run as a Docker container or installed on your own web server (Apache or Nginx). 
 
 #### Docker
-This is the easiest way to run You2Me. You can now pull an image of You2Me directly from Docker Hub if you want to use You2Me with the default options by running the command `docker pull shovav/you2me:latest` and changing the image name in you2me.docker-compose.yml. If you want to build it yourself, follow steps 1-7 below. Otherwise, you can skip to step 8 to create a container based on the You2Me image that you pulled from Docker Hub.
+This is the easiest way to run You2Me. You can now pull an image of You2Me directly from Docker Hub if you want to use You2Me with the default options.
 
-The docker folder contains 2 files named Dockerfile and you2me.docker-compose.yml and a folder called dist which is a compiled version of this application. To build a You2Me image and container:
+If you already use Docker:
 
+#### Use existing image 
+1. Run the command `docker pull shovav/you2me:latest` to pull the latest image from Docker Hub.
+1. Edit docker/you2me.docker-compose.yml and change `YourNetworkName` on line 5 to your actual custom network name in Docker ([How to create a network in Docker](https://docs.docker.com/engine/reference/commandline/network_create/)). This should not be `host`.
+1. Run the command `docker-compose -f you2me.docker-compose.yml up --no-start && docker start You2Me` to create the You2Me container.
+### Build Docker image
    1. Install npm 6+ which includes Node.js and npm.
    1. Go to the main You2Me folder in terminal or command prompt
    1. Edit package.json and find the line that begins with "build". Edit --base-href to match the relative path that the application will be hosted at. If your site is hosted at http://www.mysite.com/You2Me/, your build line should look like this: "build": "ng build --base-href /You2Me/ --prod", Don't forget to add / at the beginning and end of the path.
    1. Run `npm install` - This will install all of the missing dependencies.
-   1. Run `npm run build` - This will build You2Me and create the dist folder.
-   1. Move the entire dist folder into the docker folder
+   1. Run `npm run build` - This will build You2Me and create the dist folder.  
+   1. If you are on Linux, the dist folder should automatically be moved to the docker folder. If you are on Windows, ignore the error (because the command only works on Linux) and manually move the dist folder into the docker folder. 
    1. Build the you2me Docker image: `docker build docker/ -t you2me`
    1. Edit you2me.docker-compose.yml and change `YourNetworkName` to the name of the Docker network that you want this container to be on.
    1. Build the container using the you2me image you created above by running `docker-compose -f you2me.docker-compose.yml up --no-start && docker start You2Me`.
@@ -37,10 +42,10 @@ The docker folder contains 2 files named Dockerfile and you2me.docker-compose.ym
    1. Create a folder called media under the root of your web server where the file will be stored temporarily. Linux users need to give this folder write permissions by running `chmod 775 media`.
    1. Edit the file assets/php/serverTasks.php and set the following values: 
         - $destinationPath (Only needed if you are running in server mode) - The path where the media file will be moved to. This can be any path that is writable including a remote location such as a Samba mounted folder.
-        - $sourcePath - The full path to the media folder on your web server that you created above. Ex: /var/www/html/media/
-        - $domain - no need to change unless you want to explicitly set the domain . You can change this to $domain ='https://mydomain.com/media/"- The full URL where this app will be hosted. Ex: https://www.mysite.com/You2Me/
+        - $sourcePath - The full path to the media folder on your web server that you created above. Ex: `/var/www/html/media/`. This location needs to be under your web root and writable.
+        - $domain - no need to change unless you want to explicitly set the domain . You can change this to $domain ='https://mydomain.com/media/" which is the full URL where this app will be hosted. Ex: `https://www.mysite.com/You2Me/`
    1. Edit src/app/y2m/y2m.component.ts 
-        - If you want to always run the app in server mode only, find and change the line moveToServer = false; to moveToServer = true;. If you want to be able to choose whether to download the file or move it to your server, leave this set to false. You can always use the MoveToServer URL parameter to decide this when running the web app. The title of the page will change to You2Me (Server) when running in server mode to distinguish client and server mode. If you don't provide this URL parameter and allowServerMode is false, the app will run in client mode. Please note that setting moveToServer = true in src/app/y2m/y2m.component.ts  or by setting the URL parameter &MoveToServer=true will automatically move the file to the server and not display a download button.
+        - If you want to always run the app in server mode only, find and change the line `moveToServer = false;` to `moveToServer = true;`. If you want to be able to choose whether to download the file or move it to your server, leave this set to false. You can always use the MoveToServer URL parameter to decide this when running the web app. The title of the page will change to You2Me (Server) when running in server mode to distinguish client and server mode. If you don't provide this URL parameter and allowServerMode is false, the app will run in client mode. Please note that setting moveToServer = true in src/app/y2m/y2m.component.ts  or by setting the URL parameter &MoveToServer=true will automatically move the file to the server and not display a download button.
         - If you do not want to allow the file from ever being moved to the server with a URL parameter, find and change the line allowMoveToServer = true; to allowMoveToServer = false;
         - Run `npm install` - This will install all of the missing dependencies.
         - Run `npm run build` - This will build You2Me.
@@ -52,11 +57,11 @@ The docker folder contains 2 files named Dockerfile and you2me.docker-compose.ym
 ### URL Parameters
 You can supply default values for all of the fields by providing URL parameters.
 
-The URL parameters are as follows: URL, NAme and Format. 
+The URL parameters are as follows: URL, Name and Format. 
 
 To add a URL parameter use "?" for the first URL parameter and "&" for every parameter after that in the format parametername=value. 
 
-To specify Beck as the artist and Odelay as the album as a URL parameter use. http://www.example.com/You2Me?Name=Uptown%20Funk%&format=320k For audio or video formats, supply one of the values above such as Format=original for video without reencoding or Format=320k for 320kbps mp3 audio.
+To specify Beck as the artist and Odelay as the album as a URL parameter use. `http://www.example.com/You2Me?Name=Uptown%20Funk&format=320k` For audio or video formats, supply one of the values above such as `Format=original` for video without reencoding or `Format=320k` for 320kbps mp3 audio.
 
 ### You2Me Bookmark
 
@@ -73,7 +78,7 @@ Server mode:
 javascript:window.open('https://mysite.com/You2Me/?MoveToServer=true&URL='+window.location.toString()+'&Name='+document.title+'&Format=320k','_parent','');event.preventDefault();
 ```
 
-Don't forget to replace mysite.com/You2Me with the full URL of your instance of You2Me. Now visit a supported site like YouTube and click on the bookmark. A new You2Me tab/window will open with the URL already filled in. 
+Don't forget to replace `mysite.com/You2Me` with the full URL of your instance of You2Me. Now visit a supported site like YouTube and click on the bookmark. A new You2Me tab/window will open with the URL already filled in. 
 
 When you use this shortcut, you do not need to enter the artist and or track title and don't need to fix the filled in artist or track title because it will be fixed automatically if Python is able to identify the song.
 
@@ -81,13 +86,18 @@ When you use this shortcut, you do not need to enter the artist and or track tit
 
 If you get an error downloading the track, there are a few things that you can do to figure out what is causing the problem.
 
-1. Make sure that youtube-dl is up to date. It gets updated fairly often and is usually the most common reason that this app  will stop working. Run the command `sudo pip install --upgrade youtube_dl` to upgrade YouTube-dl. If you are using Docker, the command is `docker exec You2Me pip install --upgrade youtube_dl`.
-1. Make sure that youtube-dl has the right permissions by running `chmod a+rx /usr/local/bin/youtube-dl` (Change the path if youtube-dl is located in a different location).
+##### Docker Troubleshooting
+1. Make sure that youtube-dl is up to date. It gets updated fairly often and is usually the most common reason that this app  will stop working. Run the command `docker exec You2Me pip install --upgrade youtube_dl`.
+2. Run the following command to test youtube-dl in your You2Me Docker container `docker exec -it You2me youtube-dl URL -x --audio-format mp3 --audio-quality 320` where URL is the full URL of the site that you want to download. Make sure that the command completes and generates an mp3.
+
+##### Self installed
+1. Make sure that youtube-dl is up to date. It gets updated fairly often and is usually the most common reason that this app  will stop working. Run the command `sudo pip install --upgrade youtube_dl` to upgrade YouTube-dl. 
+1. Make sure that youtube-dl has the right permissions by running `chmod a+rx /usr/local/bin/youtube-dl` (Change the path if youtube-dl if it is located in a different location).
 1. Make sure that the php directory has write permissions.
 1. Make sure that the media folder has write permissions. 
 1. Run the following command in a terminal: `youtube-dl URL -x --audio-format mp3 --audio-quality 320` where URL is the full URL of the site that you want to download. Make sure that the command completes and generates an mp3.
-1. If you get the error "ERROR: WARNING: unable to obtain file audio codec with ffprobe" when running the step above, make sure that ffprobe is working     correctly by running ffprobe -version. If you are using Plex and get this error, it is caused by the envirnment variable LD_LIBRARY_PATH=/usr/lib/plexmediaserver. You can verify this by running the command export and looking for this variable. If you see this path, remove it by editing /etc/environment and add # in front of this line.
-1. Make sure that the youtube URL is in the format https://www.youtube.com/watch?v=<YOUTUBEID> where <YOUTUBEID> is random letters and number.
+1. If you get the error "ERROR: WARNING: unable to obtain file audio codec with ffprobe" when running the step above, make sure that ffprobe is working correctly by running `ffprobe -version`. If you are using Plex and get this error, it is caused by the envirnment variable `LD_LIBRARY_PATH=/usr/lib/plexmediaserver`. You can verify this by running the command export and looking for this variable. If you see this path, remove it by editing /etc/environment and add # in front of this line.
+1. Make sure that the youtube URL is in the format `https://www.youtube.com/watch?v=<YOUTUBEID>` where `<YOUTUBEID>` is random letters and number.
 1. When using the Angular dev server, downloading won't work unless you allow CORS Headers. You will need to look up how to do to this for your web server. For Traefik you would add something like this: (Replace MY-NETWORK-NAME with your network and you2me.mysite.com with your actual domain in 2 places )
 `
 labels:
@@ -102,4 +112,4 @@ labels:
      - "traefik.http.middlewares.you2meMiddleware.headers.accesscontrolalloworiginlist=https://you2me.mysite.com,http://localhost:4200"
 `
 
-Please contact me if you have any questions, run into any problems or would like to suggest new features. 
+Please submit a new issue for bug reports or feature requests.
