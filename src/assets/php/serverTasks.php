@@ -3,9 +3,9 @@
      require_once('getid3/getid3.php');
      require_once('getid3/write.php');
      
-     /*ini_set('display_errors',1);
+     ini_set('display_errors',1);
      ini_set('display_startup_errors',1);
-     error_reporting(E_ALL);*/
+     error_reporting(E_ALL);
 
      // The path where the file will be moved to. Make sure the path has a slash at the end
      $audioDestinationPath="/mnt/usb/";
@@ -67,12 +67,12 @@
                die("Invalid video format");
 
           // Delete all of  the files in $sourcePath. This will gives us a way to have automatic cleanup
-          $files = glob($sourcePath . "/*");
+          /*$files = glob($sourcePath . "/*");
           
           foreach($files as $file) {
                if (is_file($file))
                     unlink($file);
-          }
+	  }*/
          
           // Build command that will download the audio/video
           $cmd="youtube-dl " . $url . " -o " . ($os != "Windows" ? "\"" : "") . $sourcePath . $fileName . ".%(ext)s" . ($os != "Windows" ? "\"" : "");
@@ -221,8 +221,7 @@
     
           $apiKey="";
 
-	  // Get all Formats 
-          $sql="SELECT KeyValue FROM Settings WHERE KeyName='YTAPIKey'";
+          $sql="EXEC GetAPIKey @HostName='" . $_SERVER["SERVER_NAME"] . "'";
 
           $stmt = $conn->prepare($sql);
 	       
@@ -231,13 +230,19 @@
 	  } catch(Exception $e) {
 	       die("Something went wrong getting the formats with the error " . $e);
 	  }
-	       
-	  while ($row = $stmt->fetch()) {
-               $apiKey = $row[0];
+	 
+	  //$result = $stmt->fetch(PDO::FETCH_ASSOC);
+	  //print_r($result);
+
+	  // var_dump($stmt);
+	  // while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+	   while ($row = $stmt->fetch()) {
+	       $apiKey = $row[0];
 	  }
-	  
+
 	  echo json_encode($apiKey);
-     } 
+     }
+
      function getThumbnail($url) {
           $cmd="youtube-dl " . $url . " --get-thumbnail --skip-download";
 
