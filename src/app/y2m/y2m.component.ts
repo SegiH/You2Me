@@ -164,6 +164,11 @@ export class Y2MComponent implements OnInit {
           this.supportedURLsDataSource.filter = filterValue.trim().toLowerCase();
      }
 
+     // Event when the user clicks on the cancel button to canel adding a link
+     cancelAddClick() {
+          this.addFieldsVisible = false;
+     }
+
      confirmDialog(currLink: object, message: string): void {
           const dialogData = new ConfirmDialogModel(`${currLink['URL']}`, message);
 
@@ -559,6 +564,7 @@ export class Y2MComponent implements OnInit {
                return;
           }
 
+          // Do not call 
           if (isDevMode()) {
                this.searchResults=[
                {
