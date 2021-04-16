@@ -112,7 +112,7 @@ export class DataService {
                            DownloadStatusMessage: '',
                            DownloadStatusVisible: true,
                            CurrentStep: 0,
-                           Fields: this.fields,
+                           Fields: JSON.parse(JSON.stringify(this.fields)),
                            FieldKeys: this.fieldKeys,
                            Filename: "",
                            Format: newFormat,                           

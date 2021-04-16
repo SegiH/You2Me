@@ -69,7 +69,7 @@
                          <mat-grid-tile class="audioFieldsTile" colspan="1" rowHeight="fit" [ngClass]="dataService.isMP3Format(currLink.Format) ? 'mp3FieldsVisible' : 'audioFieldsVisible'" *ngIf="dataService.isAudioFormat(currLink.Format)">
                               <mat-card class="smaller">                         
                                    <mat-form-field *ngFor="let fieldName of currLink.FieldKeys;trackBy: trackByFn" [class.hidden]="dataService.fieldIsHidden(currLink.Format,fieldName)">
-                                        <input matInput placeholder={{fieldName}} [(ngModel)]="currLink.Fields[fieldName].Value" [disabled]="currLink.IsSubmitted">
+                                        <input matInput placeholder={{fieldName}} [(ngModel)]="currLink['Fields'][fieldName].Value" [disabled]="currLink.IsSubmitted">
                                    </mat-form-field>
                               </mat-card>
                          </mat-grid-tile>
