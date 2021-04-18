@@ -496,9 +496,11 @@ export class Y2MComponent implements OnInit {
                stepper => {
                     if (stepper._document.getElementsByClassName("Stepper" + currLink['StepperIndex']).length != 0) {
                          // Do this twice to skip to the last step
-                         stepper.selected.completed = true;
-                         stepper.selected.editable = false;
-                         stepper.next();
+                         try {
+                              stepper.selected.completed = true;
+                              stepper.selected.editable = false;
+                              stepper.next();
+                         } catch(error) { }
                     }
                }
           );
@@ -559,7 +561,7 @@ export class Y2MComponent implements OnInit {
      }
 
      searchYTClick() {
-          if (this.searchTerm == "") {
+          if (this.searchTerm == "" && !this.debugging) {
                this.dataService.showSnackBarMessage("Please enter the search term");
                return;
           }
