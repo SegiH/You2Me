@@ -934,6 +934,9 @@ export class Y2MComponent implements OnInit {
      showSupportedSitesToggle() {
           if (this.supportedURLsVisible && typeof this.supportedURLsDataSource === 'undefined') {
                this.dataService.getSupportedURLs().subscribe((response) => {
+                    if (typeof response == 'undefined')
+                         return;
+
                     this.supportedURLsDataSource = new MatTableDataSource(response);
 
                     // Assign custom filter function
