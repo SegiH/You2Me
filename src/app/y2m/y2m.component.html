@@ -136,7 +136,7 @@
 
 <!-- Supported URLs -->
 <mat-card>
-     <mat-checkbox  [(ngModel)]="supportedURLsVisible" (change)="showSupportedSitesToggle()">Show supported sites</mat-checkbox>
+     <mat-checkbox [(ngModel)]="supportedURLsVisible" (change)="showSupportedSitesToggle()">Show supported sites</mat-checkbox>
 
      <mat-form-field *ngIf="supportedURLsVisible">
           <input matInput (keyup)="applySupportedURLsFilter($event.target.value)" placeholder="Filter">
@@ -144,7 +144,7 @@
 
      <mat-paginator *ngIf="supportedURLsVisible" #supportedURLsPaginator [pageSizeOptions]="[100,10,25,50,500,1000]"></mat-paginator>
 
-     <table *ngIf="supportedURLsVisible" mat-table matSort [dataSource]="supportedURLsDataSource" class="mat-elevation-z8">
+     <table  mat-table matSort [dataSource]="supportedURLsDataSource" class="mat-elevation-z8">
           <ng-container matColumnDef="URL">
                <th mat-header-cell *matHeaderCellDef mat-sort-header> URL </th>
                <td mat-cell *matCellDef="let element"> {{element}} </td>
