@@ -123,7 +123,7 @@ export class DataService {
                            StepperIndex: stepperIndex,
                            ExpansionPanelOpen: false,
                            ThumbnailSmallDimension: 50,
-                           ThumbnailLargeDimension: 200,
+                           ThumbnailLargeDimension: 150,
                          });
 
           this.getThumbnail(newURL,stepperIndex).subscribe((response) => {               
