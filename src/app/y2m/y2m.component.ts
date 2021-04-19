@@ -82,6 +82,9 @@ export class Y2MComponent implements OnInit {
           // Enable debugging if Debugging was provided as URL parameter. Otherwise default to currDebugging
           this.debugging = (this.getURLParam("Debugging") != this.debugging && this.getURLParam("Debugging") ? this.getURLParam("Debugging") : currDebugging);
 
+          if (isDevMode())
+               this.debugging=true;
+
           // Make sure that there aren't any invalid URL parameters
           const queryString = "&" + window.location.search.slice(1); // first URL parameter always begins with a ?. This replaces it with & so we can call split() on it using & as the delimiter
           const split_params = queryString.split("&");
