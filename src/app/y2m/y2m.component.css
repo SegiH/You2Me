@@ -2,14 +2,48 @@
      --bg-color: #DADBDC;
 }
 
-.addButton button {
-     margin-left: 325px;
+#addButton {
+     margin-left: 50px;
 }
 
-.addLinkDeleteIcon {
+#addFormatField {
+     margin-left: 35px;
+}
+
+#addLinkDeleteIcon {
      margin-left: 99.5%;
      position: relative;
-     top: -40px
+     top: -15px
+}
+
+#links {
+     background-color: #DADBDC;
+}
+
+#searchButton {
+     border-radius: 10px;
+}
+
+#searchCheckBox {
+     position: relative;
+}
+
+#searchFilter {
+     position: relative;
+     left: -170px !important;
+     top: 65px !important;
+}
+
+#searchResultsDeleteIcon {
+     margin-left: auto;
+     position: relative;
+}
+
+#searchYTPanel {
+     background-color: #DADBDC;
+     overflow: auto;
+     min-height: 150px !important;
+     z-index: 999;
 }
 
 .download {
@@ -33,9 +67,9 @@
 }
 
 .linkDeleteIcon {
-     margin-left: 98%;
+     margin-left: 100%;
      position: relative;
-     top: -40px
+     top: -60px
 }
 
 .moveToServer {
@@ -46,61 +80,13 @@
      top: 40px !important;
 }
 
-.restart {
-     margin-left: 25px;
-}
-
-.saveValues {
-     margin-left: 15px;
-}
-
-.searchResults {
-     min-height: 400px !important;
-}
-
-.searchResultsDeleteIcon {
-     margin-left: 98%;
-     position: relative;
-}
-
-.searchYT {
+.searchYTButton {
      margin-left: 50px;
  }
 
 .URLdiv {
     position:relative;
     margin-left: 50px;
-}
-
-.addToYou2Me {
-     margin-left: 40%;
-     margin-top: 32%;     
-     position: absolute;
-}
-
-#links {
-     background-color: #DADBDC;
-}
-
-#searchButton {
-     margin-left: 50px;
-}
-
-#searchCheckBox {
-     position: relative;
-}
-
-#searchFilter {
-     position: relative;
-     left: -170px !important;
-     top: 65px !important;
-}
-
-#searchYTPanel {
-     background-color: #DADBDC;
-     min-height: 200px !important;
-     overflow: auto;
-     width: 1200px !important;
 }
 
 img.large {
@@ -114,13 +100,6 @@ div.formatHeader {
 mat-card {
      border-style: solid;
      border-width: 1px !important;
-     max-width: 1200px;
-}
-
-mat-card#searchYTPanel {
-     min-height: 150px !important;
-     width: 800px;
-     z-index: 999;
 }
 
 mat-card.smaller {
@@ -137,9 +116,14 @@ mat-expansion-panel.large {
      height: 550px !important;
 }
 
+/* Left align items in the YT search panel */
+::ng-deep #searchYTPanel .mat-figure {
+     display: flex;
+     justify-content: flex-start;
+}
+
 mat-panel-title.searchResults {
      display: grid;
-     max-height: 200px !important;
      position: absolute;
      vertical-align: text-top; 
 }
@@ -153,24 +137,8 @@ mat-form-field {
      width: 400px;
 }
 
-mat-form-field#URLField {
-     margin-top: 25px;
-}
-
 mat-form-field.hidden {
      display: none;
-}
-
-mat-grid-tile.addFormatTile {
-     left: 420px !important;
-}
-
-mat-grid-list#addURLGrid {
-     height: 100px !important;
-}
-
-mat-grid-tile.addURLTile {
-     width: 380px !important;
 }
 
 mat-grid-tile.audioFieldsTile {
