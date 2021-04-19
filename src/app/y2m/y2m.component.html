@@ -136,9 +136,9 @@
 
 <!-- Supported URLs -->
 <mat-card>
-     <mat-checkbox [(ngModel)]="supportedURLsVisible" (change)="showSupportedSitesToggle()">Show supported sites</mat-checkbox>
+     <mat-checkbox id="searchCheckBox" [(ngModel)]="supportedURLsVisible" (change)="showSupportedSitesToggle()">Show supported sites</mat-checkbox>
 
-     <mat-form-field *ngIf="supportedURLsVisible">
+     <mat-form-field id="searchFilter" *ngIf="supportedURLsVisible">
           <input matInput (keyup)="applySupportedURLsFilter($event.target.value)" placeholder="Filter">
      </mat-form-field>
 

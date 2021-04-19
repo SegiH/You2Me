@@ -86,6 +86,16 @@
      margin-left: 50px;
 }
 
+#searchCheckBox {
+     position: relative;
+}
+
+#searchFilter {
+     position: relative;
+     left: -200px !important;
+     top: 65px !important;
+}
+
 #searchYTPanel {
      background-color: #DADBDC;
      min-height: 200px !important;
