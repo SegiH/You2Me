@@ -475,9 +475,13 @@ export class Y2MComponent implements OnInit {
      // Handle errors returned by observable
      handleError(currLink: object, response, error) {
           // write error status
-          currLink['StatusMessage'] = `A fatal error occurred` + (response[0] !== null ? `: ${response[0]}` : ``);
+          if (currLink != null) {
+               currLink['StatusMessage'] = `A fatal error occurred` + (response[0] !== null ? `: ${response[0]}` : ``);
 
-          console.log(`An error occurred at step ${currLink['CurrentStep']} with the error ${error[0]}`);
+               console.log(`An error occurred at step ${currLink['CurrentStep']} with the error ${error[0]}`);
+          } else {
+               console.log(`An error occurred at step (no currLink) with the error ${error[0]}`);
+          }
 
           if (!this.debugging)
                currLink['DownloadProgressSubscription'].unsubscribe();
