@@ -3,9 +3,9 @@
      require_once('getid3/getid3.php');
      require_once('getid3/write.php');
      
-     ini_set('display_errors',1);
+     /*ini_set('display_errors',1);
      ini_set('display_startup_errors',1);
-     error_reporting(E_ALL);
+     error_reporting(E_ALL);*/
 
      // The path where the file will be moved to. Make sure the path has a slash at the end
      $audioDestinationPath="/mnt/usb/";
