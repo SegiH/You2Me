@@ -107,7 +107,7 @@ export class Y2MComponent implements OnInit {
           const format=this.getURLParam('Format');
           
           if (URL !== null && name != null && format != null) {
-               this.dataService.addLink(URL, format, false);
+               this.dataService.addLink(URL, format, this.moveToServer);
 
                this.dataService.links[0]['Fields']['Name'].Value=name;
           }
@@ -120,9 +120,6 @@ export class Y2MComponent implements OnInit {
                document.body.appendChild(tag);
                this.apiLoaded = true;               
           }
-
-          // DELETE ME LATER!
-          //this.dataService.addLink("https://www.youtube.com/watch?v=Wch3gJG2GJ4","320k");
      }
 
      addLinkButtonClicked() {
