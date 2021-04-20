@@ -11,7 +11,6 @@
            clearInterval(this.progressInterval);
     }, 1000);
 
-
      Dailymotion long videos time out without an error message. 5 minutes works. 15 minutes fails
      
      Before publishing:
@@ -71,6 +70,7 @@ export class Y2MComponent implements OnInit {
           // If URL parameter MoveToServer was provided and is allowed, add Moving the file to new location as a step
           if (this.getURLParam('MoveToServer') === 'true' && this.allowMoveToServer) {
                this.moveToServer = true;
+               document.title = 'You2Me (Move To Server)';
           } else {
                this.moveToServer = false;
                document.title = 'You2Me';
