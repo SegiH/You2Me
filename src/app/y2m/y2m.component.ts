@@ -70,7 +70,7 @@ export class Y2MComponent implements OnInit {
           // If URL parameter MoveToServer was provided and is allowed, add Moving the file to new location as a step
           if (this.getURLParam('MoveToServer') === 'true' && this.allowMoveToServer) {
                this.moveToServer = true;
-               document.title = 'You2Me (Server)';
+               
           } else {
                this.moveToServer = false;
                document.title = 'You2Me';
@@ -88,6 +88,9 @@ export class Y2MComponent implements OnInit {
           } else {
                document.title = 'You2Me';
           }
+
+          if (this.moveToServer == true)
+               document.title = 'You2Me (Server)';
 
           // Make sure that there aren't any invalid URL parameters
           const queryString = "&" + window.location.search.slice(1); // first URL parameter always begins with a ?. This replaces it with & so we can call split() on it using & as the delimiter
@@ -944,7 +947,7 @@ export class Y2MComponent implements OnInit {
           }
      }
 
-     // If you buttons dont click twice on the toolbar before submitting, it will show the checkbox to toggle the Debugging checkbox
+     // Double click on If you buttons dont click twice on the toolbar before submitting, it will show the checkbox to toggle the Debugging checkbox
      // so you can enable Debugging after loading the form but before submitting it
      toolbarDoubleClick() {
           // If any links have been submitted ignore

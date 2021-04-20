@@ -1,5 +1,5 @@
 <mat-card id="links">
-     <h1 (dblclick)="toolbarDoubleClick()">You2Me {{(debugging ? " (Debugging)" : "")}} {{(moveToServer ? " (Server)" : "")}}</h1>
+     <h1 (dblclick)="toolbarDoubleClick()">You2Me {{(moveToServer ? " (Server)" : "")}} {{(debugging ? " (Debugging)" : "")}}</h1>
      
      <button *ngIf="!addFieldsVisible && !searchYTCardVisible" matInput mat-raised-button color="primary" (click)="addLinkButtonClicked()">Add Link</button>
 
