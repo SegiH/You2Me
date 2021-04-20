@@ -118,7 +118,7 @@ export class Y2MComponent implements OnInit {
           }
 
           // DELETE ME LATER!
-          this.dataService.addLink("https://www.youtube.com/watch?v=Wch3gJG2GJ4","320k");
+          //this.dataService.addLink("https://www.youtube.com/watch?v=Wch3gJG2GJ4","320k");
      }
 
      addLinkButtonClicked() {
