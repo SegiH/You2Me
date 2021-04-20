@@ -82,7 +82,7 @@ export class Y2MComponent implements OnInit {
           // Enable debugging if Debugging was provided as URL parameter. Otherwise default to currDebugging
           this.debugging = (this.getURLParam("Debugging") != this.debugging && this.getURLParam("Debugging") ? this.getURLParam("Debugging") : currDebugging);
 
-          if (isDevMode()) {
+          if (isDevMode() || this.debugging == true) { // If debugging was enabled with a URL parameter
                this.debugging=true;
                document.title = 'You2Me (Debugging)';
           } else {
@@ -171,7 +171,6 @@ export class Y2MComponent implements OnInit {
           this.supportedURLsDataSource.filter = filterValue.trim().toLowerCase();
      }
 
-     // Event when the user clicks on the cancel button to canel adding a link
      cancelAddClick() {
           this.addFieldsVisible = false;
      }
@@ -212,8 +211,7 @@ export class Y2MComponent implements OnInit {
           this.searchResults=null;
           this.searchYTCardVisible=false;
      }
-
-     // Download file step
+     
      downloadFile(currLink: object) {
           // Start timer that gets download progress
           if (!this.debugging)
@@ -256,7 +254,6 @@ export class Y2MComponent implements OnInit {
                          }
                     } else if (typeof response[1] !== 'undefined' && response[1] !== "")
                          currLink['ThumbnailImage'] = response[1];
-                    
 
                     if (currLink['Fields']['Name'].Value == '') {
                          this.dataService.showSnackBarMessage("Please enter the name");
@@ -309,7 +306,6 @@ export class Y2MComponent implements OnInit {
                });
      }
 
-     // Download click button event
      downloadButtonClicked(currLink: object) {
           const fileNameWithoutPath = currLink['DownloadLink'].substr(currLink['DownloadLink'].lastIndexOf("/") + 1);
 
@@ -337,7 +333,6 @@ export class Y2MComponent implements OnInit {
           });
      }
 
-     // Event when all tasks have finished running
      finished(currLink: object, isError = false) {
           this.debuggingCheckboxVisible = false;
 
@@ -353,7 +348,6 @@ export class Y2MComponent implements OnInit {
                currLink['DownloadProgressSubscription'].unsubscribe();
      }
 
-     // Get progress of youtube-dl
      getDownloadProgress(currLink: object) {
           if (this.debugging)
                return;
@@ -375,12 +369,10 @@ export class Y2MComponent implements OnInit {
                     }));
      }
 
-     // Returns class name based on currLink
      getStepperClass(currLink: object) {
           return "Stepper" + this.dataService.getLinkKey(currLink);
      }
 
-     // Get URL parameter
      getURLParam(name: string) {
           // The first time this method gets called, this.urlParams will be undefined
           if (typeof this.urlParams === 'undefined')
@@ -429,7 +421,6 @@ export class Y2MComponent implements OnInit {
           }
      }
 
-     // Event when the user clicks on the Go button to start the download
      goButtonClick(currLink: object) {
           if (currLink['CurrentStep'] == 0) {
                // Validate fields
@@ -479,7 +470,6 @@ export class Y2MComponent implements OnInit {
           }
      }
 
-     // Handle errors returned by observable
      handleError(currLink: object, response, error) {
           // write error status
           if (currLink != null) {
@@ -501,7 +491,6 @@ export class Y2MComponent implements OnInit {
                this.searchYTClick();
      }
 
-     // Increments stepper
      incrementStepper(currLink: object) {
           this.steppers.forEach(
                stepper => {
@@ -517,7 +506,6 @@ export class Y2MComponent implements OnInit {
           );
      }
 
-     // Move To Server Task
      moveFileToServer(currLink: object) {
           if (!this.allowMoveToServer)
                return;
@@ -548,7 +536,6 @@ export class Y2MComponent implements OnInit {
           }
      }
 
-     // Parse and store all URL parameters in a key/pair value
      parseURLParameters() {
           const query = window.location.search.substr(1);
 
@@ -577,8 +564,8 @@ export class Y2MComponent implements OnInit {
                return;
           }
 
-          // Do not call 
-          if (isDevMode()) {
+          // Do not call YT API when debugging or you'll hit the daily limit very quickly
+          if (this.debugging) {
                this.searchResults=[
                {
                    "kind": "youtube#searchResult",
@@ -932,12 +919,10 @@ export class Y2MComponent implements OnInit {
           }
      }
 
-     // Event when the user clicks on the Search YT button - Shows Search YT panel
      showSearchYTClick() {
           this.searchYTCardVisible=true;      
      }
 
-     // Event when user toggles show supported URLs checkbox
      showSupportedSitesToggle() {
           if (this.supportedURLsVisible && typeof this.supportedURLsDataSource === 'undefined') {
                this.dataService.getSupportedURLs().subscribe((response) => {
