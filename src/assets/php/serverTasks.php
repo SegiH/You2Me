@@ -221,7 +221,7 @@
     
           $apiKey="";
 
-          $sql="EXEC GetAPIKey @HostName='" . $_SERVER["SERVER_NAME"] . "'";
+          $sql="EXEC GetAPIKey"; // @HostName='" . $_SERVER["SERVER_NAME"] . "'";
 
           $stmt = $conn->prepare($sql);
 	       
