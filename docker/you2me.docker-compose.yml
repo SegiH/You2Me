@@ -10,7 +10,7 @@ services:
         container_name: You2Me
         stdin_open: true
         tty: true
-        image: shovav/you2me:latest
+        image: you2me:latest
         hostname: You2Me
         networks: 
             - default
