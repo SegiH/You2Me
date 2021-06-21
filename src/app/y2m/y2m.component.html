@@ -3,7 +3,7 @@
      
      <button *ngIf="!addFieldsVisible && !searchYTCardVisible" matInput mat-raised-button color="primary" (click)="addLinkButtonClicked()">Add Link</button>
 
-     <button *ngIf="!addFieldsVisible && !searchYTCardVisible" matInput mat-raised-button class="searchYTButton" color="accent" (click)="showSearchYTClick()">Search YT</button>
+     <button *ngIf="!addFieldsVisible && !searchYTCardVisible && APIKeyIsSet" matInput mat-raised-button class="searchYTButton" color="accent" (click)="showSearchYTClick()">Search YT</button>
 
      <mat-card  *ngIf="addFieldsVisible && !searchYTCardVisible">
           <mat-grid-list cols="3" rowHeight="50px" id="addURLGrid">               

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { throwError, Observable } from 'rxjs/';
 import { catchError} from 'rxjs/operators';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
@@ -96,11 +96,13 @@ export class DataService {
                     this.currentFormat='';
                }*/
           });
-
+          
           this.getAPIKey().subscribe((response) => {
                this.API_TOKEN=response;
           },
           error => {
+               alert("An error occurred initializing YouTube search and this functionality will not be available");
+               return throwError("An error occurred getting the API Key");
           });
      }
      
@@ -158,6 +160,10 @@ export class DataService {
           return retVal;
      }
 
+     APIKeyIsSet() {
+          return this.API_TOKEN != ""
+     }
+
      clearFieldValues(currLink: object) {
           currLink['FieldKeys'].forEach(key => {
                currLink['Field'][key].Value = "";
@@ -165,8 +171,11 @@ export class DataService {
      }
 
      deleteDownloadFile(fileName: string) {
-          const params = `?DeleteDownloadFile` +
-                         `&Filename=${fileName}`
+          let params = new HttpParams();
+          params = params.append('DeleteDownloadFile',true);
+          params = params.append('Filename',fileName);
+          //const params = `?DeleteDownloadFile` +
+          //               `&Filename=${fileName}`
                        
           return this.processStep(params);
      }
@@ -197,7 +206,25 @@ export class DataService {
                currLink['URL']= arr[0];
           }
 
-          const params = `?DownloadFile` +
+          let params = new HttpParams();
+          params = params.append('DownloadFile',true);
+          params = params.append('URL',currLink['URL']);
+          params = params.append('Debugging',debugging);
+          params = params.append('MoveToServer',(allowMoveToServer ? "true" : "false"));
+          params = params.append('AllowMoveToServer',(allowMoveToServer ? "true" : "false"));
+
+          if (this.isAudioFormat(currLink['Format'])) {
+               params = params.append('IsAudioFormat',true);
+               params = params.append('AudioFormat',currLink['Format']);
+
+               if (this.isMP3Format(currLink['Format']))
+                    params = params.append('Bitrate',currLink['Format']);
+          } else {
+               params = params.append('IsVideoFormat',true);
+               params = params.append('VideoFormat',currLink['Format']);
+          }
+          
+          /*const params = `?DownloadFile` +
                          `&URL=${currLink['URL']}` +
                          `&Filename=${this.rfc3986EncodeURIComponent(fileName)}` +
                          `&Debugging=${debugging}` +
@@ -205,7 +232,7 @@ export class DataService {
                          '&AllowMoveToServer=' + (allowMoveToServer ? "true" : "false") +
                          (this.isAudioFormat(currLink['Format'])
                               ? `&IsAudioFormat=true` + (this.isMP3Format(currLink['Format']) ? `&Bitrate=${currLink['Format']}` : ``) + `&AudioFormat=${currLink['Format']}`
-                              : `&IsVideoFormat=true&VideoFormat=${currLink['Format']}`);
+                              : `&IsVideoFormat=true&VideoFormat=${currLink['Format']}`);*/
 
           return this.processStep(params);
      }
@@ -225,11 +252,20 @@ export class DataService {
      }
 
      getAPIKey() {
-          return this.processStep(`?GetAPIKey=true`);
+          let params = new HttpParams();
+          params = params.append('GetAPIKey',true);
+
+          //return this.processStep(`?GetAPIKey=true`);
+          return this.processStep(params);
      }
 
      getDownloadProgress(currLink: object) {
-          return this.processStep(`?GetDownloadProgress=true&URL=${currLink['URL']}`);
+          let params = new HttpParams();
+          params = params.append('GetDownloadProgress',true);
+          params = params.append('URL',currLink['URL']);
+
+          //return this.processStep(`?GetDownloadProgress=true&URL=${currLink['URL']}`);
+          return this.processStep(params);
      }
 
      getFormatKeys() {
@@ -245,11 +281,21 @@ export class DataService {
      }
 
      getSupportedURLs() {
-          return this.processStep(`?GetSupportedURLs`);
+          let params = new HttpParams();
+          params = params.append('GetSupportedURLs',true);
+
+          //return this.processStep(`?GetSupportedURLs`);
+          return this.processStep(params);
      }
 
      getThumbnail(URL:string,stepperIndex: number) {
-          return this.processStep(`?GetThumbnail&URL=${URL}&StepperIndex=${stepperIndex}`);
+          let params = new HttpParams();
+          params = params.append('GetThumbnail',true);
+          params = params.append('URL',URL);
+          params = params.append('StepperIndex',stepperIndex);
+
+          //return this.processStep(`?GetThumbnail&URL=${URL}&StepperIndex=${stepperIndex}`);
+          return this.processStep(params);
      }
 
      getURLParameters() {
@@ -291,23 +337,43 @@ export class DataService {
      }
 
      loadFormats() {
-          return this.processStep(`?GetFormats=true`);
+          let params = new HttpParams();
+          params = params.append('GetFormats',true);
+
+          return this.processStep(params);
+          //return this.processStep(`?GetFormats=true`);
      }
 
      moveFile(currLink: object) {
-          const params = `?MoveFile` +
+          let params = new HttpParams();
+          params = params.append('MoveFile',true);
+          params = params.append('MoveToServer',true);
+          params = params.append('Filename',currLink['Filename']);
+          params = params.append('Artist',this.rfc3986EncodeURIComponent(currLink['Fields']['Artist'].Value));
+          
+          if (this.isAudioFormat(currLink['Format'])) {
+               params = params.append('IsAudioFormat',true);
+
+               if (typeof currLink['Fields']['Album'].Value !== 'undefined')
+                    params = params.append('Album',this.rfc3986EncodeURIComponent(currLink['Fields']['Album'].Value));
+          } else
+               params = params.append('IsVideoFormat',true);
+          
+          //params = params.append('Filename',currLink['Filename']);
+          /*const params = `?MoveFile` +
                          `&MoveToServer=true`  +
                          `&Filename=${currLink['Filename']}` +
                          `&Artist=${this.rfc3986EncodeURIComponent(currLink['Fields']['Artist'].Value)}` +
                          (this.isAudioFormat(currLink['format'])
                          ? `&IsAudioFormat=true` + (typeof currLink['Fields']['Album'].Value !== 'undefined' ? `&Album=${this.rfc3986EncodeURIComponent(currLink['Fields']['Album'].Value)}` : '')
-                         : `&IsVideoFormat=true`);
+                         : `&IsVideoFormat=true`);*/
 
           return this.processStep(params);
      } 
 
-     processStep(params: String): Observable<any> {
-          return this.http.get<any>('/php/serverTasks.php' + params)
+     processStep(params: HttpParams): Observable<any> {
+
+          return this.http.get<any>('/php/serverTasks.php', { params: params})
                .pipe(
                     catchError(this.handleError)
                );
@@ -362,14 +428,35 @@ export class DataService {
           if (currLink['Fields']['TrackNum'].Value !== null && !isNaN(parseInt(currLink['Fields']['TrackNum'].Value)) && parseInt(currLink['Fields']['TrackNum'].Value) < 10)
                currLink['Fields']['TrackNum'].Value = "0" + currLink['Fields']['TrackNum'].Value;
 
-          const params = `?WriteID3Tags` +
+          let params = new HttpParams();
+          params = params.append('WriteID3Tags',true);
+     
+          if  (currLink['Fields']['Artist'].Value !== null)
+               params = params.append('Artist',currLink['Fields']['Artist'].Value);
+
+          if  (currLink['Fields']['Album'].Value !== null)
+               params = params.append('Album',currLink['Fields']['Album'].Value);
+
+          if  (currLink['Fields']['Name'].Value !== null)
+               params = params.append('Name',currLink['Fields']['Name'].Value);
+
+          if  (currLink['Fields']['TrackNum'].Value !== null)
+               params = params.append('TrackNum',currLink['Fields']['TrackNum'].Value);
+
+          if  (currLink['Fields']['Genre'].Value !== null)
+               params = params.append('Genre',currLink['Fields']['Genre'].Value);
+
+          if  (currLink['Fields']['Year'].Value !== null)
+               params = params.append('Year',currLink['Fields']['Year'].Value);
+
+          /*const params = `?WriteID3Tags` +
                          `&Filename=${currLink['Filename']}` +
                          (currLink['Fields']['Artist'].Value !== null ? `&Artist=${currLink['Fields']['Artist'].Value}` : ``) +
                          (currLink['Fields']['Album'].Value !== null ? `&Album=${currLink['Fields']['Album'].Value}` : ``) +
                          (currLink['Fields']['Name'].Value !== null ? `&TrackName=${currLink['Fields']['Name'].Value}` : '') +
                          (currLink['Fields']['TrackNum'].Value !== null ? `&TrackNum=${currLink['Fields']['TrackNum'].Value}` : '') +
                          (currLink['Fields']['Genre'].Value !== null ? `&Genre=${currLink['Fields']['Genre'].Value}` : ``) +
-                         (currLink['Fields']['Year'].Value !== null ? `&Year=${currLink['Fields']['Year'].Value}` : ``);
+                         (currLink['Fields']['Year'].Value !== null ? `&Year=${currLink['Fields']['Year'].Value}` : ``);*/
 
           return this.processStep(params);
      }

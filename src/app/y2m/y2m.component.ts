@@ -43,6 +43,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 
 export class Y2MComponent implements OnInit {
      addFieldsVisible = false;
+     APIKeyIsSet = false;
      readonly allowMoveToServer = true;
      apiLoaded = false;
      confirmDialogVisible = false;
@@ -123,6 +124,16 @@ export class Y2MComponent implements OnInit {
                document.body.appendChild(tag);
                this.apiLoaded = true;               
           }
+          
+          //debugger;
+          //this.APIKeyIsSet= this.dataService.APIKeyIsSet();
+          //alert(this.APIKeyIsSet)
+          this.dataService.getAPIKey().subscribe((response) => {
+               this.APIKeyIsSet=true;
+          },
+          error => {
+               this.APIKeyIsSet=false;
+          });
      }
 
      addLinkButtonClicked() {
