@@ -96,14 +96,6 @@ export class DataService {
                     this.currentFormat='';
                }*/
           });
-          
-          this.getAPIKey().subscribe((response) => {
-               this.API_TOKEN=response;
-          },
-          error => {
-               alert("An error occurred initializing YouTube search and this functionality will not be available");
-               return throwError("An error occurred getting the API Key");
-          });
      }
      
      addLink(newURL: string,newFormat: string,movetoServer: boolean = false) {
@@ -160,8 +152,8 @@ export class DataService {
           return retVal;
      }
 
-     APIKeyIsSet() {
-          return this.API_TOKEN != ""
+     setAPIKey(API_TOKEN: string) {
+          this.API_TOKEN=API_TOKEN;
      }
 
      clearFieldValues(currLink: object) {

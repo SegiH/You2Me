@@ -31,7 +31,7 @@ import { DownloadService } from '../core/download.service';
 import { DOCUMENT } from '@angular/common';
 import { MatStepper } from '@angular/material/stepper';
 import { MatSort } from '@angular/material/sort';
-import { interval } from "rxjs";
+import { interval, throwError } from "rxjs";
 import { MatAccordion } from '@angular/material/expansion';
 import { DomSanitizer } from '@angular/platform-browser';
 
@@ -124,15 +124,18 @@ export class Y2MComponent implements OnInit {
                document.body.appendChild(tag);
                this.apiLoaded = true;               
           }
-          
-          //debugger;
-          //this.APIKeyIsSet= this.dataService.APIKeyIsSet();
-          //alert(this.APIKeyIsSet)
+     
           this.dataService.getAPIKey().subscribe((response) => {
                this.APIKeyIsSet=true;
+
+               this.dataService.setAPIKey(response);
           },
           error => {
                this.APIKeyIsSet=false;
+
+               alert("An error occurred initializing YouTube search and this functionality will not be available");
+
+               return throwError("An error occurred getting the API Key");
           });
      }
 
