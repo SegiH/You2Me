@@ -1,15 +1,7 @@
 /*
      TODO:     
 
-     download status message is currently hidden - Find place to put it   
-     Think about possibly adding progress bar. percent doesnt get added "evenly" to the DB  
-     
-     this.progressInterval = setInterval(() => {
-      this.progressValue += 1;
-
-      if (this.progressValue == 100)
-           clearInterval(this.progressInterval);
-    }, 1000);
+     Check ngOnInit logic and consider URL params especially movetoserver
 
      Dailymotion long videos time out without an error message. 5 minutes works. 15 minutes fails
      
@@ -29,7 +21,6 @@ import { MatTableDataSource } from '@angular/material/table';
 import { DataService } from '../core/data.service';
 import { DownloadService } from '../core/download.service';
 import { DOCUMENT } from '@angular/common';
-import { MatStepper } from '@angular/material/stepper';
 import { MatSort } from '@angular/material/sort';
 import { interval, throwError } from "rxjs";
 import { MatAccordion } from '@angular/material/expansion';
@@ -42,7 +33,6 @@ import { DomSanitizer } from '@angular/platform-browser';
 })
 
 export class Y2MComponent implements OnInit {
-     addFieldsVisible = false;
      APIKeyIsSet = false;
      readonly allowMoveToServer = true;
      apiLoaded = false;
@@ -50,8 +40,6 @@ export class Y2MComponent implements OnInit {
      debugging = false; // This should never be true when running production build
      debuggingCheckboxVisible = false;
      moveToServer = false; // global movetoServer preference specified by URL param. Default is false  
-     newFormat: string = "";
-     newURL: string = ""; // Sample urls for testing: https://www.youtube.com/watch?v=Wch3gJG2GJ4"; //https://www.youtube.com/watch?v=f4xqnh2UPeQ";
      searchResults : any;
      searchTerm: string = "";
      searchYTCardVisible=false;
@@ -61,21 +49,20 @@ export class Y2MComponent implements OnInit {
      urlParams: {};
 
      @ViewChild('supportedURLsPaginator') supportedURLsPaginator: MatPaginator;
-     @ViewChild(MatSort) sort: MatSort;
-     @ViewChildren(MatStepper) steppers: QueryList<any>;
+     @ViewChild(MatSort) supportedURLsSort: MatSort;
      @ViewChildren(MatAccordion) searchResultsExpansionPanels: QueryList<any>;     
 
      constructor(public dialog: MatDialog, public snackBar: MatSnackBar, public dataService: DataService, private downloads: DownloadService, @Inject(DOCUMENT) private document: Document,private sanitizer: DomSanitizer) { }
 
      ngOnInit() {
+          // Commented out on 07-19-21 since MoveToServer is done on a per link basis
           // If URL parameter MoveToServer was provided and is allowed, add Moving the file to new location as a step
-          if (this.getURLParam('MoveToServer') === 'true' && this.allowMoveToServer) {
-               this.moveToServer = true;
-               
+          /*if (this.getURLParam('MoveToServer') === 'true' && this.allowMoveToServer) {
+               this.moveToServer = true;               
           } else {
                this.moveToServer = false;
                document.title = 'You2Me';
-          }
+          }*/
 
           // Save current debugging value
           const currDebugging = this.debugging;
@@ -85,11 +72,12 @@ export class Y2MComponent implements OnInit {
 
           if (isDevMode() || this.debugging == true) { // If debugging was enabled with a URL parameter
                this.debugging=true;
-               document.title = 'You2Me (Debugging)';
+               document.title = 'You2Me (Debugging)'; 
           } else {
-               document.title = 'You2Me';
+               document.title = 'You2Me';              
           }
 
+          // Commented out on 07-19-21 since MoveToServer is done on a per link basis
           if (this.moveToServer == true)
                document.title = 'You2Me (Server)';
 
@@ -111,9 +99,10 @@ export class Y2MComponent implements OnInit {
           const format=this.getURLParam('Format');
           
           if (URL !== null && name != null && format != null) {
-               this.dataService.addLink(URL, format, this.moveToServer);
+               this.dataService.addLink(URL, format);
 
-               this.dataService.links[0]['Fields']['Name'].Value=name;
+               if (name != null)
+                    this.dataService.links[0]['Fields']['Name'].Value=name;
           }
 
           // Load Youtube player API code
@@ -139,46 +128,12 @@ export class Y2MComponent implements OnInit {
           });
      }
 
-     addLinkButtonClicked() {
-          if (!this.addFieldsVisible) {
-               this.addFieldsVisible = true;
-               return;
-          }
-     }
-
      addLinkClick() {
-          this.newURL = this.newURL.trim();
-
-          if (this.newURL == "") {
-               this.dataService.showSnackBarMessage("Please enter the URL");
-               return;
-          }
-
-          if (!this.newURL.startsWith("http://") && !this.newURL.startsWith("https://")) {
-               this.dataService.showSnackBarMessage("The URL must begin with http or https");
-               return;
-          }
-
-          if (this.dataService.URLExists(this.newURL)) {
-               this.dataService.showSnackBarMessage("You cannot add the same URL more than once");
-               return;
-          }
-
-          if (this.newFormat == "") {
-               this.dataService.showSnackBarMessage("Please select the format");
-               return;
-          }
-
-          this.dataService.addLink(this.newURL, this.newFormat, this.moveToServer); // If moveToServer is true, an extra step is added
-
-          this.newURL = "";
-          this.newFormat = "";
-
-          this.addFieldsVisible = false;
+          this.dataService.addLink("","320k"); // Default to highest quality mp3
      }
 
      addSearchResult(currSearchResult) {
-          this.dataService.addLink("https://www.youtube.com/watch?v=" + currSearchResult.id.videoId, "320k", false);          
+          this.dataService.addLink("https://www.youtube.com/watch?v=" + currSearchResult.id.videoId, "320k");          
 
           // remove current item from search results
           this.searchResults = this.searchResults.filter(result => result.id.videoId != currSearchResult.id.videoId);
@@ -186,10 +141,6 @@ export class Y2MComponent implements OnInit {
 
      applySupportedURLsFilter(filterValue: string) {
           this.supportedURLsDataSource.filter = filterValue.trim().toLowerCase();
-     }
-
-     cancelAddClick() {
-          this.addFieldsVisible = false;
      }
 
      confirmDialog(currLink: object, message: string): void {
@@ -219,20 +170,20 @@ export class Y2MComponent implements OnInit {
           return filterFunction;
      }
 
-     deleteLinkClick(currLink: object) {
+     deleteLinkButtonClick(currLink: object) {
           this.confirmDialog(currLink, "Are you sure you want to delete this link ?");
      }
-
+     
      deleteSearchResultsButtonClick() {
           this.searchTerm=null;
           this.searchResults=null;
           this.searchYTCardVisible=false;
      }
-     
+
      downloadFile(currLink: object) {
-          // Start timer that gets download progress
+          // Subscribe to service that gets download progress
           if (!this.debugging)
-               this.getDownloadProgress(currLink);
+               this.startDownloadProgressMonitor(currLink);
 
           // Call data service to download the file
           this.dataService.fetchFile(currLink, this.allowMoveToServer, this.debugging)
@@ -260,8 +211,8 @@ export class Y2MComponent implements OnInit {
                          if (typeof response[2] !== 'undefined' && response[2] !== "")
                               currLink['Fields']['Name'].Value = response[2];
 
-                         if (typeof response[3] !== 'undefined' && response[3] !== "")
-                              currLink['ThumbnailImage'] = response[3];
+                         //if (typeof response[3] !== 'undefined' && response[3] !== "")
+                         //     currLink['ThumbnailImage'] = response[3];
 
                          if (currLink['Fields']['Artist'].Value == '') {
                               this.dataService.showSnackBarMessage("Please enter the artist name");
@@ -269,8 +220,8 @@ export class Y2MComponent implements OnInit {
                               currLink['IsSubmitted'] = false;
                               return;
                          }
-                    } else if (typeof response[1] !== 'undefined' && response[1] !== "")
-                         currLink['ThumbnailImage'] = response[1];
+                    } //else if (typeof response[1] !== 'undefined' && response[1] !== "")
+                         // currLink['ThumbnailImage'] = response[1];
 
                     if (currLink['Fields']['Name'].Value == '') {
                          this.dataService.showSnackBarMessage("Please enter the name");
@@ -281,13 +232,13 @@ export class Y2MComponent implements OnInit {
 
                     currLink['CurrentStep']++;
 
-                    this.steppers.forEach(
-                         stepper => {
-                              if (stepper._document.getElementsByClassName("Stepper" + currLink['StepperIndex']).length != 0)
-                                   this.incrementStepper(currLink);
-                         }
-                    );
-
+                    // Stop the download progress subscription
+                    this.dataService.deleteDownloadProgress( currLink['UUID']).subscribe((response) => {
+                    },
+                    error => {
+                         console.log("An error occurred terminating the download progress subscription");
+                    });
+               
                     if (this.dataService.isMP3Format(currLink['Format'])) {
                          currLink['StatusMessage'] = 'The file has been downloaded';
                          this.writeID3Tags(currLink);
@@ -295,18 +246,7 @@ export class Y2MComponent implements OnInit {
                          // The response returns the URL for the downloaded file
                          currLink['DownloadLink'] = decodeURIComponent(response[0].replace(/\+/g, ' '));
 
-                         currLink['StatusMessage'] = 'Your file is ready for you to download or move to your server';
-
-                         this.steppers.forEach(
-                              stepper => {
-                                   if (stepper._document.getElementsByClassName("Stepper" + currLink['StepperIndex']).length != 0) {
-                                        // Do this twice to skip to the last step
-                                        this.incrementStepper(currLink);
-                                        this.incrementStepper(currLink);
-                                        console.log("Skipping to last step");
-                                   }
-                              }
-                         );
+                         currLink['StatusMessage'] = 'Your file is ready for you to download or move to your server';               
 
                          if (this.moveToServer) {
                               this.moveFileToServer(currLink);
@@ -353,10 +293,8 @@ export class Y2MComponent implements OnInit {
      finished(currLink: object, isError = false) {
           this.debuggingCheckboxVisible = false;
 
-          while (currLink["CurrentStep"] < currLink["StepperStepNames"].length - 1) {
-               this.incrementStepper(currLink);
-               currLink["CurrentStep"]++;
-          }
+          while (currLink["CurrentStep"] < currLink["StepperStepNames"].length - 1)               
+               currLink["CurrentStep"]++;          
 
           currLink['IsFinished'] = true;
 
@@ -365,29 +303,22 @@ export class Y2MComponent implements OnInit {
                currLink['DownloadProgressSubscription'].unsubscribe();
      }
 
-     getDownloadProgress(currLink: object) {
-          if (this.debugging)
-               return;
+     getColumnSize() { // If there is more than 1 link or there is 1 link and it is MP3 format, return 2 to span grid 2 columns wide. Otherwise span 1 column wide
+          const columnLength=(this.dataService.getLinks().length > 1 ? 2 :  // When there is more than 1 link always show all columns               
+               this.dataService.getLinks().length == 1 && this.dataService. isMP3Format(this.dataService.links[0].Format) ? 2 :  1 // If there is 1 link and it is mp3 format, show all columns
+                     
+          );
 
-          this.dataService.setDownloadSubscription(currLink
-               , interval(50)
-                    .subscribe(() => {
-                         this.dataService.getDownloadProgress(currLink)
-                              .subscribe((jsonResult: Object) => {
-                                   if (jsonResult !== null && !jsonResult[1]) {
-                                        this.dataService.setDownloadStatusMessage(currLink, jsonResult[0]);
-                                   }
-                              },
-                                   error => {
-                                        //show errors
-                                        console.log(error)
-                                   }
-                              );
-                    }));
+          return columnLength;
      }
 
-     getStepperClass(currLink: object) {
-          return "Stepper" + this.dataService.getLinkKey(currLink);
+     getTotalColumnSize() {
+          const columnLength=(this.dataService.getLinks().length > 1 ? 13 :  // When there is more than 1 link always show all columns               
+               this.dataService.getLinks().length == 1 && this.dataService. isMP3Format(this.dataService.links[0].Format) ? 13 : // If there is 1 link and it is mp3 format, show all columns
+                     this.dataService. isAudioFormat(this.dataService.links[0].Format) ? 8 : 6 // If there is 1 link and it is audio (but not mp3) 
+          );
+
+          return columnLength;
      }
 
      getURLParam(name: string) {
@@ -438,27 +369,48 @@ export class Y2MComponent implements OnInit {
           }
      }
 
-     goButtonClick(currLink: object) {
+     goButtonClick(currLink: object) {         
+          // Validate fields
+          const name = currLink['Fields']['Name'].Value;
+          const artist = currLink['Fields']['Artist'].Value;
+          const album = currLink['Fields']['Album'].Value;
+
           if (currLink['CurrentStep'] == 0) {
-               // Validate fields
-               const name = currLink['Fields']['Name'].Value;
-               const artist = currLink['Fields']['Artist'].Value;
-               const album = currLink['Fields']['Album'].Value;
+               currLink['URL']=currLink['URL'].trim();
 
-               if (this.dataService.isAudioFormat(currLink['Format']) && !this.dataService.isMP3Format(currLink['Format'])) {
-                    if (artist === "") {
-                         this.dataService.showSnackBarMessage("Please enter the artist");
-                         return;
-                    }
+               if (currLink['URL'] == "") {
+                    this.dataService.showSnackBarMessage("Please enter the URL");
+                    return;
+               }
 
-                    if (name === "") {
-                         this.dataService.showSnackBarMessage("Please enter the name");
-                         return;
-                    }
+               if (!currLink['URL'].startsWith("http://") && !currLink['URL'].startsWith("https://")) {
+                    this.dataService.showSnackBarMessage("The URL must begin with http or https");
+                    return;
+               }
 
-                    if (album === "")
-                         currLink['Fields']['Album'].Value = 'Unknown';
-               } else if (!this.dataService.isAudioFormat(currLink['Format']) && name === "") {
+               if (this.dataService.URLExists(currLink['URL'])) {
+                    this.dataService.showSnackBarMessage("You cannot add the same URL more than once");
+                    return;
+               }
+
+               if (currLink['Format'] == "") {
+                    this.dataService.showSnackBarMessage("Please select the format");
+                    return;
+               }
+
+               if (this.dataService.isAudioFormat(currLink['Format']) && !this.dataService.isMP3Format(currLink['Format']) && artist === "") {
+                     this.dataService.showSnackBarMessage("Please enter the artist");
+                     return;
+               }
+
+               if (this.dataService.isAudioFormat(currLink['Format']) && !this.dataService.isMP3Format(currLink['Format']) && name === "") {
+                    this.dataService.showSnackBarMessage("Please enter the name");
+                    return;
+               }
+
+               if (this.dataService.isAudioFormat(currLink['Format']) && !this.dataService.isMP3Format(currLink['Format']) && album === "") {
+                    currLink['Fields']['Album'].Value = 'Unknown';
+               } else if (!this.dataService.isAudioFormat(currLink['Format']) && currLink['Fields']['Name'].Value  === "") {
                     this.dataService.showSnackBarMessage("Please enter the name");
                     return;
                }
@@ -469,12 +421,12 @@ export class Y2MComponent implements OnInit {
 
                this.downloadFile(currLink);
           } else if (currLink['CurrentStep'] == 2) { // After writing ID3 tags, if the artist and name are still blank, prompt user to fill them in
-               if (currLink['Fields']['Artist'].Value === "") {
+               if (artist === "") {
                     this.dataService.showSnackBarMessage("Please enter the artist");
                     return;
                }
 
-               if (currLink['Fields']['Name'].Value === "") {
+               if (name === "") {
                     this.dataService.showSnackBarMessage("Please enter the name");
                     return;
                }
@@ -490,6 +442,9 @@ export class Y2MComponent implements OnInit {
      handleError(currLink: object, response, error) {
           // write error status
           if (currLink != null) {
+               if (!this.debugging)
+                    currLink['DownloadProgressSubscription'].unsubscribe();
+
                currLink['StatusMessage'] = `A fatal error occurred` + (response[0] !== null ? `: ${response[0]}` : ``);
 
                console.log(`An error occurred at step ${currLink['CurrentStep']} with the error ${error[0]}`);
@@ -497,30 +452,24 @@ export class Y2MComponent implements OnInit {
                console.log(`An error occurred at step (no currLink) with the error ${error[0]}`);
           }
 
-          if (!this.debugging)
-               currLink['DownloadProgressSubscription'].unsubscribe();
-
           this.finished(currLink, true);
      }
 
-     handleYouTubeSearchKeyUp(e) {
+     handleYouTubeSearchKeyUp(e) { // Submit YT search when enter is pressed in search field
           if (e.keyCode === 13) // Submit when enter is pressed
                this.searchYTClick();
-     }
+     }     
 
-     incrementStepper(currLink: object) {
-          this.steppers.forEach(
-               stepper => {
-                    if (stepper._document.getElementsByClassName("Stepper" + currLink['StepperIndex']).length != 0) {
-                         // Do this twice to skip to the last step
-                         try {
-                              stepper.selected.completed = true;
-                              stepper.selected.editable = false;
-                              stepper.next();
-                         } catch(error) { }
-                    }
-               }
-          );
+     keyPressNumbers(event: any) { // Limits input field to numbers only
+          var charCode = (event.which) ? event.which : event.keyCode;
+          
+          
+          if  (charCode < 48 || charCode > 57) { // Only Numbers 0-9
+               event.preventDefault();
+               return false;
+          } else {
+               return true;
+          }
      }
 
      moveFileToServer(currLink: object) {
@@ -540,7 +489,7 @@ export class Y2MComponent implements OnInit {
 
                          currLink['StatusMessage'] = 'The file has been moved to the server';
 
-                         // Delete the card after the timeout period
+                         // Delete the link after the timeout period
                          setTimeout(() => {
                               this.dataService.deleteLink(currLink['URL']);
                          }, 5000);
@@ -953,7 +902,7 @@ export class Y2MComponent implements OnInit {
 
                     this.supportedURLsDataSource.paginator = this.supportedURLsPaginator;
 
-                    this.supportedURLsDataSource.sort = this.sort;
+                    this.supportedURLsDataSource.sort = this.supportedURLsSort;
                },
                error => {
                     this.handleError(null, Response, error);
@@ -961,8 +910,27 @@ export class Y2MComponent implements OnInit {
           }
      }
 
-     // Double click on If you buttons dont click twice on the toolbar before submitting, it will show the checkbox to toggle the Debugging checkbox
-     // so you can enable Debugging after loading the form but before submitting it
+     startDownloadProgressMonitor(currLink: object) {
+          if (this.debugging)
+               return;
+
+          this.dataService.setDownloadSubscription(currLink
+               , interval(50)
+                    .subscribe(() => {
+                         this.dataService.getDownloadProgress(currLink)
+                              .subscribe((downloadProgress: Number) => {
+                                   currLink['DownloadProgress']=downloadProgress;
+
+                                   if (downloadProgress == 100)
+                                        currLink['DownloadProgressSubscription'].unsubscribe();
+                              },
+                              error => {
+                              }
+                              );
+                    }));
+     }
+
+     // Double clicking on the toolbar before submitting will show the checkbox to toggle the Debugging checkbox so you can enable Debugging after loading the form but before submitting it
      toolbarDoubleClick() {
           // If any links have been submitted ignore
           if (this.dataService.anySubmittedLinks())
@@ -982,10 +950,7 @@ export class Y2MComponent implements OnInit {
           return index; // or item.id
      }
 
-     // Write ID3 tags step
      writeID3Tags(currLink: object) {
-          this.incrementStepper(currLink);
-
           // Call data service to write ID3 tags
           this.dataService.writeID3Tags(currLink)
                .subscribe((response) => {
@@ -1003,16 +968,6 @@ export class Y2MComponent implements OnInit {
                     currLink['StatusMessage'] = 'Your file is ready to download or move to your server.';
 
                     currLink['CurrentStep']++;
-
-                    this.steppers.forEach(
-                         stepper => {                          
-                              if (stepper._document.getElementsByClassName("Stepper" + currLink['StepperIndex']).length != 0) {                                   
-                                   stepper._selectedIndex++;
-                                   stepper.next();
-                                   this.incrementStepper(currLink);
-                              }
-                         }
-                    )
 
                     this.finished(currLink);
 

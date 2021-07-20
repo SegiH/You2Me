@@ -22,9 +22,6 @@ Please contact me if you run into any issues.
 
 ![Screenshot4](https://raw.githubusercontent.com/SegiH/You2Me/master/screenshots/Screenshot4.png)
 
-![Screenshot5](https://raw.githubusercontent.com/SegiH/You2Me/master/screenshots/Screenshot5.png)
-
-![Screenshot6](https://raw.githubusercontent.com/SegiH/You2Me/master/screenshots/Screenshot6.png)
 
 ### Formats
 This web app supports saving the file in multiple formats.

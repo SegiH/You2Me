@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { throwError, Observable } from 'rxjs/';
 import { catchError} from 'rxjs/operators';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
+import { UUID } from 'angular2-uuid';
 
 let stepperIndex = 0;
 
@@ -47,8 +48,7 @@ export class DataService {
 
      formats: Object = {};
      formatKeys = [];
-     readonly stepperStepNames = ['Started download', 'Finished download', 'Writing ID3 Tags','Your file is ready'];
-     
+     readonly stepperStepNames = ['Started download', 'Finished download', 'Writing ID3 Tags','Your file is ready'];     
      readonly URLParameters = ['URL','Artist','Album','Format','Genre','Name','TrackNum','MoveToServer','Year','Debugging'];
     
      constructor(public snackBar: MatSnackBar, private http: HttpClient) {
@@ -98,7 +98,7 @@ export class DataService {
           });
      }
      
-     addLink(newURL: string,newFormat: string,movetoServer: boolean = false) {
+     addLink(newURL: string = "",newFormat: string="320k") {
           this.links.push({
                            URL: newURL,
                            DownloadLink: '',
@@ -109,34 +109,40 @@ export class DataService {
                            Fields: JSON.parse(JSON.stringify(this.fields)),
                            FieldKeys: this.fieldKeys,
                            Filename: "",
-                           Format: newFormat,                           
+                           Format: newFormat,       
+                           IsAdding: true,                    
                            IsFinished: false,
                            IsSubmitted: false,
                            SaveValues: false,
-                           StatusMessage: "",
+                           StatusMessage: "Download not started",
                            StepperIndex: stepperIndex,
+                           StepperStepNames: this.stepperStepNames,
                            ExpansionPanelOpen: false,
-                           ThumbnailSmallDimension: 50,
-                           ThumbnailLargeDimension: 150,
+                           //ThumbnailSmallDimension: 50,
+                           //ThumbnailLargeDimension: 150,
+                           UUID:UUID.UUID(), // Unique UUID is generated so it can be used to track D/L progress with a unique ID for each link
                          });
 
-          this.getThumbnail(newURL,stepperIndex).subscribe((response) => {               
-               this.links[parseInt(response[1])]["ThumbnailProcessingComplete"]=true;
-
-               if (response !== null)
-                    this.links[parseInt(response[1])]["Thumbnail"]=response[0];                    
+         /* this.getThumbnail(newURL,stepperIndex).subscribe((response) => {               
+               if (response != null && response[0] != false) {
+                    this.links[parseInt(response[1])]["ThumbnailProcessingComplete"]=true;
+     
+                    if (response[0] != "false")
+                         this.links[parseInt(response[1])]["Thumbnail"]=response[0];                    
+                    }
           },
           error => {
-          });
+          });*/
 
-          if (!movetoServer)
+          // Commented out on 07-19-21 because the user can decide this on an individual basis
+         /*if (!movetoServer)
                this.links[stepperIndex].StepperStepNames=this.stepperStepNames;
           else {
                const newStepperStepNames=this.stepperStepNames;
                newStepperStepNames.splice(this.stepperStepNames.length,0,'Moving the file to new location')
 
                this.links[stepperIndex].StepperStepNames=newStepperStepNames;
-          }
+          }*/
 
           stepperIndex++;
      }
@@ -152,22 +158,25 @@ export class DataService {
           return retVal;
      }
 
-     setAPIKey(API_TOKEN: string) {
-          this.API_TOKEN=API_TOKEN;
-     }
-
-     clearFieldValues(currLink: object) {
+     // commented out on 07-19-21 because it isn't being used
+     /*clearFieldValues(currLink: object) {
           currLink['FieldKeys'].forEach(key => {
                currLink['Field'][key].Value = "";
           });
-     }
+     }*/
 
      deleteDownloadFile(fileName: string) {
           let params = new HttpParams();
           params = params.append('DeleteDownloadFile',true);
           params = params.append('Filename',fileName);
-          //const params = `?DeleteDownloadFile` +
-          //               `&Filename=${fileName}`
+                       
+          return this.processStep(params);
+     }
+
+     deleteDownloadProgress(UUID: string) {
+          let params = new HttpParams();
+          params = params.append('DeleteDownloadFile',true);
+          params = params.append('UUID',UUID);
                        
           return this.processStep(params);
      }
@@ -182,16 +191,17 @@ export class DataService {
      fetchFile(currLink: object, allowMoveToServer: boolean, debugging: boolean) {
           const fileName: string = (this.isAudioFormat("") && !isNaN(parseInt(this.fields.TrackNum.Value)) ? this.fields.TrackNum.Value + " " : "" ) + (this.fields.Name.Value != "" ? this.fields.Name.Value : "Unknown");
           
-          let linkKey="";
-
-          // extra URL parameters in a Youtube link causes issues for youtube-dl
+          // Commented out on 07-19-21 because this doesn't appear to do anything
+         /* let linkKey="";
+          
           Object.keys(this.links).forEach(key => {
                if (this.links[key]['URL'] === URL) {
                     linkKey=key;
                     return;
                }               
-          });
+          });*/
 
+          // extra URL parameters in a Youtube link causes issues for youtube-dl
           if (currLink['URL'].includes('youtube.com')) {
                const arr = currLink['URL'].split('&');
 
@@ -201,9 +211,11 @@ export class DataService {
           let params = new HttpParams();
           params = params.append('DownloadFile',true);
           params = params.append('URL',currLink['URL']);
+          params = params.append('Filename',this.rfc3986EncodeURIComponent(fileName));
           params = params.append('Debugging',debugging);
           params = params.append('MoveToServer',(allowMoveToServer ? "true" : "false"));
           params = params.append('AllowMoveToServer',(allowMoveToServer ? "true" : "false"));
+          params = params.append('CurrUUID',currLink['UUID']);
 
           if (this.isAudioFormat(currLink['Format'])) {
                params = params.append('IsAudioFormat',true);
@@ -216,20 +228,10 @@ export class DataService {
                params = params.append('VideoFormat',currLink['Format']);
           }
           
-          /*const params = `?DownloadFile` +
-                         `&URL=${currLink['URL']}` +
-                         `&Filename=${this.rfc3986EncodeURIComponent(fileName)}` +
-                         `&Debugging=${debugging}` +
-                         '&MoveToServer=' + (allowMoveToServer ? "true" : "false") +
-                         '&AllowMoveToServer=' + (allowMoveToServer ? "true" : "false") +
-                         (this.isAudioFormat(currLink['Format'])
-                              ? `&IsAudioFormat=true` + (this.isMP3Format(currLink['Format']) ? `&Bitrate=${currLink['Format']}` : ``) + `&AudioFormat=${currLink['Format']}`
-                              : `&IsVideoFormat=true&VideoFormat=${currLink['Format']}`);*/
-
           return this.processStep(params);
      }
 
-     fieldIsHidden(formatName: string, fieldName: string) {
+     fieldIsEditable(formatName: string, fieldName: string) {
           // Specified values are the fields to hide
           const videoHideFields = Object.freeze(['Artist', 'Album', 'TrackNum', 'Genre', 'Year']);
           const nonMP3HideFields = Object.freeze(['TrackNum', 'Genre', 'Year']);
@@ -254,10 +256,14 @@ export class DataService {
      getDownloadProgress(currLink: object) {
           let params = new HttpParams();
           params = params.append('GetDownloadProgress',true);
-          params = params.append('URL',currLink['URL']);
+          params = params.append('UUID',currLink['UUID']);
 
           //return this.processStep(`?GetDownloadProgress=true&URL=${currLink['URL']}`);
           return this.processStep(params);
+     }
+
+     getFieldKeys() {
+          return this.fieldKeys;
      }
 
      getFormatKeys() {
@@ -280,7 +286,7 @@ export class DataService {
           return this.processStep(params);
      }
 
-     getThumbnail(URL:string,stepperIndex: number) {
+     /*getThumbnail(URL:string,stepperIndex: number) {
           let params = new HttpParams();
           params = params.append('GetThumbnail',true);
           params = params.append('URL',URL);
@@ -288,7 +294,7 @@ export class DataService {
 
           //return this.processStep(`?GetThumbnail&URL=${URL}&StepperIndex=${stepperIndex}`);
           return this.processStep(params);
-     }
+     }*/
 
      getURLParameters() {
           return this.URLParameters;
@@ -350,15 +356,6 @@ export class DataService {
                     params = params.append('Album',this.rfc3986EncodeURIComponent(currLink['Fields']['Album'].Value));
           } else
                params = params.append('IsVideoFormat',true);
-          
-          //params = params.append('Filename',currLink['Filename']);
-          /*const params = `?MoveFile` +
-                         `&MoveToServer=true`  +
-                         `&Filename=${currLink['Filename']}` +
-                         `&Artist=${this.rfc3986EncodeURIComponent(currLink['Fields']['Artist'].Value)}` +
-                         (this.isAudioFormat(currLink['format'])
-                         ? `&IsAudioFormat=true` + (typeof currLink['Fields']['Album'].Value !== 'undefined' ? `&Album=${this.rfc3986EncodeURIComponent(currLink['Fields']['Album'].Value)}` : '')
-                         : `&IsVideoFormat=true`);*/
 
           return this.processStep(params);
      } 
@@ -385,6 +382,10 @@ export class DataService {
             );
      }
 
+     setAPIKey(API_TOKEN: string) {
+          this.API_TOKEN=API_TOKEN;
+     }
+
      setDownloadStatusMessage(currLink: object, newStatusMessage: string) {
           currLink['DownloadStatusMessage']=newStatusMessage;
      }
@@ -404,16 +405,15 @@ export class DataService {
      }
 
      URLExists(URL: string) {
-          let URLExists=false;
+          let URLExists=0;
 
           Object.keys(this.links).forEach(key => {
-               console.log("URL=*"+URL+"* and current item=*"+this.links[key]['URL'] + "*")
                if (this.links[key]['URL'] === URL) {
-                    URLExists=true;
+                    URLExists++;
                }
           });
 
-          return URLExists;
+          return URLExists > 1;
      }
 
      writeID3Tags(currLink: object) {
@@ -422,6 +422,7 @@ export class DataService {
 
           let params = new HttpParams();
           params = params.append('WriteID3Tags',true);
+          params = params.append('Filename',currLink['Filename']);
      
           if  (currLink['Fields']['Artist'].Value !== null)
                params = params.append('Artist',currLink['Fields']['Artist'].Value);

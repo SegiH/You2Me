@@ -16,22 +16,9 @@
 
      $os=(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? "Windows" : "Unix");
      $rowsLeft=false;
-     $db_name="downloadProgress.sqlite3";
-
-     function deleteDownloadProgress() {
-          global $db_name;
-       
-          try {
-               if (file_exists($db_name))
-                    $result=unlink($db_name);
-                
-               die(json_encode(array($result)));
-          } catch(Exception $e) {
-          }
-     }
 
      function downloadFile() {
-          global $db_name;
+          //global $db_name;
           global $domain;
           global $os;
           global $sourcePath;
@@ -42,10 +29,19 @@
           $allowMoveToServer=(isset($_GET["AllowMoveToServer"]) && $_GET["AllowMoveToServer"] == "true" ? true : false);
           $debugging=(isset($_GET["Debugging"]) && $_GET["Debugging"] == "true" ? true : false);
           $isAudioFormat=(isset($_GET["IsAudioFormat"]) && $_GET["IsAudioFormat"] == "true" ? true : false);
-          $isMP3Format=(isset($_GET["Bitrate"]) ? true : false);
-          $bitrate=($isAudioFormat == true && isset($_GET["Bitrate"]) ? $_GET["Bitrate"] : "320k");
-          $audioFormat=(isset($_GET["AudioFormat"]) ?  $_GET["AudioFormat"] : null);
+	  $isMP3Format=(isset($_GET["Bitrate"]) ? true : false);
 
+	  $bitrate=null;
+
+	  if ($isAudioFormat == true)
+	       if (isset($_GET["Bitrate"]))
+	            $bitrate=$_GET["Bitrate"];
+	       else
+		    $bitrate="320k";
+	        
+	  $audioFormat=(isset($_GET["AudioFormat"]) ?  $_GET["AudioFormat"] : null);
+	  $currUUID=(isset($_GET["CurrUUID"]) ? $_GET["CurrUUID"] : null);
+	  
           // Default to MP3 format if $audioformat isn't specified
           if ($isAudioFormat == true && !isset($audioFormat))
                $audioformat="mp3";
@@ -66,6 +62,9 @@
           if (isset($videoFormat) && !in_array($videoFormat,$valid_video_formats))
                die("Invalid video format");
 
+          //if ($currUUID == null)
+          //     die("Invalid currUUID");
+
           // Delete all of  the files in $sourcePath. This will gives us a way to have automatic cleanup
           /*$files = glob($sourcePath . "/*");
           
@@ -75,7 +74,7 @@
 	  }*/
          
           // Build command that will download the audio/video
-          $cmd="youtube-dl " . $url . " -o " . ($os != "Windows" ? "\"" : "") . $sourcePath . $fileName . ".%(ext)s" . ($os != "Windows" ? "\"" : "");
+          $cmd="youtube-dl --no-cache-dir " . $url . " -o " . ($os != "Windows" ? "\"" : "") . $sourcePath . $fileName . ".%(ext)s" . ($os != "Windows" ? "\"" : "");
 
           if ($isAudioFormat == true) {
                $cmd=$cmd . " -x";
@@ -90,27 +89,8 @@
                $cmd=$cmd . " -f best";
           }
 
-	  if ($debugging == false) {
-               // Download progress
-               try {
-                    if (file_exists($db_name))
-                         unlink($db_name);
-               } catch(Exception $e) {
-               }
+	  $cmd = $cmd . " > " . $currUUID . ".txt";
 
-               // Create database 
-	       $file_db = new PDO('sqlite:' . $db_name);
-	       $file_db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
-
-               // Create the table. If it exists already, the 1st sql won't run so the 2nd command deletes everything from this table
-               try {
-		       $file_db->exec("CREATE TABLE IF NOT EXISTS downloadProgress (id INTEGER PRIMARY KEY,URL TEXT, message TEXT);DELETE FROM DownloadProgress;");
-		       chmod($file_db,755);
-               } catch(PDOException $e) {
-                    die("Unable to create the database");
-     	       }
-	  }
-      
           $handle = popen($cmd,"r");
 
           if (ob_get_level() == 0)
@@ -119,21 +99,23 @@
           while (!feof($handle)) {
                $buffer= fgets($handle);
                $buffer = trim($buffer);
-               
-	       if ($buffer != '' && $debugging == false) {
-                    $insert="INSERT INTO downloadProgress(URL,message) VALUES(?,?)";
-		    $stmt=$file_db->prepare($insert);
-		    $stmt->bindValue(1,$url,PDO::PARAM_STR);
-		    $stmt->bindValue(2,str_replace("'","''",$buffer),PDO::PARAM_STR);
-		    $stmt->execute();
-	       }
 	  }
 
           pclose($handle);
 
 	  ob_end_flush();
-         
-          if ($isAudioFormat) {
+
+	  # Remove filename from output
+	  $cmd=str_replace("> " . $currUUID . ".txt"," --get-filename",$cmd);
+
+	  exec($cmd . " --get-filename",$newFileName);
+
+	  if ($isMP3Format != null)
+	       $fileName=str_replace(".m4a",".mp3",$newFileName[0]);
+	  else
+	       $fileName=$newFileName[0];
+
+          /*if ($isAudioFormat) {
                if ($audioFormat != "vorbis") // Vorbis audio files have the extension ogg not vorbis
                     $fileName=$fileName . "." . (!$isMP3Format ? $audioFormat : "mp3");
                else
@@ -141,28 +123,25 @@
           } else if ($isVideoFormat && $videoFormat != 'original') {
                $fileName=$fileName . "." . $videoFormat;
           } else if ($isVideoFormat && $videoFormat == 'original') { // When the format is original, we don't know the format that video is encoded in so we don't know the file extension so use --get-filename parameter to get the output file name
+               die($cmd . "--get-filename"
                exec($cmd . " --get-filename",$videoFileName);
 
-               $fileName=str_replace($sourcePath,"",$videoFileName[0]);
-          }
+	       $fileName=str_replace($sourcePath,"",$videoFileName[0]);
+	  }*/
 
-          if (!file_exists($sourcePath . $fileName))
+          if (!file_exists($fileName))
                die(json_encode(array("Error: An error occurred downloading the file",$cmd)));
 
           // If the format is audio and its mp3, try to tag it
-          if (!chmod($sourcePath . $fileName,0777))
-               die(json_encode(array("Error: Failed to set the file mode")));
-
-	  //var_dump($moveToServer==false);
-	  //die(""):
-	  // continue here debug why retult is returning "","" fornon-mp3 format
+          //if (!chmod($sourcePath . $fileName,0777))
+          //     die(json_encode(array("Error: Failed to set the file mode on " . $sourcePath . $fileName)));
 
           // If move To Server is not true or the format is not an audio format, we have no more steps to process 
           if ($isMP3Format == false || $moveToServer == false) // If the file is not MP3, we don't need to write ID3 tags. If MoveTo Server is false, we are done and there are no more steps to process to provide download link
                die(json_encode(array($domain . urlencode($fileName))));
 
           // Start of Python fingerprinting
-          $cmd="python3 ../python/aidmatch.py \"" . $sourcePath . $fileName . "\" 2>&1";
+          $cmd="python3 ../python/aidmatch.py \"" . $fileName . "\" 2>&1";
 
           exec($cmd,$retArr2,$retVal2);
 
@@ -192,7 +171,7 @@
 
           // if tagged is false, nothing was written above
           if ($tagged == false)
-               echo json_encode(array(urlencode($fileName),"",""));
+               echo json_encode(array($fileName,"",""));
           else { 
                // If the track was tagged, create new filename based on artist  
                chdir($sourcePath);
@@ -205,7 +184,7 @@
 
                $fileName=$newFileName;
 
-               echo json_encode(array(urlencode($fileName),$artist,$title));
+               echo json_encode(array($fileName,$artist,$title));
           }
 
 	  return;
@@ -243,29 +222,13 @@
 	  echo json_encode($apiKey);
      }
 
-     function getThumbnail($url) {
-          $cmd="youtube-dl " . $url . " --get-thumbnail --skip-download";
-
-	  $handle = popen($cmd,"r");
-
-          if (ob_get_level() == 0)
-                ob_start();
-	  
-          while (!feof($handle)) {
-               $buffer= fgets($handle);
-	       die(json_encode(array($buffer,$_GET["StepperIndex"])));
-               // $buffer = trim($buffer);
-               
-	       /*if (strpos($buffer,"Writing thumbnail") != false) {
-		       $bufferArr=explode(": ",$buffer);
-	               die(json_encode(array($bufferArr[2])));
-	       }*/
-	  }
-
-          pclose($handle);
-
-	  ob_end_flush();
+     
+     function getDownloadProgress($UUID) {
+          $last_line = lineAsArray($UUID . '.txt');
+   	  
+	  echo progress($last_line); 
      }
+     
      
      function getFormats() {
 	  try {
@@ -295,30 +258,60 @@
 	  echo json_encode($formats);
      } 
       
-     function getDownloadProgress($URL) {
-          global $db_name;
+     function getThumbnail($url) {
+          $cmd="youtube-dl " . $url . " --get-thumbnail --skip-download";
 
-          $file_db = new PDO('sqlite:' . $db_name);
-          
-	  if ($file_db == null)
-	       return;
+	  $handle = popen($cmd,"r");
 
-          $sql="SELECT id,message FROM downloadProgress WHERE URL='" . $URL . "' LIMIT 1";
-
-          $result=$file_db->query($sql);
-        
-          foreach($result as $result) {
-	       $file_db->exec("DELETE FROM downloadProgress WHERE id=" . $result['id'] . " LIMIT 1");
-                  
-               // Store message so we can close DB
-               $message = $result['message'];
-                  
-               die(json_encode(array($message,false))); 
+          if (ob_get_level() == 0)
+                ob_start();
+	  
+          while (!feof($handle)) {
+               $buffer= fgets($handle);
+	       die(json_encode(array($buffer)));
+               // $buffer = trim($buffer);
+               
+	       /*if (strpos($buffer,"Writing thumbnail") != false) {
+		       $bufferArr=explode(": ",$buffer);
+	               die(json_encode(array($bufferArr[2])));
+	       }*/
 	  }
-           
-          die(json_encode(array(null,true))); 
+
+          pclose($handle);
+
+	  ob_end_flush();
      }
+     function lineAsArray(string $filepath): array {
+          $line = '';
+          $f = fopen($filepath, 'r');
+          $cursor = -1;
+
+	  fseek($f, $cursor, SEEK_END);
      
+	  $char = fgetc($f);
+  
+          while ($char === "\n" || $char === "\r") {
+               fseek($f, $cursor--, SEEK_END);
+               $char = fgetc($f);
+	  }
+
+          while ($char !== false && $char !== "\n" && $char !== "\r") {
+               $line = $char . $line;
+               fseek($f, $cursor--, SEEK_END);
+                $char = fgetc($f);
+          }
+      
+ 	  $remove_whitespace = preg_replace('/\s+/', ' ', $line);
+       
+	  return explode(" ", $remove_whitespace);
+     
+     }
+
+     
+     function progress(array $array): string {
+          return str_replace('%', '', $array[1]);
+     }
+ 
      function getSupportedURLs() {
           $url="http://ytdl-org.github.io/youtube-dl/supportedsites.html";
           
@@ -527,6 +520,17 @@
           }
      }
 
+     if (isset($_GET["DeleteDownloadProgress"])) {
+          if (!file_exists($_GET["UUID"] . ".txt")) {
+          try {
+               // Delete using $sourcePath
+               unlink($_GET["UUID"] . ".txt");
+          } catch(Exception $e) {
+               die("Unable to delete the download progress");
+	  }
+	  }
+     }
+
      if (isset($_GET["DownloadFile"])) {
           // Validate that the required arguments were provided
           $missingParams=false;
@@ -544,14 +548,17 @@
                downloadFile();
      }
 
-     if (isset($_GET["GetDownloadProgress"]))
-          getDownloadProgress($_GET["URL"]);
-
      if (isset($_GET["GetAPIKey"]))
           getAPIKey();
 
+     if (isset($_GET["GetDownloadProgress"]))
+          getDownloadProgress($_GET["UUID"]);
+
      if (isset($_GET["GetFormats"]))
           getFormats();
+
+     if (isset($_GET["GetSupportedURLs"]))
+          getSupportedURLs();
 
      if (isset($_GET["GetThumbnail"]))
           getThumbnail($_GET["URL"]);
@@ -568,14 +575,11 @@
                moveFile();
      }
      
-     if (isset($_GET["GetSupportedURLs"]))
-          getSupportedURLs();
-
      if (isset($_GET["WriteID3Tags"])) {
           // Validate that the required arguments were provided
           $missingParams=false;
 
-          if (!isset($_GET["Artist"]) || !isset($_GET["TrackName"])) 
+          if (!isset($_GET["Artist"]) || !isset($_GET["Name"])) 
                $missingParams=true;
           
           if ($missingParams==true)
