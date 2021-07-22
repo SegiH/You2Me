@@ -12,6 +12,7 @@ export class DataService {
      links: any = [];
      private API_TOKEN="";
      readonly API_URL='https://www.googleapis.com/youtube/v3/search';
+     debugging = false;
      readonly fields: any  = {
           'Artist': {
                'Required':true,
@@ -50,6 +51,8 @@ export class DataService {
      formatKeys = [];
      readonly stepperStepNames = ['Started download', 'Finished download', 'Writing ID3 Tags','Your file is ready'];     
      readonly URLParameters = ['URL','Artist','Album','Format','Genre','Name','TrackNum','MoveToServer','Year','Debugging'];
+     YTSearchOverlayRef;
+     
     
      constructor(public snackBar: MatSnackBar, private http: HttpClient) {
           this.loadFormats().subscribe((response) => {

@@ -28,8 +28,11 @@
      font-size: 11px;
 }
 
-#you2meCard {
-     background-color: #DADBDC;
+#addLinkIcon {
+     cursor: pointer;
+     position: relative;
+     margin-left: 95%;
+     top: -72px;
 }
 
 #searchButton {
@@ -40,26 +43,22 @@
      position: relative;
 }
 
-#searchFilter {
+#searchYTIcon {
+     cursor: pointer;
+     position: relative;
+     margin-left: 99%;
+     top: -99px;
+}
+
+#supportedURLSearchFilter {
      position: relative;
      left: -170px !important;
      top: 65px !important;
 }
 
-#searchResultsDeleteIcon {
-     margin-left: auto;
-     position: relative;
-}
-
-#searchYTButton {
-     margin-left: 50px;
-}
-
-#searchYTPanel {
+#you2meCard {
      background-color: #DADBDC;
-     overflow: auto;
-     min-height: 150px !important;
-     z-index: 999;
+     text-align: center;
 }
 
 mat-card {

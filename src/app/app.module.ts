@@ -27,16 +27,19 @@ import { SAVER, getSaver } from './core/saver.provider';
 import { Y2MComponent } from './y2m/y2m.component';
 import { ConfirmDialogComponent } from './confirmdialog/confirmdialog.component';
 import {YouTubePlayerModule} from '@angular/youtube-player';
+import { OverlayModule } from "@angular/cdk/overlay";
+import { YTSearchComponent } from './ytsearch/ytsearch.component';
 
 @NgModule({
      declarations: [
           ConfirmDialogComponent,
-          Y2MComponent
+          Y2MComponent,
+          YTSearchComponent
      ],
      imports: [
           BrowserModule,
-          BrowserAnimationsModule,
-          CoreModule,
+          BrowserAnimationsModule,          
+          CoreModule,         
           FormsModule,
           HttpClientModule,
           MatButtonModule,
@@ -51,16 +54,17 @@ import {YouTubePlayerModule} from '@angular/youtube-player';
           MatInputModule,
           MatPaginatorModule,
           MatProgressBarModule,
-         MatProgressSpinnerModule,
+          MatProgressSpinnerModule,
           MatSelectModule,
           MatSnackBarModule,
           MatSortModule,
           MatTableModule,
           MatToolbarModule,
+          OverlayModule,
           ReactiveFormsModule,
           YouTubePlayerModule
      ],
-     providers: [{provide: SAVER, useFactory: getSaver}],
+     providers: [{provide: SAVER, useFactory: getSaver} ],
      bootstrap: [Y2MComponent]
 })
 

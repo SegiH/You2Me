@@ -1,0 +1,71 @@
+:root {
+    --bg-color: #DADBDC;
+}
+
+.linkDeleteIcon {
+    margin-left: 95%;
+    position: absolute;
+    top: -3px;
+}
+
+::ng-deep .cdk-overlay-pane {
+    overflow-y: scroll !important;
+}
+
+#searchButton {
+    border-radius: 10px;
+}
+
+#searchCheckBox {
+    position: relative;
+}
+
+#searchFilter {
+    position: relative;
+    left: -170px !important;
+    top: 65px !important;
+}
+
+#searchResultsDeleteIcon {
+    cursor: pointer;
+    margin-left: auto;
+    position: relative;
+}
+
+#searchYTButton {
+    position: relative;
+    margin-left: 99%;
+    top: -99px;
+}
+
+#searchYTPanel {
+    background-color: #DADBDC;
+    min-height: 150px !important;
+    z-index: 999;
+}
+
+mat-card {
+    border-style: solid;
+    border-width: 1px !important;
+    min-width: 500px;
+    overflow: scroll;
+}
+
+mat-grid-list.links mat-grid-tile {
+    border-style: solid;
+    border-collapse: collapse;
+    border-width: 1px !important;
+    box-shadow: inset 1px 1px 1px #000;
+    text-align: start;
+}
+
+mat-panel-title.searchResults {
+    display: grid;
+    position: absolute;
+    vertical-align: text-top; 
+}
+
+mat-panel-title.searchResults span {
+    display: inline-block;
+    margin-bottom: 5px !important;
+}

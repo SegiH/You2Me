@@ -1,11 +1,10 @@
 <mat-card id="you2meCard">
-     <h1 (dblclick)="toolbarDoubleClick()">You2Me {{(moveToServer ? " (Server)" : "")}} {{(debugging ? " (Debugging)" : "")}}</h1>
+     <h1 (dblclick)="toolbarDoubleClick()">You2Me {{(moveToServer ? " (Server)" : "")}} {{(dataService.debugging ? " (Debugging)" : "")}}</h1>
      
-      <button *ngIf="!searchYTCardVisible" matInput mat-raised-button color="primary" (click)="addLinkClick()">Add Link</button>
-
-     <button *ngIf=" !searchYTCardVisible && APIKeyIsSet" matInput mat-raised-button id="searchYTButton" color="accent" (click)="showSearchYTClick()">Search YT</button>
-
-     <!-- Grid headers -->
+     <mat-icon id="addLinkIcon" aria-hidden="false" aria-label="Search" (click)="addLinkClick()">add</mat-icon>
+     <mat-icon *ngIf="APIKeyIsSet" id="searchYTIcon" aria-hidden="false" aria-label="Search" (click)="showSearchYTClick()">search</mat-icon>
+     
+          <!-- Grid headers -->
      <mat-card *ngIf="dataService.getLinks().length > 0">
           <mat-grid-list class="links" [cols]="getTotalColumnSize()" rowHeight="40px">
                <mat-grid-tile [colspan]="getColumnSize()" rowHeight="fit">
@@ -146,70 +145,11 @@
      </mat-card>
 </mat-card>
 
-<!-- YT search panel -->
-<mat-card id="searchYTPanel" *ngIf="searchYTCardVisible">
-     <mat-grid-list cols="4" rowHeight="30px">
-          <mat-grid-tile colspan="3" rowHeight="fit">
-               <h2>YouTube Search</h2>
-          </mat-grid-tile>
-
-          <mat-grid-tile colspan="1" rowHeight="fit">
-               <div id="searchResultsDeleteIcon"><mat-icon aria-hidden="false" aria-label="Delete" (click)="deleteSearchResultsButtonClick()">close</mat-icon></div>
-          </mat-grid-tile>          
-     
-          <!-- spacer -->
-          <mat-grid-tile colspan="4" rowHeight="50px"></mat-grid-tile>
-
-          <mat-grid-tile colspan="3" rowHeight="50px">
-               <mat-form-field>
-                    <input matInput placeholder='Search' [(ngModel)]="searchTerm" (keyup)="handleYouTubeSearchKeyUp($event)" [required]=true>
-               </mat-form-field>               
-          </mat-grid-tile>
-
-          <mat-grid-tile colspan="1" rowHeight="50px">
-               <button id="searchButton" matInput mat-raised-button color="primary" (click)="searchYTClick()">Search</button>
-          </mat-grid-tile>
-     </mat-grid-list>
-
-     <div *ngIf="searchResults != null">              
-         <div *ngFor="let currSearchResult of this.searchResults" class="searchResultsDiv">          
-              <mat-expansion-panel hideToggle [expanded]="true" [disabled]="true">
-                   <mat-expansion-panel-header>
-                         <mat-panel-title class="searchResults">
-                              YouTube Video ID: {{ currSearchResult.id.videoId }}
-                         </mat-panel-title>
-                    </mat-expansion-panel-header>
-
-                    <mat-grid-list cols="1" rowHeight="50px">
-                         <mat-grid-tile colspan="1">
-                              <!--<span>URL: <a target="_blank" [href]="currSearchResult.id.videoId">{{currSearchResult.snippet.title}}</a></span>-->
-                              <span>Title: {{currSearchResult.snippet.title}}</span>
-                         </mat-grid-tile>
-
-                         <mat-grid-tile colspan="1" rowHeight="50px">
-                              <span>Description: {{currSearchResult.snippet.description}}</span>
-                         </mat-grid-tile>            
-                    </mat-grid-list>
-
-                    <mat-grid-list cols="4" rowHeight="250px">
-                         <mat-grid-tile colspan="3">
-                              <youtube-player #player [videoId]="currSearchResult.id.videoId" [width]="250" [height]="250"></youtube-player>
-                         </mat-grid-tile>
-
-                         <mat-grid-tile colspan="1" rowHeight="50px">
-                              <button class="addToYou2Me" matInput mat-raised-button color="primary" (click)="addSearchResult(currSearchResult)">Add</button>
-                         </mat-grid-tile>
-                    </mat-grid-list>                    
-               </mat-expansion-panel>
-          </div>
-     </div>
-</mat-card>
-
 <!-- Supported URLs -->
 <mat-card>
      <mat-checkbox id="searchCheckBox" [(ngModel)]="supportedURLsVisible" (change)="showSupportedSitesToggle()">Show supported sites</mat-checkbox>
 
-     <mat-form-field id="searchFilter" *ngIf="supportedURLsVisible">
+     <mat-form-field id="supportedURLSearchFilter" *ngIf="supportedURLsVisible">
           <input matInput (keyup)="applySupportedURLsFilter($event.target.value)" placeholder="Filter">
      </mat-form-field>
 
@@ -226,7 +166,7 @@
      </table>
 </mat-card>
 
-<!-- Debugging checkbox URLs -->
-<mat-card *ngIf="debuggingCheckboxVisible">
-     <mat-checkbox [(ngModel)]="debugging">Debugging</mat-checkbox>
+<!-- dataService.debugging checkbox URLs -->
+<mat-card *ngIf="dataService.debugging">
+     <mat-checkbox [(ngModel)]="dataService.debugging">Debugging</mat-checkbox>
 </mat-card>
