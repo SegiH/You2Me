@@ -1,6 +1,9 @@
 /*
      TODO:     
 
+     In serverTasks.php in writeTags(). get artist and album name, rename file to "$artist - $name.mp3"
+     In serverTasks.php in writeTags(), if(!empty.... line is never reached. Fix!!!
+          
      Check ngOnInit logic and consider URL params especially movetoserver
 
      Dailymotion long videos time out without an error message. 5 minutes works. 15 minutes fails
