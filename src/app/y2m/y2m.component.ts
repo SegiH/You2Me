@@ -1,6 +1,7 @@
 /*
      TODO:     
 
+      Fix delete file which returns error response. Do not call until use clicks on download or move and use delay
      In serverTasks.php in writeTags(). get artist and album name, rename file to "$artist - $name.mp3"
      In serverTasks.php in writeTags(), if(!empty.... line is never reached. Fix!!!
           

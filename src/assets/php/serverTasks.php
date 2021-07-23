@@ -480,7 +480,7 @@
           $tagWriter = new getid3_writetags;
                
           // Tag writer options
-          $tagWriter->filename = $fileName;
+          $tagWriter->filename = $sourcePath . $fileName;
           $tagWriter->tagformats = array('id3v1','id3v2.3');
           $tagWriter->overwrite_tags    = true; 
           $tagWriter->remove_other_tags = false; 
