@@ -304,9 +304,14 @@ export class Y2MComponent implements OnInit {
      }
 
      getTotalColumnSize() {
-          const columnLength=(this.dataService.getLinks().length > 1 ? 13 :  // When there is more than 1 link always show all columns               
-               this.dataService.getLinks().length == 1 && this.dataService. isMP3Format(this.dataService.links[0].Format) ? 13 : // If there is 1 link and it is mp3 format, show all columns
-                     this.dataService. isAudioFormat(this.dataService.links[0].Format) ? 8 : 6 // If there is 1 link and it is audio (but not mp3) 
+          const allColumns=13;
+          const audioColumns=8;
+          const videoColumns=6;
+
+          // When there is more than 1 link always show all columns
+          const columnLength=(this.dataService.getLinks().length == 0  ? videoColumns :  this.dataService.getLinks().length > 1 ? allColumns :                 
+               this.dataService.getLinks().length == 1 && this.dataService. isMP3Format(this.dataService.links[0].Format) ? allColumns : // If there is 1 link and it is mp3 format, show all columns
+                     this.dataService. isAudioFormat(this.dataService.links[0].Format) ? audioColumns : videoColumns // If there is 1 link and it is audio (but not mp3) 
           );
 
           return columnLength;

@@ -7,6 +7,10 @@
      color: white;
 }
 
+.linkItem {
+     background-color: #EDF0F5;
+}
+
 .linkDeleteIcon {
      margin-left: 95%;
      position: absolute;
@@ -22,6 +26,15 @@
 
 .mat-form-field input {
      margin-left: 22px;
+}
+
+.tableDiv {
+     font-weight: bold;
+     color: white;
+}
+
+.tableHeader {
+     background-color: #53A2F0;
 }
 
 .URLField {
