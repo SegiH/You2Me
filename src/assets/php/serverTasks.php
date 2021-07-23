@@ -62,17 +62,6 @@
           if (isset($videoFormat) && !in_array($videoFormat,$valid_video_formats))
                die("Invalid video format");
 
-          //if ($currUUID == null)
-          //     die("Invalid currUUID");
-
-          // Delete all of  the files in $sourcePath. This will gives us a way to have automatic cleanup
-          /*$files = glob($sourcePath . "/*");
-          
-          foreach($files as $file) {
-               if (is_file($file))
-                    unlink($file);
-	  }*/
-         
           // Build command that will download the audio/video
           $cmd="youtube-dl --no-cache-dir " . $url . " -o " . ($os != "Windows" ? "\"" : "") . $sourcePath . $fileName . ".%(ext)s" . ($os != "Windows" ? "\"" : "");
 
@@ -110,35 +99,18 @@
 
 	  exec($cmd . " --get-filename",$newFileName);
 
-	  if ($isMP3Format != null)
+	  if ($isMP3Format != null) {
 	       $fileName=str_replace(".m4a",".mp3",$newFileName[0]);
-	  else
+	       $fileName=str_replace(".webm",".mp3",$newFileName[0]);
+	  } else
 	       $fileName=$newFileName[0];
-
-          if ($isAudioFormat) {
-               if ($audioFormat != "vorbis") { // Vorbis audio files have the extension ogg not vorbis
-                    $fileName=$fileName . "." . (!$isMP3Format ? $audioFormat : "mp3");
-                    $fileName=str_replace(".webm","",$fileName);
-	       } else
-		    $fileName=$fileName . ".ogg";
-          } else if ($isVideoFormat && $videoFormat != 'original') {
-               $fileName=$fileName . "." . $videoFormat;
-          } else if ($isVideoFormat && $videoFormat == 'original') { // When the format is original, we don't know the format that video is encoded in so we don't know the file extension so use --get-filename parameter to get the output file name
-               exec($cmd . " --get-filename",$videoFileName);
-
-	       $fileName=str_replace($sourcePath,"",$videoFileName[0]);
-	  }
 
           if (!file_exists($fileName))
                die(json_encode(array("Error: An error occurred downloading the file",$cmd)));
 
-          // If the format is audio and its mp3, try to tag it
-          //if (!chmod($sourcePath . $fileName,0777))
-          //     die(json_encode(array("Error: Failed to set the file mode on " . $sourcePath . $fileName)));
-
           // If move To Server is not true or the format is not an audio format, we have no more steps to process 
           if ($isMP3Format == false || $moveToServer == false) // If the file is not MP3, we don't need to write ID3 tags. If MoveTo Server is false, we are done and there are no more steps to process to provide download link
-               die(json_encode(array($domain . str_replace($sourcePath,"",$fileName))));
+               die(json_encode(array($domain . urlencode($fileName))));
 
           // Start of Python fingerprinting
           $cmd="python3 ../python/aidmatch.py \"" . $fileName . "\" 2>&1";
@@ -224,20 +196,9 @@
 
      
      function getDownloadProgress($UUID) {
-	  $dlProgressFile = $UUID . ".txt";
-	  
-          $last_line = lineAsArray($dlProgressFile);
+          $last_line = lineAsArray($UUID . '.txt');
    	  
-	  $progress=progress($last_line);
-
-	  if ($progress == 100) {
-	       try {
-                    unlink($dlProgressFile);
-	       } catch (Exception $e) {
-	       }
-	  }
-	
-	  echo $progress;
+	  echo progress($last_line); 
      }
      
      
@@ -432,11 +393,7 @@
           if ($pathBuildSucceeded)
                $audioDestinationPath=$audioDestinationPath . $artist . ($os=="Windows" ? "\\" : "/") . $album . ($os=="Windows" ? "\\" : "/");
           
-	  // Rename the audio file
-	  
-	  // Strip $sourcePath from filename
-	  $fileName=str_replace($sourcePath,"",$fileName);
-
+          // Rename the audio file     
           $res=rename($sourcePath . $fileName,$audioDestinationPath . $fileName);
        
           if ($res==true) // Pass the download link and the local file link
@@ -452,6 +409,7 @@
           global $sourcePath;
     
           $fileName = $_GET["Filename"];
+          $isLastStep=(isset($_GET["IsLastStep"]) && $_GET["IsLastStep"] == "true" ? true : false);
        
           $artist=(isset($_GET["Artist"]) ? $_GET["Artist"] : "");
           $album=(isset($_GET["ALbum"]) ? $_GET["Album"] : "");
@@ -488,7 +446,7 @@
           $getID3->setOption(array('encoding'=>'UTF-8'));
 
           $tagWriter = new getid3_writetags;
-
+               
           // Tag writer options
           $tagWriter->filename = (strpos($fileName,$sourcePath) != false ? $sourcePath : "") . $fileName;
           $tagWriter->tagformats = array('id3v1','id3v2.3');
@@ -499,29 +457,26 @@
               
           $status="Error: ";
 
-          // write tags
+	  // write tags
 	  if ($tagWriter->WriteTags()) {
-               $newArtist = $tagWriter->tag_data["ARTIST"][0];
+	       $newArtist = $tagWriter->tag_data["ARTIST"][0];
 	       $newTitle = $tagWriter->tag_data["TITLE"][0];
-	     
+
 	       if ($newArtist != "" && $newTitle != "") {
-		    $newFileName=$newArtist . " " . $newTitle . ".mp3";
+	            $newFileName=$newArtist . " " . $newTitle . ".mp3";
 
-		    if (rename($fileName,$sourcePath . $newFileName) == true) {
-		         $fileName=$newFileName;
-		    }
-	       } 
-
+	            if (rename($fileName,$sourcePath . $newFileName) == true)
+                         $fileName=$newFileName;
+	       }
+	  
                $status="Successfully wrote the ID3 tags";
 	       
-	       if (!empty($tagWriter->warnings))
-		       $status .= "There were some warnings: " . implode('<br><br>', $tagWriter->warnings);
-
-
+               if (!empty($tagWriter->warnings))
+                    $status .= "There were some warnings: " . implode('<br><br>', $tagWriter->warnings);
+	  
                die(json_encode(array($fileName, $status)));
           } else
-               die(json_encode(array($fileName, "Error: Failed to write tags! " . implode('<br><br>', $tagWriter->errors))));
-
+               die(json_encode(array($fileName, "Error: Failed to write tags! " . implode('<br><br>', $tagWriter->errors)))); 
 
           return;
      }

@@ -2,9 +2,7 @@
      TODO:     
 
       Fix delete file which returns error response. Do not call until use clicks on download or move and use delay
-     In serverTasks.php in writeTags(). get artist and album name, rename file to "$artist - $name.mp3"
-     In serverTasks.php in writeTags(), if(!empty.... line is never reached. Fix!!!
-          
+
      Check ngOnInit logic and consider URL params especially movetoserver
 
      Dailymotion long videos time out without an error message. 5 minutes works. 15 minutes fails
@@ -269,13 +267,13 @@ export class Y2MComponent implements OnInit {
                if (response.state === "DONE") {
                     this.dataService.deleteLink(currLink['URL']);
 
-                    if (!this.dataService.debugging) {
+                    //if (!this.dataService.debugging) {
                          // Send request to delete the file
-                         this.dataService.deleteDownloadFile(currLink['DownloadLink']).subscribe((response) => { },
+                         this.dataService.deleteDownloadFile(currLink['Filename']).subscribe((response) => { },
                          error => {
                               console.log("An error " + error + " occurred deleting the file from the server 1");
                          });
-                    }
+                    //}
                }
           },
           error => {

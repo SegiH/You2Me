@@ -178,7 +178,7 @@ export class DataService {
 
      deleteDownloadProgress(UUID: string) {
           let params = new HttpParams();
-          params = params.append('DeleteDownloadFile',true);
+          params = params.append('DeleteDownloadProgress',true);
           params = params.append('UUID',UUID);
                        
           return this.processStep(params);
