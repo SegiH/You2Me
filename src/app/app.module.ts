@@ -46,7 +46,6 @@ import { YTSearchComponent } from './ytsearch/ytsearch.component';
           MatCardModule,
           MatCheckboxModule,
           MatDialogModule,
-          MatDividerModule,
           MatExpansionModule,
           MatFormFieldModule,
           MatGridListModule,

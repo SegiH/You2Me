@@ -138,7 +138,7 @@
 
           // If move To Server is not true or the format is not an audio format, we have no more steps to process 
           if ($isMP3Format == false || $moveToServer == false) // If the file is not MP3, we don't need to write ID3 tags. If MoveTo Server is false, we are done and there are no more steps to process to provide download link
-               die(json_encode(array($domain . urlencode($fileName))));
+               die(json_encode(array($domain . str_replace($sourcePath,"",$fileName))));
 
           // Start of Python fingerprinting
           $cmd="python3 ../python/aidmatch.py \"" . $fileName . "\" 2>&1";
