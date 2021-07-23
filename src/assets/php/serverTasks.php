@@ -441,11 +441,10 @@
           global $sourcePath;
     
           $fileName = $_GET["Filename"];
-          $isLastStep=(isset($_GET["IsLastStep"]) && $_GET["IsLastStep"] == "true" ? true : false);
        
           $artist=(isset($_GET["Artist"]) ? $_GET["Artist"] : "");
           $album=(isset($_GET["ALbum"]) ? $_GET["Album"] : "");
-          $title=(isset($_GET["TrackName"]) ? $_GET["TrackName"] : "");
+          $title=(isset($_GET["Name"]) ? $_GET["Name"] : "");
           $trackNum=(isset($_GET["TrackNum"]) ? $_GET["TrackNum"] : "");
           $genre=(isset($_GET["Genre"]) ? $_GET["Genre"] : "");
           $year=(isset($_GET["Year"]) ? $_GET["Year"] : "");
@@ -478,9 +477,9 @@
           $getID3->setOption(array('encoding'=>'UTF-8'));
 
           $tagWriter = new getid3_writetags;
-               
+
           // Tag writer options
-          $tagWriter->filename = $sourcePath . $fileName;
+          $tagWriter->filename = (strpos($fileName,$sourcePath) != false ? $sourcePath : "") . $fileName;
           $tagWriter->tagformats = array('id3v1','id3v2.3');
           $tagWriter->overwrite_tags    = true; 
           $tagWriter->remove_other_tags = false; 
@@ -490,18 +489,28 @@
           $status="Error: ";
 
           // write tags
-          if ($tagWriter->WriteTags()) {
-               if (!$isLastStep) 
-                    die(json_encode(array($fileName, $fileName)));
-               else
-                    $status="Successfully wrote the ID3 tags";
-          
-               if (!empty($tagWriter->warnings))
-                    $status .= "There were some warnings: " . implode('<br><br>', $tagWriter->warnings);
-          } else
-               $status="Error: Failed to write tags! " . implode('<br><br>', $tagWriter->errors);
+	  if ($tagWriter->WriteTags()) {
+               $newArtist = $tagWriter->tag_data["ARTIST"][0];
+	       $newTitle = $tagWriter->tag_data["TITLE"][0];
+	     
+	       if ($newArtist != "" && $newTitle != "") {
+		    $newFileName=$newArtist . " " . $newTitle . ".mp3";
 
-          echo json_encode(array($status));
+		    if (rename($fileName,$sourcePath . $newFileName) == true) {
+		         $fileName=$newFileName;
+		    }
+	       } 
+
+               $status="Successfully wrote the ID3 tags";
+	       
+	       if (!empty($tagWriter->warnings))
+		       $status .= "There were some warnings: " . implode('<br><br>', $tagWriter->warnings);
+
+
+               die(json_encode(array($fileName, $status)));
+          } else
+               die(json_encode(array($fileName, "Error: Failed to write tags! " . implode('<br><br>', $tagWriter->errors))));
+
 
           return;
      }
