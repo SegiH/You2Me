@@ -115,19 +115,19 @@
 	  else
 	       $fileName=$newFileName[0];
 
-          /*if ($isAudioFormat) {
-               if ($audioFormat != "vorbis") // Vorbis audio files have the extension ogg not vorbis
+          if ($isAudioFormat) {
+               if ($audioFormat != "vorbis") { // Vorbis audio files have the extension ogg not vorbis
                     $fileName=$fileName . "." . (!$isMP3Format ? $audioFormat : "mp3");
-               else
-                    $fileName=$fileName . ".ogg";
+                    $fileName=str_replace(".webm","",$fileName);
+	       } else
+		    $fileName=$fileName . ".ogg";
           } else if ($isVideoFormat && $videoFormat != 'original') {
                $fileName=$fileName . "." . $videoFormat;
           } else if ($isVideoFormat && $videoFormat == 'original') { // When the format is original, we don't know the format that video is encoded in so we don't know the file extension so use --get-filename parameter to get the output file name
-               die($cmd . "--get-filename"
                exec($cmd . " --get-filename",$videoFileName);
 
 	       $fileName=str_replace($sourcePath,"",$videoFileName[0]);
-	  }*/
+	  }
 
           if (!file_exists($fileName))
                die(json_encode(array("Error: An error occurred downloading the file",$cmd)));
@@ -421,11 +421,15 @@
           if ($pathBuildSucceeded)
                $audioDestinationPath=$audioDestinationPath . $artist . ($os=="Windows" ? "\\" : "/") . $album . ($os=="Windows" ? "\\" : "/");
           
-          // Rename the audio file     
+	  // Rename the audio file
+	  
+	  // Strip $sourcePath from filename
+	  $fileName=str_replace($sourcePath,"",$fileName);
+
           $res=rename($sourcePath . $fileName,$audioDestinationPath . $fileName);
        
           if ($res==true) // Pass the download link and the local file link
-               echo json_encode(array($domain . urlencode($fileName), $sourcePath . urlencode($fileName)));
+               echo json_encode(array($domain . $fileName, $fileName));
           else
                echo json_encode(array("Error: An error occurred while copying the audio file to the new location"));
 
@@ -476,7 +480,7 @@
           $tagWriter = new getid3_writetags;
                
           // Tag writer options
-          $tagWriter->filename = $sourcePath . $fileName;
+          $tagWriter->filename = $fileName;
           $tagWriter->tagformats = array('id3v1','id3v2.3');
           $tagWriter->overwrite_tags    = true; 
           $tagWriter->remove_other_tags = false; 
@@ -488,7 +492,7 @@
           // write tags
           if ($tagWriter->WriteTags()) {
                if (!$isLastStep) 
-                    die(json_encode(array($domain . $fileName, $sourcePath . urlencode($fileName))));
+                    die(json_encode(array($fileName, $fileName)));
                else
                     $status="Successfully wrote the ID3 tags";
           
