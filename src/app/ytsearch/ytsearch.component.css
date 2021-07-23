@@ -8,7 +8,7 @@
     top: -3px;
 }
 
-::ng-deep .cdk-overlay-pane {
+::ng-deep .cdk-overlay-pane > app-ytsearch {
     overflow-y: scroll !important;
 }
 
