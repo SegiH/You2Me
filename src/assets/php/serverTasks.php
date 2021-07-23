@@ -224,9 +224,20 @@
 
      
      function getDownloadProgress($UUID) {
-          $last_line = lineAsArray($UUID . '.txt');
+	  $dlProgressFile = $UUID . ".txt";
+	  
+          $last_line = lineAsArray($dlProgressFile);
    	  
-	  echo progress($last_line); 
+	  $progress=progress($last_line);
+
+	  if ($progress == 100) {
+	       try {
+                    unlink($dlProgressFile);
+	       } catch (Exception $e) {
+	       }
+	  }
+	
+	  echo $progress;
      }
      
      
