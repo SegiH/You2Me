@@ -18,7 +18,6 @@
      $rowsLeft=false;
 
      function downloadFile() {
-          //global $db_name;
           global $domain;
           global $os;
           global $sourcePath;
@@ -94,23 +93,24 @@
 
 	  ob_end_flush();
 
-	  # Remove filename from output
+	  // Remove filename from output
 	  $cmd=str_replace("> " . $currUUID . ".txt"," --get-filename",$cmd);
 
 	  exec($cmd . " --get-filename",$newFileName);
 
+	  $fileName=$newFileName[0];
+	  
 	  if ($isMP3Format != null) {
-	       $fileName=str_replace(".m4a",".mp3",$newFileName[0]);
-	       $fileName=str_replace(".webm",".mp3",$newFileName[0]);
-	  } else
-	       $fileName=$newFileName[0];
+	       $fileName=str_replace(".m4a",".mp3",$fileName);
+	       $fileName=str_replace(".webm",".mp3",$fileName);
+	  }
 
           if (!file_exists($fileName))
                die(json_encode(array("Error: An error occurred downloading the file",$cmd)));
 
           // If move To Server is not true or the format is not an audio format, we have no more steps to process 
           if ($isMP3Format == false || $moveToServer == false) // If the file is not MP3, we don't need to write ID3 tags. If MoveTo Server is false, we are done and there are no more steps to process to provide download link
-               die(json_encode(array($domain . urlencode($fileName))));
+               die(json_encode(array($domain . $fileName)));
 
           // Start of Python fingerprinting
           $cmd="python3 ../python/aidmatch.py \"" . $fileName . "\" 2>&1";
@@ -473,10 +473,11 @@
 	       
                if (!empty($tagWriter->warnings))
                     $status .= "There were some warnings: " . implode('<br><br>', $tagWriter->warnings);
-	  
-               die(json_encode(array($fileName, $status)));
+
+	       //die(json_encode(array($domain . $fileName, (strpos($fileName,$sourcePath) != false ? $sourcePath . "") . $fileName, $status)));
+	       die(json_encode(array($domain . $fileName, (strpos($fileName,$sourcePath) == false ? $sourcePath : "") . $fileName, $status)));
           } else
-               die(json_encode(array($fileName, "Error: Failed to write tags! " . implode('<br><br>', $tagWriter->errors)))); 
+               die(json_encode(array($fileName, $fileName, "Error: Failed to write tags! " . implode('<br><br>', $tagWriter->errors)))); 
 
           return;
      }
@@ -488,25 +489,30 @@
           $fileName = $_GET["Filename"];
 
           // only allow the delete if the file name begins with $domain 
-          if (strcmp(substr($fileName,0,strlen($domain)),$domain) !== 0) 
-               die("Error: DownloadFile was called with an invalid argument");
+          //if (strcmp(substr($fileName,0,strlen($domain)),$domain) !== 0) 
+          //     die("Error: DownloadFile was called with an invalid argument");
        
           try {
                // Delete using $sourcePath
-               unlink($sourcePath . substr($fileName,lastIndexOf($fileName,"/")+1));
+               // unlink($sourcePath . substr($fileName,lastIndexOf($fileName,"/")+1));
+               unlink($fileName);
           } catch(Exception $e) {
                die("Unable to delete the file");
           }
      }
 
      if (isset($_GET["DeleteDownloadProgress"])) {
-          if (!file_exists($_GET["UUID"] . ".txt")) {
-          try {
-               // Delete using $sourcePath
-               unlink($_GET["UUID"] . ".txt");
-          } catch(Exception $e) {
-               die("Unable to delete the download progress");
-	  }
+	  $dlProgressFile=$sourcePath . "../php/" . $_GET["UUID"] . ".txt";
+
+	  if (file_exists($dlProgressFile)) {
+	       try {
+                    // Delete using $sourcePath
+	            $result=unlink($dlProgressFile);
+                    var_dump($result);
+	            die("");
+               } catch(Exception $e) {
+                    die("Unable to delete the download progress");
+	       }
 	  }
      }
 

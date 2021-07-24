@@ -138,8 +138,8 @@
 
                     <mat-grid-tile colspan="2" rowHeight="fit">
                          <button *ngIf="!currLink.IsSubmitted" matInput mat-raised-button color="primary" class="goButton" (click)="goButtonClick(currLink)">Go</button>
-                         <button class="download" *ngIf="currLink.IsFinished && !currLink.DownloadButtonClicked && !currLink.MoveToServerButtonClicked && !movetoServer" matInput mat-raised-button (click)="downloadButtonClicked(currLink)">Download</button>
-                         <button class="moveToServer" *ngIf="currLink.IsFinished && allowMoveToServer && !currLink.DownloadButtonClicked && !currLink.MoveToServerButtonClicked" matInput mat-raised-button (click)="moveFileToServer(currLink)">Move To Server</button>
+                         <button class="download" *ngIf="currLink.IsFinished && !currLink.IsError && !currLink.DownloadButtonClicked && !currLink.MoveToServerButtonClicked && !movetoServer" matInput mat-raised-button (click)="downloadButtonClicked(currLink)">Download</button>
+                         <button class="moveToServer" *ngIf="currLink.IsFinished && !currLink.IsError && allowMoveToServer && !currLink.DownloadButtonClicked && !currLink.MoveToServerButtonClicked" matInput mat-raised-button (click)="moveFileToServer(currLink)">Move To Server</button>
                          <div class="linkDeleteIcon"><mat-icon aria-hidden="false" aria-label="Delete" (click)="deleteLinkButtonClick(currLink)">close</mat-icon></div>
                     </mat-grid-tile>
                </div>

@@ -1,8 +1,7 @@
 /*
      TODO:     
 
-      Fix delete file which returns error response. Do not call until use clicks on download or move and use delay
-
+     If error occurs show status message
      Check ngOnInit logic and consider URL params especially movetoserver
 
      Dailymotion long videos time out without an error message. 5 minutes works. 15 minutes fails
@@ -265,7 +264,7 @@ export class Y2MComponent implements OnInit {
           this.downloads.download(currLink['DownloadLink'], fileNameWithoutPath).subscribe((response) => {
                //console.log("Response: " + response.state);
                if (response.state === "DONE") {
-                    this.dataService.deleteLink(currLink['URL']);
+                    this.dataService.deleteLink(currLink['URL']); // Delete link from list
 
                     //if (!this.dataService.debugging) {
                          // Send request to delete the file
@@ -443,9 +442,11 @@ export class Y2MComponent implements OnInit {
                if (!this.dataService.debugging)
                     currLink['DownloadProgressSubscription'].unsubscribe();
 
-               currLink['StatusMessage'] = `A fatal error occurred` + (response[0] !== null ? `: ${response[0]}` : ``);
+                     currLink['StatusMessage'] = `A fatal error occurred` + (response[0] !== null ? `: ${response[0]}` : ``);
 
-               console.log(`An error occurred at step ${currLink['CurrentStep']} with the error ${error[0]}`);
+                     currLink['IsError']=true;
+
+                    console.log(`An error occurred at step ${currLink['CurrentStep']} with the error ${error[0]}`);
           } else {
                console.log(`An error occurred at step (no currLink) with the error ${error[0]}`);
           }
@@ -594,7 +595,7 @@ export class Y2MComponent implements OnInit {
           this.dataService.writeID3Tags(currLink)
                .subscribe((response) => {
                     // Trap server side errors
-                    if (response[0].includes('Error:')) {
+                    if (response[2].includes('Error:')) {
                          this.handleError(currLink, response, response);
                          return;
                     }
@@ -604,6 +605,8 @@ export class Y2MComponent implements OnInit {
                     // The response returns the URL for the downloaded file
                     currLink['DownloadLink'] = decodeURIComponent(response[0].replace(/\+/g, ' '));
 
+                    currLink["Filename"]=response[1];
+                    
                     currLink['StatusMessage'] = 'Your file is ready to download or move to your server.';
 
                     currLink['CurrentStep']++;
