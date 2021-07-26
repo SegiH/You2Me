@@ -52,7 +52,6 @@ export class DataService {
      readonly stepperStepNames = ['Started download', 'Finished download', 'Writing ID3 Tags','Your file is ready'];     
      readonly URLParameters = ['URL','Artist','Album','Format','Genre','Name','TrackNum','MoveToServer','Year','Debugging'];
      YTSearchOverlayRef;
-     
     
      constructor(public snackBar: MatSnackBar, private http: HttpClient) {
           this.loadFormats().subscribe((response) => {
@@ -93,11 +92,6 @@ export class DataService {
 
                Object.keys(formats).map(x => this.formatKeys.push(formats[x].FormatName));
                Object.freeze(this.formatKeys);
-
-               /*if (this.currentFormat !== '' && typeof this.formats[this.currentFormat] === 'undefined') {
-                    this.showSnackBarMessage(`The format provided is not valid`);
-                    this.currentFormat='';
-               }*/
           });
      }
      
@@ -136,17 +130,6 @@ export class DataService {
           },
           error => {
           });*/
-
-          // Commented out on 07-19-21 because the user can decide this on an individual basis
-         /*if (!movetoServer)
-               this.links[stepperIndex].StepperStepNames=this.stepperStepNames;
-          else {
-               const newStepperStepNames=this.stepperStepNames;
-               newStepperStepNames.splice(this.stepperStepNames.length,0,'Moving the file to new location')
-
-               this.links[stepperIndex].StepperStepNames=newStepperStepNames;
-          }*/
-
           stepperIndex++;
      }
 
@@ -160,13 +143,6 @@ export class DataService {
           
           return retVal;
      }
-
-     // commented out on 07-19-21 because it isn't being used
-     /*clearFieldValues(currLink: object) {
-          currLink['FieldKeys'].forEach(key => {
-               currLink['Field'][key].Value = "";
-          });
-     }*/
 
      deleteDownloadFile(fileName: string) {
           let params = new HttpParams();
@@ -193,16 +169,6 @@ export class DataService {
 
      fetchFile(currLink: object, allowMoveToServer: boolean, debugging: boolean) {
           const fileName: string = (this.isAudioFormat("") && !isNaN(parseInt(this.fields.TrackNum.Value)) ? this.fields.TrackNum.Value + " " : "" ) + (this.fields.Name.Value != "" ? this.fields.Name.Value : "Unknown");
-          
-          // Commented out on 07-19-21 because this doesn't appear to do anything
-         /* let linkKey="";
-          
-          Object.keys(this.links).forEach(key => {
-               if (this.links[key]['URL'] === URL) {
-                    linkKey=key;
-                    return;
-               }               
-          });*/
 
           // extra URL parameters in a Youtube link causes issues for youtube-dl
           if (currLink['URL'].includes('youtube.com')) {
@@ -252,7 +218,6 @@ export class DataService {
           let params = new HttpParams();
           params = params.append('GetAPIKey',true);
 
-          //return this.processStep(`?GetAPIKey=true`);
           return this.processStep(params);
      }
 
@@ -261,7 +226,6 @@ export class DataService {
           params = params.append('GetDownloadProgress',true);
           params = params.append('UUID',currLink['UUID']);
 
-          //return this.processStep(`?GetDownloadProgress=true&URL=${currLink['URL']}`);
           return this.processStep(params);
      }
 
@@ -285,7 +249,6 @@ export class DataService {
           let params = new HttpParams();
           params = params.append('GetSupportedURLs',true);
 
-          //return this.processStep(`?GetSupportedURLs`);
           return this.processStep(params);
      }
 
@@ -342,7 +305,6 @@ export class DataService {
           params = params.append('GetFormats',true);
 
           return this.processStep(params);
-          //return this.processStep(`?GetFormats=true`);
      }
 
      moveFile(currLink: object) {
@@ -444,16 +406,7 @@ export class DataService {
 
           if  (currLink['Fields']['Year'].Value !== null)
                params = params.append('Year',currLink['Fields']['Year'].Value);
-
-          /*const params = `?WriteID3Tags` +
-                         `&Filename=${currLink['Filename']}` +
-                         (currLink['Fields']['Artist'].Value !== null ? `&Artist=${currLink['Fields']['Artist'].Value}` : ``) +
-                         (currLink['Fields']['Album'].Value !== null ? `&Album=${currLink['Fields']['Album'].Value}` : ``) +
-                         (currLink['Fields']['Name'].Value !== null ? `&TrackName=${currLink['Fields']['Name'].Value}` : '') +
-                         (currLink['Fields']['TrackNum'].Value !== null ? `&TrackNum=${currLink['Fields']['TrackNum'].Value}` : '') +
-                         (currLink['Fields']['Genre'].Value !== null ? `&Genre=${currLink['Fields']['Genre'].Value}` : ``) +
-                         (currLink['Fields']['Year'].Value !== null ? `&Year=${currLink['Fields']['Year'].Value}` : ``);*/
-
+          
           return this.processStep(params);
      }
 }

@@ -1,8 +1,5 @@
 /*
-     TODO:     
-
-     If error occurs show status message
-     Check ngOnInit logic and consider URL params especially movetoserver
+     TODO:
 
      Dailymotion long videos time out without an error message. 5 minutes works. 15 minutes fails
      
@@ -11,7 +8,6 @@
           2. Make sure proxy.conf doesn't have my server address and make sure php doesn't have it either.
 
      URL for testing: https://www.youtube.com/watch?v=Wch3gJG2GJ4
-     https://blog.logrocket.com/build-a-youtube-video-search-app-with-angular-and-rxjs/
 */
 import { Component, ElementRef, Inject, Input, isDevMode, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
@@ -42,7 +38,6 @@ export class Y2MComponent implements OnInit {
      apiLoaded = false;
      confirmDialogVisible = false;
      debuggingCheckboxVisible = false;
-     moveToServer = false; // global movetoServer preference specified by URL param. Default is false
      statusCountClick = 0;
      supportedURLsDataSource: MatTableDataSource<any>;
      supportedURLsVisible = false;
@@ -54,37 +49,15 @@ export class Y2MComponent implements OnInit {
      @ViewChildren(MatAccordion) searchResultsExpansionPanels: QueryList<any>; 
      @Input('overlayLoading') toggler: Observable<boolean>;
 
-     // private dynamicOverlay: DynamicOverlay
      constructor(private overlay: Overlay, private host: ElementRef, public dialog: MatDialog, public snackBar: MatSnackBar, public dataService: DataService, private downloads: DownloadService, @Inject(DOCUMENT) private document: Document,private sanitizer: DomSanitizer) { }
 
      ngOnInit() {
-          // Commented out on 07-19-21 since MoveToServer is done on a per link basis
-          // If URL parameter MoveToServer was provided and is allowed, add Moving the file to new location as a step
-          /*if (this.getURLParam('MoveToServer') === 'true' && this.allowMoveToServer) {
-               this.moveToServer = true;               
-          } else {
-               this.moveToServer = false;
-               document.title = 'You2Me';
-          }*/
-
           // Save current debugging value
           const currDebugging = this.dataService.debugging;
 
           // Enable debugging if Debugging was provided as URL parameter. Otherwise default to currDebugging
-          this.dataService.debugging = (this.getURLParam("Debugging") != this.dataService.debugging && this.getURLParam("Debugging") ? this.getURLParam("Debugging") : currDebugging);
-
-          /*if (isDevMode() || this.dataService.debugging == true) { // If debugging was enabled with a URL parameter
-               this.dataService.debugging=true;
-               document.title = 'You2Me (Debugging)'; 
-          } else {
-               document.title = 'You2Me';
-          }*/
-
+         this.dataService.debugging = (this.getURLParam("Debugging") != this.dataService.debugging && this.getURLParam("Debugging") ? this.getURLParam("Debugging") : currDebugging);
           document.title = 'You2Me';
-
-          // Commented out on 07-19-21 since MoveToServer is done on a per link basis
-          if (this.moveToServer == true)
-               document.title = 'You2Me (Server)';
 
           // Make sure that there aren't any invalid URL parameters
           const queryString = "&" + window.location.search.slice(1); // first URL parameter always begins with a ?. This replaces it with & so we can call split() on it using & as the delimiter
@@ -240,7 +213,7 @@ export class Y2MComponent implements OnInit {
 
                          currLink['StatusMessage'] = 'Your file is ready for you to download or move to your server';               
 
-                         if (this.moveToServer) {
+                         if (this.allowMoveToServer) {
                               this.moveFileToServer(currLink);
                          } else
                               this.finished(currLink);
@@ -266,14 +239,11 @@ export class Y2MComponent implements OnInit {
                if (response.state === "DONE") {
                     this.dataService.deleteLink(currLink['URL']); // Delete link from list
 
-                    //if (!this.dataService.debugging) {
-                         // Send request to delete the file
-                         this.dataService.deleteDownloadFile(currLink['Filename']).subscribe((response) => { },
-                         error => {
-                              console.log("An error " + error + " occurred deleting the file from the server 1");
-                         });
-                    //}
-               }
+                    // Send request to delete the file
+                    this.dataService.deleteDownloadFile(currLink['Filename']).subscribe((response) => { },
+                    error => {
+                         console.log("An error " + error + " occurred deleting the file from the server 1");
+                    });               }
           },
           error => {
                this.dataService.deleteLink(currLink['URL']);
@@ -295,7 +265,7 @@ export class Y2MComponent implements OnInit {
                currLink['DownloadProgressSubscription'].unsubscribe();
      }
 
-     getColumnSize() { // If there is more than 1 link or there is 1 link and it is MP3 format, return 2 to span grid 2 columns wide. Otherwise span 1 column wide
+     getColumnSize() {  // If there is more than 1 link or there is 1 link and it is MP3 format, return 2 to span grid 2 columns wide. Otherwise span 1 column wide
           const columnLength=(this.dataService.getLinks().length > 1 ? 2 :  // When there is more than 1 link always show all columns               
                this.dataService.getLinks().length == 1 && this.dataService. isMP3Format(this.dataService.links[0].Format) ? 2 :  1 // If there is 1 link and it is mp3 format, show all columns
                      
@@ -305,12 +275,13 @@ export class Y2MComponent implements OnInit {
      }
 
      getTotalColumnSize() {
-          const allColumns=13;
-          const audioColumns=8;
-          const videoColumns=6;
+          const allColumns=15;
+          const audioColumns=10;
+          const videoColumns=8;
+          const noLinksColumns=7;
 
           // When there is more than 1 link always show all columns
-          const columnLength=(this.dataService.getLinks().length == 0  ? videoColumns :  this.dataService.getLinks().length > 1 ? allColumns :                 
+          const columnLength=(this.dataService.getLinks().length == 0  ? noLinksColumns :  this.dataService.getLinks().length > 1 ? allColumns :                 
                this.dataService.getLinks().length == 1 && this.dataService. isMP3Format(this.dataService.links[0].Format) ? allColumns : // If there is 1 link and it is mp3 format, show all columns
                      this.dataService. isAudioFormat(this.dataService.links[0].Format) ? audioColumns : videoColumns // If there is 1 link and it is audio (but not mp3) 
           );
@@ -318,7 +289,7 @@ export class Y2MComponent implements OnInit {
           return columnLength;
      }
 
-     getURLParam(name: string) {
+     getURLParam(name: string) : any {
           // The first time this method gets called, this.urlParams will be undefined
           if (typeof this.urlParams === 'undefined')
                this.parseURLParameters();
@@ -355,12 +326,12 @@ export class Y2MComponent implements OnInit {
                     return decodeURI(title);
                case 'TRACKNUM':
                     return (typeof this.urlParams[name] !== 'undefined' && decodeURI(this.urlParams[name]) || null);
-               case 'MOVETOSERVER':
-                    return (typeof this.urlParams[name] !== 'undefined' ? this.urlParams[name] : null);
+               //case 'MOVETOSERVER':
+               //     return (typeof this.urlParams[name] !== 'undefined' ? this.urlParams[name] : null);
                case 'YEAR':
                     return (typeof this.urlParams[name] !== 'undefined' ? decodeURI(this.urlParams[name]) : null);
                case 'DEBUGGING':
-                    return (typeof this.urlParams[name] !== 'undefined' && this.urlParams[name] === 'true' ? true : null);
+                    return (typeof this.urlParams[name] !== 'undefined' && this.urlParams[name] === 'true' ? true : false);
                default:
                     return null;
           }
@@ -472,7 +443,7 @@ export class Y2MComponent implements OnInit {
 
           currLink['MoveToServerButtonClicked'] = true;
 
-          if (this.moveToServer || this.allowMoveToServer) {
+          if (this.allowMoveToServer) {
                this.dataService.moveFile(currLink)
                     .subscribe((response) => {
                          // Trap server side errors
@@ -560,14 +531,12 @@ export class Y2MComponent implements OnInit {
      }
 
      showSearchYTClick() {
-          //this.dataService.ytSearchvisible=true;
-
-         this.dataService.YTSearchOverlayRef = this.overlay.create({
+          this.dataService.YTSearchOverlayRef = this.overlay.create({
                positionStrategy: this.overlay.position().global().centerHorizontally().centerVertically(),
                hasBackdrop: true
-             });
+          });
           
-             this.dataService.YTSearchOverlayRef.attach(new ComponentPortal(YTSearchComponent));
+          this.dataService.YTSearchOverlayRef.attach(new ComponentPortal(YTSearchComponent));
      }
 
      // Double clicking on the toolbar before submitting will show the checkbox to toggle the Debugging checkbox so you can enable Debugging after loading the form but before submitting it

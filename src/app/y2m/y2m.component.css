@@ -11,12 +11,6 @@
      background-color: #EDF0F5;
 }
 
-.linkDeleteIcon {
-     margin-left: 95%;
-     position: absolute;
-     top: -3px;
-}
-
 .moveToServer {
      background-color: red !important;
      color: white;
@@ -35,6 +29,10 @@
 
 .tableHeader {
      background-color: #53A2F0;
+}
+
+.tableDeleteColumn {
+     max-width: 50px !important;
 }
 
 .URLField {

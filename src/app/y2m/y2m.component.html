@@ -1,5 +1,5 @@
 <mat-card id="you2meCard">
-     <h1 (dblclick)="toolbarDoubleClick()">You2Me {{(moveToServer ? " (Server)" : "")}} {{(dataService.debugging ? " (Debugging)" : "")}}</h1>
+     <h1 (dblclick)="toolbarDoubleClick()">You2Me {{(allowMoveToServer ? " (Server)" : "")}} {{(dataService.debugging ? " (Debugging)" : "")}}</h1>
      
      <mat-icon id="addLinkIcon" aria-hidden="false" aria-label="Search" (click)="addLinkClick()">add</mat-icon>
      <mat-icon *ngIf="APIKeyIsSet" id="searchYTIcon" aria-hidden="false" aria-label="Search" (click)="showSearchYTClick()">search</mat-icon>
@@ -45,6 +45,14 @@
 
                <mat-grid-tile colspan="2" rowHeight="fit" class="tableHeader">
                     <div class="tableDiv">Actions</div>
+               </mat-grid-tile>
+
+               <mat-grid-tile colspan="1" rowHeight="fit" class="tableHeader">
+                    <div class="tableDiv">Status</div>
+               </mat-grid-tile>
+
+               <mat-grid-tile *ngIf="dataService.getLinks().length > 0" colspan="1" rowHeight="fit" class="tableHeader tableDeleteColumn">
+                    <div class="tableDiv"></div>
                </mat-grid-tile>
 
                <div *ngFor="let currLink of dataService.getLinks();trackBy: trackByFn" class="linkItem">
@@ -137,9 +145,17 @@
                     </mat-grid-tile>
 
                     <mat-grid-tile colspan="2" rowHeight="fit">
+                        
                          <button *ngIf="!currLink.IsSubmitted" matInput mat-raised-button color="primary" class="goButton" (click)="goButtonClick(currLink)">Go</button>
                          <button class="download" *ngIf="currLink.IsFinished && !currLink.IsError && !currLink.DownloadButtonClicked && !currLink.MoveToServerButtonClicked && !movetoServer" matInput mat-raised-button (click)="downloadButtonClicked(currLink)">Download</button>
-                         <button class="moveToServer" *ngIf="currLink.IsFinished && !currLink.IsError && allowMoveToServer && !currLink.DownloadButtonClicked && !currLink.MoveToServerButtonClicked" matInput mat-raised-button (click)="moveFileToServer(currLink)">Move To Server</button>
+                         <button class="moveToServer" *ngIf="currLink.IsFinished && !currLink.IsError && allowMoveToServer && !currLink.DownloadButtonClicked && !currLink.MoveToServerButtonClicked" matInput mat-raised-button (click)="moveFileToServer(currLink)">Server</button>         
+                    </mat-grid-tile>
+
+                    <mat-grid-tile colspan="1" rowHeight="fit">
+                         <div>{{currLink.StatusMessage}}</div>
+                    </mat-grid-tile>
+
+                    <mat-grid-tile *ngIf="dataService.getLinks().length > 0" colspan="1" rowHeight="fit" class="tableDeleteColumn">
                          <div class="linkDeleteIcon"><mat-icon aria-hidden="false" aria-label="Delete" (click)="deleteLinkButtonClick(currLink)">close</mat-icon></div>
                     </mat-grid-tile>
                </div>
