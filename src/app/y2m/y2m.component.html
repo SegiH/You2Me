@@ -52,7 +52,7 @@
                </mat-grid-tile>
 
                <mat-grid-tile *ngIf="dataService.getLinks().length > 0" colspan="1" rowHeight="fit" class="tableHeader tableDeleteColumn">
-                    <div class="tableDiv"></div>
+                    <div class="tableDiv">Delete</div>
                </mat-grid-tile>
 
                <div *ngFor="let currLink of dataService.getLinks();trackBy: trackByFn" class="linkItem">
