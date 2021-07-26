@@ -62,7 +62,7 @@
                die("Invalid video format");
 
           // Build command that will download the audio/video
-          $cmd="youtube-dl --no-cache-dir " . $url . " -o " . ($os != "Windows" ? "\"" : "") . $sourcePath . $fileName . ".%(ext)s" . ($os != "Windows" ? "\"" : "");
+          $cmd="youtube-dl " . $url . " -o " . ($os != "Windows" ? "\"" : "") . $sourcePath . $fileName . ".%(ext)s" . ($os != "Windows" ? "\"" : "");
 
           if ($isAudioFormat == true) {
                $cmd=$cmd . " -x";
@@ -98,6 +98,9 @@
 
 	  exec($cmd . " --get-filename",$newFileName);
 
+          if ($newFileName != null && $newFileName[0] == "")
+               die(json_encode(array("Error: An error occurred initially downloading the file",$cmd)));
+
 	  $fileName=$newFileName[0];
 	  
 	  if ($isMP3Format != null) {
@@ -105,13 +108,14 @@
 	       $fileName=str_replace(".webm",".mp3",$fileName);
 	  }
 
-          if (!file_exists($fileName))
-               die(json_encode(array("Error: An error occurred downloading the file",$cmd)));
+          //if (!file_exists($fileName))
+          //     die(json_encode(array("Error: An error occurred downloading the file",$cmd)));
 
-          // If move To Server is not true or the format is not an audio format, we have no more steps to process 
-          if ($isMP3Format == false || $moveToServer == false) // If the file is not MP3, we don't need to write ID3 tags. If MoveTo Server is false, we are done and there are no more steps to process to provide download link
+          // If move To Server is not true, we have no more steps to process 
+          if ($isMP3Format == false) {
                $fileNameOnly=str_replace($sourcePath,"",$fileName);
-               die(json_encode(array($domain . $fileNameOnly,$fileNameOnly)));
+	       die(json_encode(array($domain . $fileNameOnly,$fileNameOnly)));
+	  }
 
           // Start of Python fingerprinting
           $cmd="python3 ../python/aidmatch.py \"" . $fileName . "\" 2>&1";
@@ -126,17 +130,17 @@
           // Since we only care about the first result, we only save the first key value pair
           foreach ($retArr2 as $key => $value) {
                // A traceback may happen if no match was made
-               if ($value=="fingerprint could not be calculated" || strpos($value,"Traceback") !== false)
-                    break;
+               if ($value=="fingerprint could not be calculated" || strpos($value,"Traceback") !== false) {
+                    echo "NO Fingerprinting";    
+	            break;
+	       }
             
-               $tags=$value;
-
-               $tags=explode(',',$tags);
+               $tags=explode(',',$value);
 
 	       if ($tags[0] != "\"\"" && $tags[1] != "\"\"") {
 		    $artist=str_replace('"','',$tags[0]);
                     $title=str_replace('"','',$tags[1]);
-                    $tagged=true;
+		    $tagged=true;
                }
 
                break;
@@ -336,13 +340,13 @@
 
           $moveToServer=(isset($_GET["MoveToServer"]) && $_GET["MoveToServer"] == "true" ? true : false);
  
+	  $isAudioFormat=(isset($_GET["IsAudioFormat"]) && $_GET["IsAudioFormat"] == "true" ? true : false);
+
           if (isset($_GET["IsVideoFormat"]) && $_GET["IsVideoFormat"] == true) {
                // Rename the video 
                if ($moveToServer == true) {
                     $res=rename($sourcePath . $fileName,$videoDestinationPath . $fileName);
 		    
-		    //die("Source path=" . $sourcePath . $fileName . " and dest. path=" . $videoDestinationPath . $fileName);
- 
                     if ($res==true) {
                          echo json_encode(array("The video has been moved to the new location"));
                     } else {
@@ -393,14 +397,18 @@
 
           if ($pathBuildSucceeded)
                $audioDestinationPath=$audioDestinationPath . $artist . ($os=="Windows" ? "\\" : "/") . $album . ($os=="Windows" ? "\\" : "/");
-          
+
+	  $newFileName=str_replace($sourcePath,"",$fileName);
+
+	  var_dump (($isAudioformat == true ? $audioDestinationPath : $videoDestinationPath) . $newFileName);
+
           // Rename the audio file     
-          $res=rename($sourcePath . $fileName,$audioDestinationPath . $fileName);
+          $res=rename($sourcePath . $newFileName,($isAudioformat == true ? $audioDestinationPath : $videoDestinationPath) . $newFileName);
        
           if ($res==true) // Pass the download link and the local file link
-               echo json_encode(array($domain . $fileName, $fileName));
+               echo json_encode(array($domain . $newFileName, $newFileName));
           else
-               echo json_encode(array("Error: An error occurred while copying the audio file to the new location"));
+               echo json_encode(array("Error: An error occurred while copying the file to the new location"));
 
           return;
      }

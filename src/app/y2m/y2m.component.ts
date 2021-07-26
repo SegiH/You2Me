@@ -169,12 +169,12 @@ export class Y2MComponent implements OnInit {
 
                     if (this.dataService.isAudioFormat(currLink['Format'])) {
                          // Second index will be Artist if matched through Python script that does audio fingerprinting
-                         if (typeof response[1] !== 'undefined' && response[1] !== "")
-                              currLink['Fields']['Artist'].Value = response[1];
+                         if (typeof response[1] !== 'undefined' && response[1] !== "" &&  currLink['Fields']['Artist'].Value == "")
+                              currLink['Fields']['Artist'].Value = response[1];                         
 
                          // Third index will be Title if matched through Python script that does audio fingerprinting
-                         if (typeof response[2] !== 'undefined' && response[2] !== "")
-                              currLink['Fields']['Name'].Value = response[2];
+                         if (typeof response[2] !== 'undefined' && response[2] !== "" &&  currLink['Fields']['Name'].Value == "")
+                              currLink['Fields']['Name'].Value = response[2];                         
 
                          //if (typeof response[3] !== 'undefined' && response[3] !== "")
                          //     currLink['ThumbnailImage'] = response[3];
