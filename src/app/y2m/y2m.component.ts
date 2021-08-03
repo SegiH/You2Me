@@ -211,7 +211,7 @@ export class Y2MComponent implements OnInit {
                          // The response returns the URL for the downloaded file
                          currLink['DownloadLink'] = decodeURIComponent(response[0].replace(/\+/g, ' '));
 
-                         currLink['StatusMessage'] = 'Your file is ready for you to download or move to your server';               
+                         currLink['StatusMessage'] = 'File is ready';               
 
                          if (this.allowMoveToServer) {
                               this.moveFileToServer(currLink);

@@ -18,9 +18,16 @@
      max-width: 125px;
 }
 
-.mat-form-field input {
-     margin-left: 22px;
+.mat-form-field {
+     width:  99%;
 }
+
+.mat-form-field mat-select {
+     width:  80%;
+}
+/*.mat-form-field input {
+     margin-left: 22px;
+}*/
 
 .tableDiv {
      font-weight: bold;

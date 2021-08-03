@@ -1,5 +1,5 @@
 <mat-card id="you2meCard">
-     <h1 (dblclick)="toolbarDoubleClick()">You2Me {{(allowMoveToServer ? " (Server)" : "")}} {{(dataService.debugging ? " (Debugging)" : "")}}</h1>
+     <h1 (dblclick)="toolbarDoubleClick()">You2Me {{(dataService.debugging ? " (Debugging)" : "")}}</h1>
      
      <mat-icon id="addLinkIcon" aria-hidden="false" aria-label="Search" (click)="addLinkClick()">add</mat-icon>
      <mat-icon *ngIf="APIKeyIsSet" id="searchYTIcon" aria-hidden="false" aria-label="Search" (click)="showSearchYTClick()">search</mat-icon>
