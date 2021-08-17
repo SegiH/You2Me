@@ -385,7 +385,7 @@ export class Y2MComponent implements OnInit {
 
                currLink['IsSubmitted'] = true;
 
-               currLink['StatusMessage'] = "Starting the download";
+               currLink['StatusMessage'] = "Starting download";
 
                this.downloadFile(currLink);
           } else if (currLink['CurrentStep'] == 2) { // After writing ID3 tags, if the artist and name are still blank, prompt user to fill them in
@@ -413,11 +413,11 @@ export class Y2MComponent implements OnInit {
                if (!this.dataService.debugging)
                     currLink['DownloadProgressSubscription'].unsubscribe();
 
-               currLink['StatusMessage'] = `A fatal error occurred` + (response[0] !== null ? `: ${response[0]}` : ``);
+               currLink['StatusMessage'] = `A fatal error occurred`;
 
                currLink['IsError']=true;
 
-               console.log(`An error occurred at step ${currLink['CurrentStep']} with the error ${error[0]}`);
+               console.log(`An error occurred at step ${currLink['CurrentStep']} with the response ${response[0]} and error ${error[0]}`);
           } else {
                console.log(`An error occurred at step (no currLink) with the error ${error[0]}`);
           }
@@ -576,7 +576,7 @@ export class Y2MComponent implements OnInit {
 
                     currLink["Filename"]=response[1];
                     
-                    currLink['StatusMessage'] = 'Your file is ready to download or move to your server.';
+                    currLink['StatusMessage'] = 'File is ready.';
 
                     currLink['CurrentStep']++;
 

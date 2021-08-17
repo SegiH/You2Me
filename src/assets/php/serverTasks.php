@@ -108,16 +108,13 @@
 	       $fileName=str_replace(".webm",".mp3",$fileName);
 	  }
 
-          //if (!file_exists($fileName))
-          //     die(json_encode(array("Error: An error occurred downloading the file",$cmd)));
-
           // If move To Server is not true, we have no more steps to process 
           if ($isMP3Format == false) {
                $fileNameOnly=str_replace($sourcePath,"",$fileName);
 	       die(json_encode(array($domain . $fileNameOnly,$fileNameOnly)));
 	  }
 
-          // Start of Python fingerprinting
+	  // Start of Python fingerprinting
           $cmd="python3 ../python/aidmatch.py \"" . $fileName . "\" 2>&1";
 
           exec($cmd,$retArr2,$retVal2);
@@ -131,30 +128,34 @@
           foreach ($retArr2 as $key => $value) {
                // A traceback may happen if no match was made
                if ($value=="fingerprint could not be calculated" || strpos($value,"Traceback") !== false) {
-                    // echo "NO Fingerprinting";    
 	            break;
 	       }
             
                $tags=explode(',',$value);
 
 	       if ($tags[0] != "\"\"" && $tags[1] != "\"\"") {
-		    $artist=str_replace('"','',$tags[0]);
-                    $title=str_replace('"','',$tags[1]);
+		    //$artist=urldecode(str_replace('"','',$tags[0]));
+		    //$title=utf8_decode(str_replace('"','',$tags[1]));
+		    $artist=preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $tags[0]);
+		    $title=preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $tags[1]);
+		    
+		    $artist=str_replace(chr(34),"",$artist);
+		    $title=str_replace(chr(34),"",$title);
 		    $tagged=true;
                }
 
                break;
-          }
+	  }
 
           // if tagged is false, nothing was written above
           if ($tagged == false)
                echo json_encode(array($fileName,"",""));
-          else { 
+	  else {
                // If the track was tagged, create new filename based on artist  
                chdir($sourcePath);
-
+	       
                $newFileName=$artist . " - " . $title . ".mp3";
-            
+	       
                $cmd="mv " . chr(34) . $fileName . chr(34) . " " . chr(34) . $newFileName . chr(34);
 
                exec($cmd,$retArr2,$retVal2);
