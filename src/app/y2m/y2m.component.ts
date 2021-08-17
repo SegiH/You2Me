@@ -156,11 +156,11 @@ export class Y2MComponent implements OnInit {
                     // Stop the REST service that gets the download status
                     if (!this.dataService.debugging)
                          currLink['DownloadProgressSubscription'].unsubscribe();
-
+                    
                     // Trap server side errors
                     if (response[0].includes('Error:')) {
-                         this.handleError(currLink, response, response);
-                         console.log(response[1]);
+                         //this.handleError(currLink, response, response);
+                         //console.log(response[1]);
                          return;
                     }
 
@@ -337,7 +337,7 @@ export class Y2MComponent implements OnInit {
           }
      }
 
-     goButtonClick(currLink: object) {         
+     goButtonClick(currLink: object) { 
           // Validate fields
           const name = currLink['Fields']['Name'].Value;
           const artist = currLink['Fields']['Artist'].Value;
@@ -413,11 +413,11 @@ export class Y2MComponent implements OnInit {
                if (!this.dataService.debugging)
                     currLink['DownloadProgressSubscription'].unsubscribe();
 
-                     currLink['StatusMessage'] = `A fatal error occurred` + (response[0] !== null ? `: ${response[0]}` : ``);
+               currLink['StatusMessage'] = `A fatal error occurred` + (response[0] !== null ? `: ${response[0]}` : ``);
 
-                     currLink['IsError']=true;
+               currLink['IsError']=true;
 
-                    console.log(`An error occurred at step ${currLink['CurrentStep']} with the error ${error[0]}`);
+               console.log(`An error occurred at step ${currLink['CurrentStep']} with the error ${error[0]}`);
           } else {
                console.log(`An error occurred at step (no currLink) with the error ${error[0]}`);
           }

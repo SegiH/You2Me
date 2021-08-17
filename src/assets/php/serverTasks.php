@@ -131,7 +131,7 @@
           foreach ($retArr2 as $key => $value) {
                // A traceback may happen if no match was made
                if ($value=="fingerprint could not be calculated" || strpos($value,"Traceback") !== false) {
-                    echo "NO Fingerprinting";    
+                    // echo "NO Fingerprinting";    
 	            break;
 	       }
             
@@ -400,7 +400,7 @@
 
 	  $newFileName=str_replace($sourcePath,"",$fileName);
 
-	  var_dump (($isAudioformat == true ? $audioDestinationPath : $videoDestinationPath) . $newFileName);
+	  // var_dump (($isAudioformat == true ? $audioDestinationPath : $videoDestinationPath) . $newFileName);
 
           // Rename the audio file     
           $res=rename($sourcePath . $newFileName,($isAudioformat == true ? $audioDestinationPath : $videoDestinationPath) . $newFileName);
