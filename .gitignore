@@ -1,2 +1,3 @@
 node_modules
-proxy.conf.json 
+proxy.conf.json
+docker/dist/
