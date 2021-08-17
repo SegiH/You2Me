@@ -420,7 +420,7 @@
     
           $fileName = $_GET["Filename"];
           $isLastStep=(isset($_GET["IsLastStep"]) && $_GET["IsLastStep"] == "true" ? true : false);
-       
+      
           $artist=(isset($_GET["Artist"]) ? $_GET["Artist"] : "");
           $album=(isset($_GET["ALbum"]) ? $_GET["Album"] : "");
           $title=(isset($_GET["Name"]) ? $_GET["Name"] : "");
@@ -458,7 +458,7 @@
           $tagWriter = new getid3_writetags;
                
           // Tag writer options
-          $tagWriter->filename = (strpos($fileName,$sourcePath) != false ? $sourcePath : "") . $fileName;
+          $tagWriter->filename = (strpos($fileName,$sourcePath) == false ? $sourcePath : "") . $fileName;
           $tagWriter->tagformats = array('id3v1','id3v2.3');
           $tagWriter->overwrite_tags    = true; 
           $tagWriter->remove_other_tags = false; 
