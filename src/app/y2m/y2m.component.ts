@@ -34,7 +34,7 @@ import { ComponentPortal } from '@angular/cdk/portal';
 
 export class Y2MComponent implements OnInit {
      APIKeyIsSet = false;
-     readonly allowMoveToServer = true;
+     allowMoveToServer = true;
      apiLoaded = false;
      confirmDialogVisible = false;
      debuggingCheckboxVisible = false;
@@ -443,28 +443,25 @@ export class Y2MComponent implements OnInit {
 
           currLink['MoveToServerButtonClicked'] = true;
 
-          if (this.allowMoveToServer) {
-               this.dataService.moveFile(currLink)
-                    .subscribe((response) => {
-                         // Trap server side errors
-                         if (response[0].includes('Error:')) {
-                              this.handleError(currLink, response, response);
-                              return;
-                         }
+          this.dataService.moveFile(currLink).subscribe((response) => {
+                // Trap server side errors
+               if (response[0].includes('Error:')) {
+                    this.handleError(currLink, response, response);
+                    return;
+               }
 
-                         currLink['StatusMessage'] = 'The file has been moved to the server';
+               currLink['StatusMessage'] = 'The file has been moved to the server';
 
-                         // Delete the link after the timeout period
-                         setTimeout(() => {
-                              this.dataService.deleteLink(currLink['URL']);
-                         }, 5000);
+               // Delete the link after the timeout period
+               setTimeout(() => {
+                    this.dataService.deleteLink(currLink['URL']);
+               }, 5000);
 
-                         this.finished(currLink);
-                    },
-                    error => {
-                         this.handleError(null, Response, error);
-                    });
-          }
+               this.finished(currLink);
+          },
+          error => {
+               this.handleError(null, Response, error);
+          });
      }
 
      parseURLParameters() {
