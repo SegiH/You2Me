@@ -45,16 +45,17 @@
 }
 
 mat-card {
-    border-style: solid;
-    border-width: 1px !important;
+    /*border-style: solid;
+    border-width: 1px !important;*/
     min-width: 500px;
     overflow: scroll;
 }
 
 mat-grid-list.links mat-grid-tile {
-    border-style: solid;
+    border-style:  none;
+    /*border-style: solid;
     border-collapse: collapse;
-    border-width: 1px !important;
+    border-width: 1px !important;*/
     box-shadow: inset 1px 1px 1px #000;
     text-align: start;
 }
