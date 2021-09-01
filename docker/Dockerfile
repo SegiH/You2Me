@@ -12,9 +12,11 @@ RUN apt update && \
     curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list && \
     apt update && \
     DEBIAN_FRONTEND=noninteractive ACCEPT_EULA=Y apt install -y ffmpeg libsqlite3-dev msodbcsql17 mssql-tools python python3 python3-distutils sqlite3 tzdata unixodbc-dev unzip vim wget && \
-    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python3 get-pip.py && \
-    pip install pyacoustid requests # Install Python dependencies && \
-    docker-php-ext-install pdo_sqlite && docker-php-ext-enable pdo_sqlite && \
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python3 get-pip.py && \
+    pip install pyacoustid requests && \
+    docker-php-ext-install pdo_sqlite && \
+    docker-php-ext-enable pdo_sqlite && \
     wget https://github.com/JamesHeinrich/getID3/archive/master.zip && \ 
     wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl && \
     mkdir /var/www/html/media && \
