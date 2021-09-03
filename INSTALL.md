@@ -11,11 +11,11 @@ This application can be set up to run in one of 2 different ways:
 You2Me can be run as a Docker container or installed on your own web server (Apache or Nginx). 
 
 #### Docker
-This is the easiest way to run You2Me. ~~You can now pull an image of You2Me directly from Docker Hub if you want to use You2Me with the default options.~~ Docker Hub does not allow you to build images for free any more so you have to build a  You2Me image yourself.
+This is the easiest way to run You2Me. You can use my compose script which will pull an image of You2Me from Docker Hub that I build and push to Docker Hub regularly. This gives you a You2Me image with the default options. You can also build a You2Me image yourself.
 
 If you already use Docker:
 
-#### Use existing image 
+#### Use image 
 1. Edit docker/you2me.docker-compose.yml and change `YourNetworkName` on line 5 to your actual custom network name in Docker ([How to create a network in Docker](https://docs.docker.com/engine/reference/commandline/network_create/)). This should not be `host`.
 1. Run the command `docker-compose -f you2me.docker-compose.yml up --no-start && docker start You2Me` to create the You2Me container.
 ### Build Docker image
