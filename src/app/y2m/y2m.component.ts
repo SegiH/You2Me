@@ -9,7 +9,7 @@
 
      URL for testing: https://www.youtube.com/watch?v=Wch3gJG2GJ4
 */
-import { Component, ElementRef, Inject, Input, isDevMode, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { Component, ElementRef, Inject, Input, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogModel, ConfirmDialogComponent } from '../confirmdialog/confirmdialog.component'
 import { MatPaginator } from '@angular/material/paginator';
@@ -49,7 +49,7 @@ export class Y2MComponent implements OnInit {
      @ViewChildren(MatAccordion) searchResultsExpansionPanels: QueryList<any>; 
      @Input('overlayLoading') toggler: Observable<boolean>;
 
-     constructor(private overlay: Overlay, private host: ElementRef, public dialog: MatDialog, public snackBar: MatSnackBar, public dataService: DataService, private downloads: DownloadService, @Inject(DOCUMENT) private document: Document,private sanitizer: DomSanitizer) { }
+     constructor(private overlay: Overlay, public dialog: MatDialog, public snackBar: MatSnackBar, public dataService: DataService, private downloads: DownloadService) { }
 
      ngOnInit() {
           // Save current debugging value
@@ -215,7 +215,7 @@ export class Y2MComponent implements OnInit {
                     });
                
                     if (this.dataService.isMP3Format(currLink['Format'])) {
-                         currLink['StatusMessage'] = 'The file has been downloaded';
+                         currLink['StatusMessage'] = 'File was downloaded';
                          this.writeID3Tags(currLink);
                     } else {
                          // The response returns the URL for the downloaded file
@@ -460,7 +460,7 @@ export class Y2MComponent implements OnInit {
                     return;
                }
 
-               currLink['StatusMessage'] = 'The file has been moved to the server';
+               currLink['StatusMessage'] = 'File has been moved';
 
                // Delete the link after the timeout period
                setTimeout(() => {
@@ -576,7 +576,7 @@ export class Y2MComponent implements OnInit {
                          return;
                     }
 
-                    currLink['StatusMessage'] = 'The ID3 tags have been written.';
+                    currLink['StatusMessage'] = 'ID3 tags have been written.';
 
                     // The response returns the URL for the downloaded file
                     currLink['DownloadLink'] = decodeURIComponent(response[0].replace(/\+/g, ' '));

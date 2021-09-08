@@ -111,13 +111,13 @@ export class DataService {
                            IsFinished: false,
                            IsSubmitted: false,
                            SaveValues: false,
-                           StatusMessage: "Download not started",
+                           StatusMessage: "",
                            StepperIndex: stepperIndex,
                            StepperStepNames: this.stepperStepNames,
                            ExpansionPanelOpen: false,
                            //ThumbnailSmallDimension: 50,
                            //ThumbnailLargeDimension: 150,
-                           UUID:UUID.UUID(), // Unique UUID is generated so it can be used to track D/L progress with a unique ID for each link
+                           UUID:UUID.UUID(), // Unique UUID is generated so it can be used to track D/L progress with a unique identifier for each link
                          });
 
          /* this.getThumbnail(newURL,stepperIndex).subscribe((response) => {               
