@@ -8,6 +8,7 @@
      error_reporting(E_ALL);*/
 
      // The path where the file will be moved to. Make sure the path has a slash at the end
+     $moveToServerAllowed=false;
      $audioDestinationPath="/mnt/usb/";
      $videoDestinationPath="/mnt/usb/";
      
@@ -458,7 +459,7 @@
           $tagWriter = new getid3_writetags;
                
           // Tag writer options
-          $tagWriter->filename = (strpos($fileName,$sourcePath) == false ? $sourcePath : "") . $fileName;
+          $tagWriter->filename = (strpos($fileName,$sourcePath) === false ? $sourcePath : "") . $fileName;
           $tagWriter->tagformats = array('id3v1','id3v2.3');
           $tagWriter->overwrite_tags    = true; 
           $tagWriter->remove_other_tags = false; 
@@ -557,6 +558,9 @@
 
      if (isset($_GET["GetThumbnail"]))
           getThumbnail($_GET["URL"]);
+
+     if (isset($_GET["IsMoveToServerAllowed"]))
+          die(json_encode($moveToServerAllowed));
 
      if (isset($_GET["MoveFile"])) {
           if (!isset($_GET["Artist"]) || !isset($_GET["Filename"]) || !isset($_GET["MoveToServer"])) 

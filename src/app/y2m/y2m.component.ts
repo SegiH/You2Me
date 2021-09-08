@@ -57,9 +57,10 @@ export class Y2MComponent implements OnInit {
 
           // Enable debugging if Debugging was provided as URL parameter. Otherwise default to currDebugging
          this.dataService.debugging = (this.getURLParam("Debugging") != this.dataService.debugging && this.getURLParam("Debugging") ? this.getURLParam("Debugging") : currDebugging);
-          document.title = 'You2Me';
+          
+         document.title = `You2Me ${(this.dataService.debugging ? ` (Debugging)` : ``)}`
 
-          // Make sure that there aren't any invalid URL parameters
+          // Make sure that there aren't any invalid URL parameter
           const queryString = "&" + window.location.search.slice(1); // first URL parameter always begins with a ?. This replaces it with & so we can call split() on it using & as the delimiter
           const split_params = queryString.split("&");
 
@@ -104,10 +105,19 @@ export class Y2MComponent implements OnInit {
 
                return throwError("An error occurred getting the API Key");
           });
+
+          this.dataService.isMoveToServerAllowed().subscribe((response) => {
+               if (response === false)
+                    this.allowMoveToServer=false;
+          },
+          error => { 
+               alert("ERROR")                  
+               //return throwError("An error occurred getting the API Key");
+          });
      }
 
      addLinkClick() {
-          this.dataService.addLink("","320k"); // Default to highest quality mp3
+          this.dataService.addLink("","320k"); // Add row to the table with the default format set to the highest quality mp3
      }
 
      applySupportedURLsFilter(filterValue: string) {
@@ -198,7 +208,7 @@ export class Y2MComponent implements OnInit {
                     currLink['CurrentStep']++;
 
                     // Stop the download progress subscription
-                    this.dataService.deleteDownloadProgress( currLink['UUID']).subscribe((response) => {
+                    this.dataService.deleteDownloadProgress(currLink['UUID']).subscribe((response) => {
                     },
                     error => {
                          console.log("An error occurred terminating the download progress subscription");

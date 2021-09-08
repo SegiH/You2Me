@@ -289,6 +289,13 @@ export class DataService {
           return isAudio;
      }
 
+     isMoveToServerAllowed() {
+          let params = new HttpParams();
+          params = params.append('IsMoveToServerAllowed',true);
+                       
+          return this.processStep(params);
+     }
+
      isMP3Format(format: string) {
           let isMP3 = false;
 

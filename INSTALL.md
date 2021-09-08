@@ -1,27 +1,25 @@
 # You2Me Installation
 
-### Usage
-This application can be set up to run in one of 2 different ways: 
-
- - Client - Using the application this way will display a download button that that lets you download the file to your computer or phone. (Default)
- - Server - Using this application this way will automatically move the audio file to a specified location on your media server instead of showing a download button. Add ?MoveToServer=true at the end of the URL to enable this option. You can also choose whether to download the file or move to server if you do not specify this URL argument, as long as this feature is enabled (see the section Edit src/app/y2m/y2m.component.ts below).
-
 ### Installation
 
 You2Me can be run as a Docker container or installed on your own web server (Apache or Nginx). 
 
 #### Docker
-This is the easiest way to run You2Me. You can use my compose script which will pull an image of You2Me from Docker Hub that I build and push to Docker Hub regularly. This gives you a You2Me image with the default options. You can also build a You2Me image yourself.
+This is the easiest way to run You2Me. You can use my compose script `you2me.docker-compose.yml` located in docker/ which will pull an image of You2Me from Docker Hub that I build and push to Docker Hub regularly. This gives you a You2Me image with the default options. You can also build a You2Me image yourself if you want to customize any of the default options like enabling "Move To Server" which lets you move the audio/video file to your own web server
 
 If you already use Docker:
 
-#### Use image 
+#### Use Docker image from Docker Hub
 1. Edit docker/you2me.docker-compose.yml and change `YourNetworkName` on line 5 to your actual custom network name in Docker ([How to create a network in Docker](https://docs.docker.com/engine/reference/commandline/network_create/)). This should not be `host`.
 1. Run the command `docker-compose -f you2me.docker-compose.yml up --no-start && docker start You2Me` to create the You2Me container.
+
 ### Build Docker image
    1. Install npm 6+ which includes Node.js and npm.
-   1. Go to the main You2Me folder in terminal or command prompt
-   1. Edit package.json and find the line that begins with "build". Edit --base-href to match the relative path that the application will be hosted at. If your site is hosted at http://www.mysite.com/You2Me/, your build line should look like this: "build": "ng build --base-href /You2Me/ --prod", Don't forget to add / at the beginning and end of the path.
+     1. Edit package.json and find the line that begins with "build". Make sure that --base-href is set to /.
+   1. Edit the file assets/php/serverTasks.php and set the following values: 
+        - If you want to be able to move the file directly to your media server, change the value of $moveToServerAllowed to true. Make sure to add a volume in you2me.docker-compose.yml that points to /mnt/usb in the container: Ex `- /mnt/media:/mnt/usb`
+        - $domain - no need to change unless you want to explicitly set the domain . If you do change this, make sure that the domain is in the format `$domain ="https://www.domain.com/media/";` which includes media/ at the end.
+    1. If you want to be able to move the file directly to your media server, edit src/app/y2m/y2m.component.ts and make sure that the line with allowMoveToServer reads `allowMoveToServer = true;`
    1. Rename `proxy.example.conf.json` to `proxy.conf.json`
    1. Run `npm install` - This will install all of the missing dependencies.
    1. Run `npm run build` - This will build You2Me and create the dist folder.  
@@ -41,15 +39,14 @@ If you already use Docker:
    1. Edit package.json and find the line that begins with "build". Edit --base-href to match the relative path that the application will be hosted at. If your site is hosted at http://www.mysite.com/You2Me, your build line should look like this: "build": "ng build --base-href /You2Me/ --prod", Don't forget to add / at the beginning and end of the path.
    1. Create a folder called media under the root of your web server where the file will be stored temporarily. Linux users need to give this folder write permissions by running `chmod 775 media`.
    1. Edit the file assets/php/serverTasks.php and set the following values: 
-        - $destinationPath (Only needed if you are running in server mode) - The path where the media file will be moved to. This can be any path that is writable including a remote location such as a Samba mounted folder.
+        - If you want to be able to move the file directly to your media server, change the value of $moveToServerAllowed to true and set $audioDestinationPath and $videoDestinationPath to a location that the web server has access to. You can use the same path for both variables. This can be any path that is writable including a remote location such as a Samba mounted folder.
         - $sourcePath - The full path to the media folder on your web server that you created above. Ex: `/var/www/html/media/`. This location needs to be under your web root and writable.
-        - $domain - no need to change unless you want to explicitly set the domain . You can change this to $domain ='https://mydomain.com/media/" which is the full URL where this app will be hosted. Ex: `https://www.mysite.com/You2Me/`
+        - $domain - no need to change unless you want to explicitly set the domain . You can change this to $domain ='https://mydomain.com/media/" which is the full URL where this app will be hosted. Ex: `https://www.mysite.com/You2Me/media`. This has to include `media/` at the end/
    1. Edit src/app/y2m/y2m.component.ts 
-        - If you want to always run the app in server mode only, find and change the line `moveToServer = false;` to `moveToServer = true;`. If you want to be able to choose whether to download the file or move it to your server, leave this set to false. You can always use the MoveToServer URL parameter to decide this when running the web app. The title of the page will change to You2Me (Server) when running in server mode to distinguish client and server mode. If you don't provide this URL parameter and allowServerMode is false, the app will run in client mode. Please note that setting moveToServer = true in src/app/y2m/y2m.component.ts  or by setting the URL parameter &MoveToServer=true will automatically move the file to the server and not display a download button.
-        - If you do not want to allow the file from ever being moved to the server with a URL parameter, find and change the line allowMoveToServer = true; to allowMoveToServer = false;
+        -  If you want to be able to move the file directly to your media server, find and change the line `allowMoveToServer = false;` to `allowMoveToServer = true;`
         - Run `npm install` - This will install all of the missing dependencies.
         - Run `npm run build` - This will build You2Me.
-        - Make a folder called php in dist and move assets/serverTasks.php into this folder. Give it 755 permissions on Linux. ~~Create folder python in dist and move all files ending in py and pyc to this folder. The assets folder should be empty now. if it is you can delete it.~~   
+        - Make a folder called php in dist and move assets/serverTasks.php into this folder. Give it 755 permissions on Linux. Create folder python in dist and move all files ending in py and pyc to this folder. The assets folder should be empty now. if it is you can delete it.
         - Copy the contents of the dist folder to your web server
         - On Windows, make sure you have the following files/folders in the php folder: getid3 folder (Extract latest getid3.zip and copy getid3 subfolder) youtube-dl.exe, ffmpeg.exe and ffprobe.exe from the latest ffmpeg zip file.
         - If you are using Linux, make sure that php/serverTasks.php has execute permission by running `chmod 775 serverTasks.php`.
@@ -67,15 +64,8 @@ To specify Beck as the artist and Odelay as the album as a URL parameter use. `h
 
 You2Me supports a bookmark which will automatically load You2Me in a new tab with the URL of the site that you want to use You2Me with. Create a bookmark in your browsers' toolbar with the name Send to You2Me and the following JavaScript code as the URL of the bookmark:
 
-Client mode:
-
 ```
 javascript:window.open('https://mysite.com/You2Me/?URL='+window.location.toString()+'&Name='+document.title+'&Format=320k','_parent','');event.preventDefault();
-```
-Server mode:
-
-```
-javascript:window.open('https://mysite.com/You2Me/?MoveToServer=true&URL='+window.location.toString()+'&Name='+document.title+'&Format=320k','_parent','');event.preventDefault();
 ```
 
 Don't forget to replace `mysite.com/You2Me` with the full URL of your instance of You2Me. Now visit a supported site like YouTube and click on the bookmark. A new You2Me tab/window will open with the URL already filled in. 
