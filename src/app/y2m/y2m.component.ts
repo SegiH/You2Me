@@ -9,7 +9,7 @@
 
      URL for testing: https://www.youtube.com/watch?v=Wch3gJG2GJ4
 */
-import { Component, ElementRef, Inject, Input, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { Component, Input, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogModel, ConfirmDialogComponent } from '../confirmdialog/confirmdialog.component'
 import { MatPaginator } from '@angular/material/paginator';
@@ -17,11 +17,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { DataService } from '../core/data.service';
 import { DownloadService } from '../core/download.service';
-import { DOCUMENT } from '@angular/common';
 import { MatSort } from '@angular/material/sort';
 import { interval, Observable, throwError } from "rxjs";
 import { MatAccordion } from '@angular/material/expansion';
-import { DomSanitizer } from '@angular/platform-browser';
 import { Overlay  } from '@angular/cdk/overlay';
 import { YTSearchComponent } from '../ytsearch/ytsearch.component';
 import { ComponentPortal } from '@angular/cdk/portal';
