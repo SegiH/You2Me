@@ -1,6 +1,6 @@
 # You2Me 
 
-NOTE: This code is no longer being maintained! Please see My other project called You2Me-Ionic
+NOTE: This code is no longer being maintained! Please see my other project called You2Me-Ionic
 
 Please see INSTALL.md for installation instructions.
 
