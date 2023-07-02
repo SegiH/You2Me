@@ -1,5 +1,7 @@
 # You2Me 
 
+NOTE: This code is no longer being maintained! Please e My other project called You2Me-Ionic
+
 Please see INSTALL.md for installation instructions.
 
  You2Me is an Angular web application that acts as a front-end for [youtube-dl](https://rg3.github.io/youtube-dl/) which lets you download audio or video from many web sites. 
